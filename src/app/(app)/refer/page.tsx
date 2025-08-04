@@ -35,8 +35,8 @@ export default function ReferPage() {
   const [referralLink, setReferralLink] = React.useState("")
 
   React.useEffect(() => {
-    if (user && typeof window !== "undefined") {
-      const baseUrl = `${window.location.protocol}//${window.location.host}`
+    if (user) {
+      const baseUrl = "https://onearn.platformvn.com"
       setReferralLink(`${baseUrl}/signup?ref=${user.uid}`)
     }
   }, [user])
