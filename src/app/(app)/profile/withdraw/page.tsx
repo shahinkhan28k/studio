@@ -36,6 +36,7 @@ import {
 
 const withdrawFormSchema = z.object({
   method: z.string({ required_error: "Please select a payment method." }),
+  walletNumber: z.string().min(1, "Wallet number is required."),
   amount: z.coerce
     .number({ required_error: "Please enter an amount." })
     .positive({ message: "Amount must be positive." }),
@@ -60,6 +61,7 @@ export default function WithdrawPage() {
     defaultValues: {
         amount: 0,
         method: "",
+        walletNumber: ""
     }
   })
 
@@ -138,6 +140,19 @@ export default function WithdrawPage() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
+              <FormField
+                control={form.control}
+                name="walletNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wallet Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter wallet number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="amount"
