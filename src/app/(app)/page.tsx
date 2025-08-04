@@ -22,30 +22,13 @@ import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
 import { useAppContext } from "@/context/app-context"
 import { useNotices } from "@/hooks/use-notices"
-
-
-const banners = [
-    {
-        src: "https://placehold.co/1200x500.png",
-        alt: "Promotional Banner 1",
-        "data-ai-hint": "digital marketing"
-    },
-    {
-        src: "https://placehold.co/1200x500.png",
-        alt: "Promotional Banner 2",
-        "data-ai-hint": "online earnings"
-    },
-    {
-        src: "https://placehold.co/1200x500.png",
-        alt: "Promotional Banner 3",
-        "data-ai-hint": "successful teamwork"
-    }
-]
+import { useBanners } from "@/hooks/use-banners"
 
 
 export default function HomePage() {
   const { language } = useAppContext()
   const { notices } = useNotices()
+  const { banners } = useBanners()
 
   return (
     <div className="container py-6">
@@ -65,7 +48,7 @@ export default function HomePage() {
         >
           <CarouselContent>
              {banners.map((banner, index) => (
-              <CarouselItem key={index}>
+              <CarouselItem key={banner.id}>
                 <Card className="overflow-hidden rounded-xl shadow-lg">
                   <CardContent className="p-0">
                     <div className="aspect-video md:aspect-[2.4/1] relative">
