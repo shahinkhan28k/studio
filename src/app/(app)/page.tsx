@@ -26,7 +26,8 @@ import { formatCurrency } from "@/lib/utils"
 
 const withdrawalUsers = [
   "Abdullah Al Mamun", "Fatima Akter", "Rahim Ahmed", "Sadia Islam", "Kamal Hossain",
-  "Nusrat Jahan", "Jamal Uddin", "Ayesha Siddika", "Fahim Chowdhury", "Sumaiya Khatun"
+  "Nusrat Jahan", "Jamal Uddin", "Ayesha Siddika", "Fahim Chowdhury", "Sumaiya Khatun",
+  "Rofiq Islam", "Jannatul Ferdous", "Mehedi Hasan", "Sultana Razia", "Arif Khan"
 ];
 
 const maskUsername = (name: string) => {
@@ -95,13 +96,15 @@ export default function HomePage() {
       toast({
         title: language.t('successfulWithdrawal'),
         description: `${maskedName} ${language.t('justWithdrew')} ${formatCurrency(randomAmount, currency)}`,
-        duration: 5000, // Show toast for 5 seconds
+        duration: 5000,
       })
       
+      // Delay for the next toast is between 4 and 8 seconds.
       const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
       timeoutRef.current = setTimeout(showRandomToast, nextToastDelay);
     }
     
+    // Show the first toast after an initial delay of 3 seconds.
     timeoutRef.current = setTimeout(showRandomToast, 3000);
 
     return () => {
