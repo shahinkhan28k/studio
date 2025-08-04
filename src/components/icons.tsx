@@ -8,6 +8,8 @@ import {
   LogOut,
   ChevronRight,
   Copy,
+  ArrowDownToLine,
+  ArrowUpFromLine,
 } from "lucide-react"
 
 export const Icons = {
@@ -33,4 +35,6 @@ export const Icons = {
   Logout: LogOut,
   ChevronRight,
   Copy,
+  Deposit: ArrowDownToLine,
+  Withdraw: ArrowUpFromLine,
 }

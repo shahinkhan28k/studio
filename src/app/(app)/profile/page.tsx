@@ -1,12 +1,24 @@
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Icons } from "@/components/icons"
 
 const profileMenuItems = [
+  { title: "Deposit", href: "/profile/deposit", icon: Icons.Deposit },
+  { title: "Withdraw", href: "/profile/withdraw", icon: Icons.Withdraw },
   { title: "Account Details", href: "/profile/account", icon: Icons.Profile },
-  { title: "Personal Information", href: "/profile/info", icon: Icons.Settings },
+  {
+    title: "Personal Information",
+    href: "/profile/info",
+    icon: Icons.Settings,
+  },
   { title: "Help & Support", href: "/profile/help", icon: Icons.Home }, // Placeholder icon
 ]
 

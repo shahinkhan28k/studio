@@ -9,7 +9,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Icons.Home },
   { href: "/tasks", label: "Tasks", icon: Icons.Tasks },
   { href: "/refer", label: "Refer", icon: Icons.Refer },
-  { href: "/profile", label: "Profile", icon: Icons.Profile },
+  { href: "/profile", label: "Account", icon: Icons.Profile },
 ]
 
 export function FooterNav() {
