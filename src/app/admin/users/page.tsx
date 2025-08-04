@@ -10,6 +10,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
+
 
 const users = [
   {
@@ -39,11 +42,18 @@ export default function UsersPage() {
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">
-            Manage all registered users on the platform.
-          </p>
+        <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/admin">
+                    <ChevronLeft />
+                </Link>
+            </Button>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+                <p className="text-muted-foreground">
+                    Manage all registered users on the platform.
+                </p>
+            </div>
         </div>
         <Button>Add User</Button>
       </div>

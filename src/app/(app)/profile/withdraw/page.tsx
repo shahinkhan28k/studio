@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useUserStats, WithdrawalRecord } from "@/hooks/use-user-stats"
 import * as React from "react"
 import { format } from "date-fns"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 
 
 import { Button } from "@/components/ui/button"
@@ -195,6 +197,12 @@ export default function WithdrawPage() {
 
   return (
     <div className="container py-6 space-y-8">
+      <Button variant="ghost" asChild className="mb-4 -ml-4">
+        <Link href="/profile">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back
+        </Link>
+      </Button>
       <Card>
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>

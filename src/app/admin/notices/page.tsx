@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 
 const notices = [
   { id: 1, title: "New high-value tasks available!", createdAt: "2024-07-28" },
@@ -20,9 +22,16 @@ export default function NoticesAdminPage() {
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notice Board</h1>
-          <p className="text-muted-foreground">Manage notices for all users.</p>
+        <div className="flex items-center gap-4">
+           <Button variant="ghost" size="icon" asChild>
+                <Link href="/admin">
+                    <ChevronLeft />
+                </Link>
+           </Button>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Notice Board</h1>
+                <p className="text-muted-foreground">Manage notices for all users.</p>
+            </div>
         </div>
         <Button>Add Notice</Button>
       </div>

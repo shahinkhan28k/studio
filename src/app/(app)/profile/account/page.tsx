@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -132,6 +134,12 @@ export default function AccountDetailsPage() {
 
   return (
     <div className="container py-6">
+       <Button variant="ghost" asChild className="mb-4">
+        <Link href="/profile">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back
+        </Link>
+      </Button>
       <Card>
         <CardHeader>
           <CardTitle>{language.t('accountDetails')}</CardTitle>
