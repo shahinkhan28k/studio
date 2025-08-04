@@ -16,7 +16,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -114,7 +113,7 @@ export default function WithdrawPage() {
                   <FormItem>
                     <FormLabel>Account Holder Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter account holder name" {...field} readOnly />
+                      <Input placeholder="Enter account holder name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
