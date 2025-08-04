@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import * as React from "react"
+import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,7 +35,12 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy } from "lucide-react"
-import { useUserStats } from "@/hooks/use-user-stats"
+import { DepositRecord, useUserStats } from "@/hooks/use-user-stats"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { useAppContext } from "@/context/app-context"
+import { formatCurrency } from "@/lib/utils"
+
 
 const depositFormSchema = z
   .object({
@@ -104,7 +110,8 @@ const usdtDetails = {
 
 export default function DepositPage() {
   const { toast } = useToast()
-  const { addDeposit } = useUserStats()
+  const { addDeposit, depositHistory } = useUserStats()
+  const { currency } = useAppContext();
 
 
   const form = useForm<DepositFormValues>({
@@ -123,7 +130,12 @@ export default function DepositPage() {
   const selectedMethod = form.watch("method")
 
   function onSubmit(data: DepositFormValues) {
-    addDeposit(data.amount);
+    const depositData: Omit<DepositRecord, 'date'> = {
+      amount: data.amount,
+      method: data.method,
+      status: 'pending'
+    }
+    addDeposit(depositData);
     toast({
       title: "Deposit Submitted",
       description: "Your deposit has been submitted and will be processed shortly.",
@@ -142,7 +154,7 @@ export default function DepositPage() {
   const isUsdtTransfer = selectedMethod === "usdt"
 
   return (
-    <div className="container py-6">
+    <div className="container py-6 space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Make a Deposit</CardTitle>
@@ -332,6 +344,46 @@ export default function DepositPage() {
               <Button type="submit">Submit Deposit</Button>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+            <CardTitle>Deposit History</CardTitle>
+            <CardDescription>
+                Here is a list of your recent deposits.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                   {depositHistory.length > 0 ? (
+                     depositHistory.map((deposit, index) => (
+                        <TableRow key={index}>
+                            <TableCell>{format(new Date(deposit.date), "PP")}</TableCell>
+                            <TableCell>{formatCurrency(deposit.amount, currency)}</TableCell>
+                            <TableCell className="capitalize">{deposit.method}</TableCell>
+                            <TableCell>
+                                <Badge variant={deposit.status === 'completed' ? 'default' : 'secondary'}>
+                                    {deposit.status}
+                                </Badge>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                   ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="text-center">No deposit history found.</TableCell>
+                    </TableRow>
+                   )}
+                </TableBody>
+             </Table>
         </CardContent>
       </Card>
     </div>

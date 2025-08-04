@@ -3,14 +3,33 @@
 
 import { useState, useEffect, useCallback } from "react"
 
-type UserStats = {
+export type UserStats = {
   totalEarnings: number
   totalDeposit: number
   totalWithdraw: number
   availableBalance: number
 }
 
+export type TransactionStatus = 'pending' | 'completed' | 'failed';
+
+export type DepositRecord = {
+  date: string;
+  amount: number;
+  method: string;
+  status: TransactionStatus;
+}
+
+export type WithdrawalRecord = {
+    date: string;
+    amount: number;
+    method: string;
+    status: TransactionStatus;
+}
+
 const STATS_STORAGE_KEY = "userStats"
+const DEPOSIT_HISTORY_KEY = "depositHistory"
+const WITHDRAWAL_HISTORY_KEY = "withdrawalHistory"
+
 
 const defaultStats: UserStats = {
   totalEarnings: 1250.75,
@@ -19,40 +38,49 @@ const defaultStats: UserStats = {
   availableBalance: 1500.75,
 }
 
-// Helper to get stats from localStorage
-const getStoredStats = (): UserStats => {
-  if (typeof window === "undefined") {
-    return defaultStats
-  }
-  try {
-    const stored = window.localStorage.getItem(STATS_STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored) as UserStats
+// Helper to get data from localStorage
+const getStoredData = <T>(key: string, defaultValue: T): T => {
+    if (typeof window === "undefined") {
+        return defaultValue;
     }
-  } catch (error) {
-    console.error("Failed to parse user stats from localStorage", error)
-  }
-  return defaultStats
+    try {
+        const stored = window.localStorage.getItem(key);
+        if (stored) {
+            return JSON.parse(stored) as T;
+        }
+    } catch (error) {
+        console.error(`Failed to parse ${key} from localStorage`, error);
+    }
+    return defaultValue;
 }
 
-// Helper to set stats in localStorage
-const setStoredStats = (stats: UserStats) => {
-  if (typeof window === "undefined") return
-  try {
-    window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats))
-  } catch (error) {
-    console.error("Failed to save user stats to localStorage", error)
-  }
+// Helper to set data in localStorage
+const setStoredData = <T>(key: string, data: T) => {
+    if (typeof window === "undefined") return;
+    try {
+        window.localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+        console.error(`Failed to save ${key} to localStorage`, error);
+    }
 }
 
 export function useUserStats() {
-  const [stats, setStats] = useState<UserStats>(getStoredStats)
+  const [stats, setStats] = useState<UserStats>(() => getStoredData(STATS_STORAGE_KEY, defaultStats));
+  const [depositHistory, setDepositHistory] = useState<DepositRecord[]>(() => getStoredData(DEPOSIT_HISTORY_KEY, []));
+  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRecord[]>(() => getStoredData(WITHDRAWAL_HISTORY_KEY, []));
+
 
   useEffect(() => {
-    // This effect ensures that if localStorage is updated in another tab,
-    // this hook's state reflects that change.
-    const handleStorageChange = () => {
-      setStats(getStoredStats())
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === STATS_STORAGE_KEY) {
+         setStats(getStoredData(STATS_STORAGE_KEY, defaultStats))
+      }
+      if (event.key === DEPOSIT_HISTORY_KEY) {
+        setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, []))
+      }
+      if (event.key === WITHDRAWAL_HISTORY_KEY) {
+        setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, []))
+      }
     }
 
     window.addEventListener("storage", handleStorageChange)
@@ -60,11 +88,11 @@ export function useUserStats() {
       window.removeEventListener("storage", handleStorageChange)
     }
   }, [])
-
+  
   const updateStats = useCallback((newStats: Partial<UserStats>) => {
     setStats((prevStats) => {
       const updatedStats = { ...prevStats, ...newStats }
-      setStoredStats(updatedStats)
+      setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
   }, [])
@@ -78,43 +106,58 @@ export function useUserStats() {
         totalEarnings: newTotalEarnings,
         availableBalance: newAvailableBalance,
       }
-      setStoredStats(updatedStats)
+      setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
   }, [])
   
-  const addDeposit = useCallback((amount: number) => {
+  const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date'>) => {
     setStats((prevStats) => {
-        const newTotalDeposit = prevStats.totalDeposit + amount;
-        const newAvailableBalance = prevStats.availableBalance + amount;
+        const newTotalDeposit = prevStats.totalDeposit + deposit.amount;
+        const newAvailableBalance = prevStats.availableBalance + deposit.amount;
         const updatedStats = {
             ...prevStats,
             totalDeposit: newTotalDeposit,
             availableBalance: newAvailableBalance
         };
-        setStoredStats(updatedStats);
+        setStoredData(STATS_STORAGE_KEY, updatedStats);
         return updatedStats;
     });
+
+    setDepositHistory(prevHistory => {
+        const newRecord: DepositRecord = { ...deposit, date: new Date().toISOString() };
+        const updatedHistory = [newRecord, ...prevHistory];
+        setStoredData(DEPOSIT_HISTORY_KEY, updatedHistory);
+        return updatedHistory;
+    })
+
   }, []);
   
-  const addWithdrawal = useCallback((amount: number) => {
+  const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date'>) => {
     setStats((prevStats) => {
-        if(amount > prevStats.availableBalance) {
-            // This check is a safeguard, the form should prevent this.
+        if(withdrawal.amount > prevStats.availableBalance) {
             return prevStats;
         }
-        const newTotalWithdraw = prevStats.totalWithdraw + amount;
-        const newAvailableBalance = prevStats.availableBalance - amount;
+        const newTotalWithdraw = prevStats.totalWithdraw + withdrawal.amount;
+        const newAvailableBalance = prevStats.availableBalance - withdrawal.amount;
         const updatedStats = {
             ...prevStats,
             totalWithdraw: newTotalWithdraw,
             availableBalance: newAvailableBalance
         };
-        setStoredStats(updatedStats);
+        setStoredData(STATS_STORAGE_KEY, updatedStats);
         return updatedStats;
     });
+
+    setWithdrawalHistory(prevHistory => {
+        const newRecord: WithdrawalRecord = { ...withdrawal, date: new Date().toISOString() };
+        const updatedHistory = [newRecord, ...prevHistory];
+        setStoredData(WITHDRAWAL_HISTORY_KEY, updatedHistory);
+        return updatedHistory;
+    });
+
   }, []);
 
 
-  return { stats, updateStats, addEarning, addDeposit, addWithdrawal }
+  return { stats, updateStats, addEarning, addDeposit, addWithdrawal, depositHistory, withdrawalHistory }
 }

@@ -5,8 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { useUserStats } from "@/hooks/use-user-stats"
+import { useUserStats, WithdrawalRecord } from "@/hooks/use-user-stats"
 import * as React from "react"
+import { format } from "date-fns"
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +36,8 @@ import {
 } from "@/components/ui/select"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 
 const withdrawFormSchema = z
   .object({
@@ -108,7 +112,7 @@ const referralCount = 5
 
 export default function WithdrawPage() {
   const { toast } = useToast()
-  const { stats, addWithdrawal } = useUserStats()
+  const { stats, addWithdrawal, withdrawalHistory } = useUserStats()
   const [availableBalance, setAvailableBalance] = React.useState(0)
   const { language, currency } = useAppContext()
 
@@ -172,7 +176,13 @@ export default function WithdrawPage() {
       return
     }
 
-    addWithdrawal(data.amount)
+    const withdrawalData: Omit<WithdrawalRecord, 'date'> = {
+      amount: data.amount,
+      method: data.method,
+      status: 'pending'
+    }
+
+    addWithdrawal(withdrawalData)
 
     toast({
       title: "Withdrawal Request Submitted",
@@ -184,7 +194,7 @@ export default function WithdrawPage() {
   }
 
   return (
-    <div className="container py-6">
+    <div className="container py-6 space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
@@ -345,6 +355,47 @@ export default function WithdrawPage() {
               <Button type="submit">Submit Withdrawal Request</Button>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+            <CardTitle>Withdrawal History</CardTitle>
+            <CardDescription>
+                Here is a list of your recent withdrawals.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                   {withdrawalHistory.length > 0 ? (
+                    withdrawalHistory.map((withdrawal, index) => (
+                        <TableRow key={index}>
+                            <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
+                            <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
+                            <TableCell className="capitalize">{withdrawal.method}</TableCell>
+                            <TableCell>
+                                <Badge variant={withdrawal.status === 'completed' ? 'default' : 'secondary'}>
+                                    {withdrawal.status}
+                                </Badge>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                   ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="text-center">No withdrawal history found.</TableCell>
+                    </TableRow>
+                   )}
+                </TableBody>
+             </Table>
         </CardContent>
       </Card>
     </div>
