@@ -72,10 +72,11 @@ const banners = [
 
 
 export default function HomePage() {
-  const { toast } = useToast()
+  const { toast, dismiss } = useToast()
   const { language, currency } = useAppContext()
   const userQueue = React.useRef(shuffleArray([...withdrawalUsers]));
   const currentUserIndex = React.useRef(0);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
 
   React.useEffect(() => {
@@ -97,15 +98,18 @@ export default function HomePage() {
       })
       
       const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
-      setTimeout(showRandomToast, nextToastDelay);
+      timeoutRef.current = setTimeout(showRandomToast, nextToastDelay);
     }
     
-    const initialDelay = setTimeout(showRandomToast, 3000);
+    timeoutRef.current = setTimeout(showRandomToast, 3000);
 
     return () => {
-        clearTimeout(initialDelay);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        dismiss(); // Dismiss any active toasts when leaving the page
     }
-  }, [toast, currency, language])
+  }, [toast, currency, language, dismiss])
 
 
   return (
