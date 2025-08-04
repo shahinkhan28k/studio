@@ -59,7 +59,9 @@ export default function NoticesAdminPage() {
                   <TableCell>{notice.title}</TableCell>
                   <TableCell>{format(new Date(notice.createdAt), "PP")}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" className="mr-2" disabled>Edit</Button>
+                    <Button variant="outline" size="sm" className="mr-2" asChild>
+                        <Link href={`/admin/notices/${notice.id}/edit`}>Edit</Link>
+                    </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDelete(notice.id)}>Delete</Button>
                   </TableCell>
                 </TableRow>

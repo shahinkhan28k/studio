@@ -81,12 +81,25 @@ export function useNotices() {
     setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
   }, []);
 
+  const updateNotice = useCallback((noticeId: number, noticeData: NoticeFormValues) => {
+    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
+    const updatedNotices = currentNotices.map(notice => 
+        notice.id === noticeId ? { ...notice, ...noticeData } : notice
+    );
+    setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
+  }, []);
 
   const deleteNotice = useCallback((noticeId: number) => {
     const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
     const updatedNotices = currentNotices.filter(notice => notice.id !== noticeId);
     setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
   }, []);
+  
+  const getNoticeById = useCallback((noticeId: number): Notice | undefined => {
+    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
+    return currentNotices.find(notice => notice.id === noticeId);
+  }, []);
 
-  return { notices, addNotice, deleteNotice };
+
+  return { notices, addNotice, updateNotice, deleteNotice, getNoticeById };
 }
