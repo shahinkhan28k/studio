@@ -34,7 +34,7 @@ export type Referral = {
 }
 
 
-const defaultStats: UserStats = {
+export const defaultStats: UserStats = {
   totalEarnings: 0,
   totalDeposit: 0,
   totalWithdraw: 0,

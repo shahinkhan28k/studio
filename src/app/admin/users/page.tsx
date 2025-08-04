@@ -15,14 +15,26 @@ import { ChevronLeft } from "lucide-react"
 import { useAdminStats } from "@/hooks/use-admin-stats"
 import { formatCurrency } from "@/lib/utils"
 import React from "react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function UsersPage() {
-  const { allUsersData } = useAdminStats()
+  const { allUsersData, deleteUser } = useAdminStats()
+  const { toast } = useToast()
   const [isClient, setIsClient] = React.useState(false)
 
   React.useEffect(() => {
     setIsClient(true)
   }, [])
+  
+  const handleDeleteUser = (uid: string, name: string | null) => {
+    if (confirm(`Are you sure you want to delete user: ${name || uid}? This action cannot be undone.`)) {
+        deleteUser(uid);
+        toast({
+            title: "User Deleted",
+            description: `User ${name || uid} has been permanently deleted.`
+        })
+    }
+  }
 
   return (
     <div className="container py-6">
@@ -64,7 +76,11 @@ export default function UsersPage() {
                   <Button variant="outline" size="sm" className="mr-2" disabled>
                     Edit
                   </Button>
-                   <Button variant="destructive" size="sm" disabled>
+                   <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => handleDeleteUser(user.uid, user.displayName)}
+                    >
                     Delete
                   </Button>
                 </TableCell>

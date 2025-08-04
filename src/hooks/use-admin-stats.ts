@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
-import { UserStats } from "./use-user-stats"
+import { useState, useEffect, useCallback } from "react"
+import { UserStats, defaultStats } from "./use-user-stats"
 
 type AdminStats = {
     totalUsers: number;
@@ -44,87 +44,87 @@ export function useAdminStats() {
     const [recentSignups, setRecentSignups] = useState<UserInfo[]>([])
     const [allUsersData, setAllUsersData] = useState<AllUsersData[]>([])
 
-    useEffect(() => {
-        const calculateStats = () => {
-            const allItems = getAllLocalStorageItems()
-            const userStatKeys = Object.keys(allItems).filter(k => k.startsWith('userStats_'))
-            
-            const allSignupsData = Object.keys(allItems)
-                .filter(k => k.startsWith('signup_'))
-                .map(key => {
-                    try {
-                        const data = JSON.parse(allItems[key]);
-                        return data.user as UserInfo;
-                    } catch (e) {
-                        return null;
-                    }
-                })
-                .filter((u): u is UserInfo => u !== null);
-
-            let totalEarnings = 0;
-            let totalDeposits = 0;
-            let totalWithdrawals = 0;
-            let tasksCompleted = 0;
-
-            const usersData: AllUsersData[] = [];
-            const processedUids = new Set<string>();
-
-            // Process users who have stats
-            userStatKeys.forEach(key => {
+    const calculateStats = useCallback(() => {
+        const allItems = getAllLocalStorageItems()
+        const userStatKeys = Object.keys(allItems).filter(k => k.startsWith('userStats_'))
+        
+        const allSignupsData = Object.keys(allItems)
+            .filter(k => k.startsWith('signup_'))
+            .map(key => {
                 try {
-                    const userStats: UserStats = JSON.parse(allItems[key]);
-                    totalEarnings += userStats.totalEarnings;
-                    totalDeposits += userStats.totalDeposit;
-                    totalWithdrawals += userStats.totalWithdraw;
-
-                    const uid = key.replace('userStats_', '');
-                    processedUids.add(uid);
-
-                    const signupInfo = allSignupsData.find(u => u.uid === uid) || { uid, email: null, displayName: null, photoURL: null };
-
-                    usersData.push({
-                        ...signupInfo,
-                        stats: userStats
-                    });
-
+                    const data = JSON.parse(allItems[key]);
+                    return data.user as UserInfo;
                 } catch (e) {
-                    console.error(`Could not parse user stats for key ${key}`, e)
+                    return null;
                 }
             })
-            
-            // Add users who have signed up but have no stats yet
-            allSignupsData.forEach(signup => {
-                if (!processedUids.has(signup.uid)) {
-                    usersData.push({
-                        ...signup,
-                        stats: defaultStats
-                    })
-                }
-            });
+            .filter((u): u is UserInfo => u !== null);
+
+        let totalEarnings = 0;
+        let totalDeposits = 0;
+        let totalWithdrawals = 0;
+        let tasksCompleted = 0;
+
+        const usersData: AllUsersData[] = [];
+        const processedUids = new Set<string>();
+
+        // Process users who have stats
+        userStatKeys.forEach(key => {
+            try {
+                const userStats: UserStats = JSON.parse(allItems[key]);
+                totalEarnings += userStats.totalEarnings;
+                totalDeposits += userStats.totalDeposit;
+                totalWithdrawals += userStats.totalWithdraw;
+
+                const uid = key.replace('userStats_', '');
+                processedUids.add(uid);
+
+                const signupInfo = allSignupsData.find(u => u.uid === uid) || { uid, email: null, displayName: null, photoURL: null };
+
+                usersData.push({
+                    ...signupInfo,
+                    stats: userStats
+                });
+
+            } catch (e) {
+                console.error(`Could not parse user stats for key ${key}`, e)
+            }
+        })
+        
+        // Add users who have signed up but have no stats yet
+        allSignupsData.forEach(signup => {
+            if (!processedUids.has(signup.uid)) {
+                usersData.push({
+                    ...signup,
+                    stats: defaultStats
+                })
+            }
+        });
 
 
-            tasksCompleted = Math.floor(totalEarnings / 5);
+        tasksCompleted = Math.floor(totalEarnings / 5);
 
 
-            const signups: UserInfo[] = allSignupsData.sort((a,b) => {
-                 const aData = JSON.parse(allItems[`signup_${a.uid}`]);
-                 const bData = JSON.parse(allItems[`signup_${b.uid}`]);
-                 return new Date(bData.timestamp).getTime() - new Date(aData.timestamp).getTime();
-            });
+        const signups: UserInfo[] = allSignupsData.sort((a,b) => {
+             const aData = JSON.parse(allItems[`signup_${a.uid}`]);
+             const bData = JSON.parse(allItems[`signup_${b.uid}`]);
+             return new Date(bData.timestamp).getTime() - new Date(aData.timestamp).getTime();
+        });
 
 
-            setStats({
-                totalUsers: usersData.length,
-                totalEarnings,
-                totalDeposits,
-                totalWithdrawals,
-                tasksCompleted
-            })
-            
-            setRecentSignups(signups);
-            setAllUsersData(usersData);
-        }
+        setStats({
+            totalUsers: usersData.length,
+            totalEarnings,
+            totalDeposits,
+            totalWithdrawals,
+            tasksCompleted
+        })
+        
+        setRecentSignups(signups);
+        setAllUsersData(usersData);
+    }, [])
 
+    useEffect(() => {
         calculateStats()
 
         const handleStorageChange = (event: StorageEvent) => {
@@ -135,7 +135,34 @@ export function useAdminStats() {
         return () => {
             window.removeEventListener("storage", handleStorageChange)
         }
-    }, [])
+    }, [calculateStats])
+    
+    const deleteUser = useCallback((uid: string) => {
+        if (typeof window !== "undefined") {
+            const keysToRemove = [
+                `userStats_${uid}`,
+                `depositHistory_${uid}`,
+                `withdrawalHistory_${uid}`,
+                `referrals_${uid}`,
+                `signup_${uid}`,
+                `accountDetails_${uid}`,
+                `referrer_${uid}`
+            ];
 
-    return { stats, recentSignups, allUsersData }
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            // Re-calculate stats after deletion
+            calculateStats();
+             // Manually dispatch a storage event to ensure same-page updates
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'userDeleted',
+                newValue: uid,
+            }));
+
+        }
+    }, [calculateStats]);
+
+    return { stats, recentSignups, allUsersData, deleteUser }
 }
