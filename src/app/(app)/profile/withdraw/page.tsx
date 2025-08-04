@@ -11,7 +11,6 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
-
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -105,58 +104,59 @@ const withdrawFormSchema = z
 
 type WithdrawFormValues = z.infer<typeof withdrawFormSchema>
 
-const user = {
-  name: "John Doe",
-}
-
-// This is a placeholder for the actual referral count logic
-const referralCount = 5
+const referralCount = 5 // This is a placeholder
 
 export default function WithdrawPage() {
   const { toast } = useToast()
   const { stats, addWithdrawal, withdrawalHistory } = useUserStats()
-  const [availableBalance, setAvailableBalance] = React.useState(0)
   const { language, currency } = useAppContext()
+  const [isInitialized, setIsInitialized] = React.useState(false)
 
-  React.useEffect(() => {
-    setAvailableBalance(stats.availableBalance)
-  }, [stats.availableBalance])
+  const defaultValues = React.useMemo(() => ({
+    amount: 0,
+    method: "",
+    walletNumber: "",
+    bankName: "",
+    accountHolderName: "",
+    bankAccountNumber: "",
+    swiftCode: "",
+    usdtAddress: "",
+  }), []);
 
   const form = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawFormSchema),
-    defaultValues: {
-      amount: 0,
-      method: "",
-      walletNumber: "",
-    },
+    defaultValues: defaultValues,
   })
   
   const paymentMethod = form.watch("method")
   const formValues = form.watch()
   
   React.useEffect(() => {
-    try {
-      const savedData = localStorage.getItem("withdrawalDetails")
-      if (savedData) {
-        const parsedData = JSON.parse(savedData)
-        // Check if the saved method requires bank details and set them if they exist
-        if (parsedData.method) {
-            form.reset(parsedData)
+    if (!isInitialized) {
+      try {
+        const savedData = localStorage.getItem("withdrawalDetails")
+        if (savedData) {
+          const parsedData = JSON.parse(savedData)
+          if (parsedData.method) {
+              form.reset({ ...defaultValues, ...parsedData });
+          }
         }
+      } catch (error) {
+        console.error("Failed to parse withdrawal details from localStorage", error)
       }
-    } catch (error) {
-      console.error("Failed to parse withdrawal details from localStorage", error)
+      setIsInitialized(true);
     }
-  }, [form])
+  }, [form, defaultValues, isInitialized])
   
    React.useEffect(() => {
-    try {
-      localStorage.setItem("withdrawalDetails", JSON.stringify(formValues))
-    } catch (error) {
-      console.error("Failed to save withdrawal details to localStorage", error)
+    if (isInitialized) {
+      try {
+        localStorage.setItem("withdrawalDetails", JSON.stringify(formValues))
+      } catch (error) {
+        console.error("Failed to save withdrawal details to localStorage", error)
+      }
     }
-  }, [formValues])
-
+  }, [formValues, isInitialized])
 
   function onSubmit(data: WithdrawFormValues) {
     if (referralCount < 20) {
@@ -207,7 +207,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Your available balance is {formatCurrency(availableBalance, currency)}. Enter
+            Your available balance is {formatCurrency(stats.availableBalance, currency)}. Enter
             your account details and the amount you wish to withdraw.
           </CardDescription>
         </CardHeader>
@@ -222,7 +222,7 @@ export default function WithdrawPage() {
                     <FormLabel>Payment Method</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>

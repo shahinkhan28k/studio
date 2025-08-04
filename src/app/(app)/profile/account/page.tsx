@@ -91,48 +91,56 @@ export default function AccountDetailsPage() {
   const { toast } = useToast()
   const { language } = useAppContext()
   const { user } = useAuth()
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
-  const defaultUser = {
+  const defaultValues = React.useMemo(() => ({
     name: user?.displayName ?? "",
     email: user?.email ?? "",
     mobileNumber: user?.phoneNumber ?? "",
     walletNumber: "",
     address: "",
     paymentMethod: "bkash",
-  }
+    bankName: "",
+    accountHolderName: "",
+    bankAccountNumber: "",
+    swiftCode: "",
+  }), [user]);
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues: defaultUser,
+    defaultValues: defaultValues,
   })
 
   const paymentMethod = form.watch("paymentMethod")
   const formValues = form.watch()
 
   React.useEffect(() => {
-    try {
-      const savedData = localStorage.getItem(`accountDetails_${user?.uid}`)
-      if (savedData) {
-        const parsedData = JSON.parse(savedData)
-        form.reset({ ...defaultUser, ...parsedData })
-      } else {
-        form.reset(defaultUser)
+    if (user && !isInitialized) {
+      try {
+        const savedData = localStorage.getItem(`accountDetails_${user.uid}`)
+        if (savedData) {
+          const parsedData = JSON.parse(savedData)
+          form.reset({ ...defaultValues, ...parsedData })
+        } else {
+          form.reset(defaultValues)
+        }
+      } catch (error) {
+        console.error("Failed to parse account details from localStorage", error)
+        form.reset(defaultValues)
       }
-    } catch (error) {
-      console.error("Failed to parse account details from localStorage", error)
-      form.reset(defaultUser)
+      setIsInitialized(true);
     }
-  }, [form, user, defaultUser])
+  }, [form, user, defaultValues, isInitialized])
 
   React.useEffect(() => {
-    if (user) {
+    if (user && isInitialized) {
       try {
         localStorage.setItem(`accountDetails_${user.uid}`, JSON.stringify(formValues))
       } catch (error) {
         console.error("Failed to save account details to localStorage", error)
       }
     }
-  }, [formValues, user])
+  }, [formValues, user, isInitialized])
 
   function onSubmit(data: AccountFormValues) {
     toast({
@@ -219,7 +227,7 @@ export default function AccountDetailsPage() {
                     <FormLabel>Preferred Payment Method</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
