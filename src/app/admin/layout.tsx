@@ -56,12 +56,6 @@ export default function AdminLayout({
              <SidebarGroup>
                 <SidebarGroupLabel>Content</SidebarGroupLabel>
                  <SidebarMenuItem>
-                  <SidebarMenuButton href="/admin/homepage" tooltip="Homepage">
-                    <LayoutDashboard />
-                    <span>Homepage</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
                   <SidebarMenuButton href="/admin/notices" tooltip="Notices">
                     <Bell />
                     <span>Notices</span>

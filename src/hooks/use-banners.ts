@@ -2,7 +2,15 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import type { BannerFormValues } from "@/app/admin/homepage/page"
+
+// This type was previously imported from a now-deleted file.
+// We define it here to keep the hook self-contained.
+export interface BannerFormValues {
+  src: string;
+  alt: string;
+  'data-ai-hint': string;
+}
+
 
 export type Banner = BannerFormValues & {
   id: number;

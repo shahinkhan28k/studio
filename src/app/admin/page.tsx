@@ -48,9 +48,6 @@ export default function AdminPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href="/admin/homepage">Homepage</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
               <Link href="/admin/notices">Notices</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
