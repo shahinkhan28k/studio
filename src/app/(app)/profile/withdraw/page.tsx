@@ -105,7 +105,7 @@ export default function WithdrawPage() {
     },
   })
   
-  const paymentMethod = form.watch("paymentMethod")
+  const paymentMethod = form.watch("method")
   const formValues = form.watch()
   
   React.useEffect(() => {
