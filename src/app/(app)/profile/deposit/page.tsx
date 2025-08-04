@@ -4,6 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import * as React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -83,9 +84,20 @@ const depositFormSchema = z
 
 type DepositFormValues = z.infer<typeof depositFormSchema>
 
+const mobileAgent = {
+  number: "01234567890",
+  type: "Agent",
+}
+
+const bankDetails = {
+  bankName: "Example Bank Ltd.",
+  accountName: "Onearn Platform",
+  accountNumber: "1234567890123",
+  branch: "Dhaka",
+}
+
 export default function DepositPage() {
   const { toast } = useToast()
-  const agentNumber = "01234567890"
 
   const form = useForm<DepositFormValues>({
     resolver: zodResolver(depositFormSchema),
@@ -112,12 +124,14 @@ export default function DepositPage() {
     })
   }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(agentNumber)
+  const copyToClipboard = (textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy)
     toast({
       title: "Copied to clipboard!",
     })
   }
+  
+  const isBankTransfer = selectedMethod === "bank"
 
   return (
     <div className="container py-6">
@@ -133,17 +147,39 @@ export default function DepositPage() {
             <AlertTitle className="font-bold">Send Money First</AlertTitle>
             <AlertDescription>
               <p className="text-muted-foreground">
-                Please send the desired amount to the following agent number
+                Please send the desired amount to the following {isBankTransfer ? 'bank account' : 'agent number'}
                 before filling out this form.
               </p>
-              <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
-                <span className="text-lg font-semibold text-primary">
-                  {agentNumber}
-                </span>
-                <Button variant="ghost" size="icon" onClick={copyToClipboard}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+              {isBankTransfer ? (
+                <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm text-muted-foreground">Bank Name:</span>
+                     <span className="font-semibold text-primary">{bankDetails.bankName}</span>
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm text-muted-foreground">Account Name:</span>
+                     <span className="font-semibold text-primary">{bankDetails.accountName}</span>
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm text-muted-foreground">Account Number:</span>
+                     <span className="font-semibold text-primary">{bankDetails.accountNumber}</span>
+                   </div>
+                    <div className="flex items-center justify-end">
+                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(bankDetails.accountNumber)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                </div>
+              ) : (
+                <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
+                  <span className="text-lg font-semibold text-primary">
+                    {mobileAgent.number}
+                  </span>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(mobileAgent.number)}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
 
