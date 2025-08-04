@@ -97,6 +97,11 @@ const bankDetails = {
   branch: "Dhaka",
 }
 
+const usdtDetails = {
+  address: "TX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r",
+}
+
+
 export default function DepositPage() {
   const { toast } = useToast()
   const { addDeposit } = useUserStats()
@@ -134,6 +139,7 @@ export default function DepositPage() {
   }
   
   const isBankTransfer = selectedMethod === "bank"
+  const isUsdtTransfer = selectedMethod === "usdt"
 
   return (
     <div className="container py-6">
@@ -149,7 +155,7 @@ export default function DepositPage() {
             <AlertTitle className="font-bold">Send Money First</AlertTitle>
             <AlertDescription>
               <p className="text-muted-foreground">
-                Please send the desired amount to the following {isBankTransfer ? 'bank account' : 'agent number'}
+                Please send the desired amount to the following {isBankTransfer ? 'bank account' : isUsdtTransfer ? 'USDT address' : 'agent number'}
                 before filling out this form.
               </p>
               {selectedMethod === "bank" ? (
@@ -171,6 +177,18 @@ export default function DepositPage() {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
+                </div>
+              ) : selectedMethod === 'usdt' ? (
+                 <div className="mt-2 flex flex-col space-y-2 rounded-md bg-muted p-3">
+                  <span className="text-sm text-muted-foreground">USDT Address (TRC20):</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-primary break-all">
+                      {usdtDetails.address}
+                    </span>
+                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(usdtDetails.address)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ) : selectedMethod && selectedMethod !== "bank" ? (
                 <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
@@ -207,6 +225,7 @@ export default function DepositPage() {
                         <SelectItem value="nagad">Nagad</SelectItem>
                         <SelectItem value="rocket">Rocket</SelectItem>
                         <SelectItem value="bank">Bank Transfer</SelectItem>
+                        <SelectItem value="usdt">Binance (USDT)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
