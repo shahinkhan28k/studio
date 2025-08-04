@@ -35,6 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { useAppContext } from "@/context/app-context"
+import { useAuth } from "@/context/auth-context"
 
 const accountFormSchema = z
   .object({
@@ -86,18 +87,20 @@ const accountFormSchema = z
 
 type AccountFormValues = z.infer<typeof accountFormSchema>
 
-const defaultUser = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  mobileNumber: "+8801234567890",
-  walletNumber: "01234567890",
-  address: "123 Main St, Dhaka, Bangladesh",
-  paymentMethod: "bkash",
-}
-
 export default function AccountDetailsPage() {
   const { toast } = useToast()
   const { language } = useAppContext()
+  const { user } = useAuth()
+
+  const defaultUser = {
+    name: user?.displayName ?? "",
+    email: user?.email ?? "",
+    mobileNumber: user?.phoneNumber ?? "",
+    walletNumber: "",
+    address: "",
+    paymentMethod: "bkash",
+  }
+
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
     defaultValues: defaultUser,
@@ -108,22 +111,28 @@ export default function AccountDetailsPage() {
 
   React.useEffect(() => {
     try {
-      const savedData = localStorage.getItem("accountDetails")
+      const savedData = localStorage.getItem(`accountDetails_${user?.uid}`)
       if (savedData) {
-        form.reset(JSON.parse(savedData))
+        const parsedData = JSON.parse(savedData)
+        form.reset({ ...defaultUser, ...parsedData })
+      } else {
+        form.reset(defaultUser)
       }
     } catch (error) {
       console.error("Failed to parse account details from localStorage", error)
+      form.reset(defaultUser)
     }
-  }, [form])
+  }, [form, user, defaultUser])
 
   React.useEffect(() => {
-    try {
-      localStorage.setItem("accountDetails", JSON.stringify(formValues))
-    } catch (error) {
-      console.error("Failed to save account details to localStorage", error)
+    if (user) {
+      try {
+        localStorage.setItem(`accountDetails_${user.uid}`, JSON.stringify(formValues))
+      } catch (error) {
+        console.error("Failed to save account details to localStorage", error)
+      }
     }
-  }, [formValues])
+  }, [formValues, user])
 
   function onSubmit(data: AccountFormValues) {
     toast({
@@ -170,7 +179,7 @@ export default function AccountDetailsPage() {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter your email" {...field} />
+                      <Input type="email" placeholder="Enter your email" {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
