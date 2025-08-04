@@ -180,7 +180,7 @@ export default function DepositPage() {
                 </div>
               ) : selectedMethod === 'usdt' ? (
                  <div className="mt-2 flex flex-col space-y-2 rounded-md bg-muted p-3">
-                  <span className="text-sm text-muted-foreground">USDT Address (TRC20):</span>
+                  <span className="text-sm text-muted-foreground">USDT Address (BSC20):</span>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-primary break-all">
                       {usdtDetails.address}
