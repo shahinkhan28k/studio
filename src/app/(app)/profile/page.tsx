@@ -62,7 +62,7 @@ export default function ProfilePage() {
               <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-2xl">{user?.displayName ?? "User"}</CardTitle>
+              <CardTitle className="text-2xl">{user?.displayName || "User"}</CardTitle>
               <CardDescription>{user?.email}</CardDescription>
             </div>
           </CardHeader>
