@@ -4,6 +4,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useToast } from "@/hooks/use-toast"
+import { useUserStats } from "@/hooks/use-user-stats"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
 
 const withdrawFormSchema = z.object({
   method: z.string({ required_error: "Please select a payment method." }),
@@ -48,6 +49,8 @@ const user = {
 
 export default function WithdrawPage() {
   const { toast } = useToast()
+  const { stats, addWithdrawal } = useUserStats();
+
   const form = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawFormSchema),
     defaultValues: {
@@ -58,14 +61,26 @@ export default function WithdrawPage() {
   })
 
   function onSubmit(data: WithdrawFormValues) {
+    if(data.amount > stats.availableBalance) {
+        toast({
+            title: "Insufficient Balance",
+            description: "You do not have enough balance to make this withdrawal.",
+            variant: "destructive"
+        })
+        return;
+    }
+    
+    // In a real app, this would be an API call.
+    // For now, we simulate the withdrawal approval.
+    addWithdrawal(data.amount);
+
     toast({
       title: "Withdrawal Request Submitted",
       description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
+        "Your request has been submitted and will be processed shortly."
       ),
     })
+    form.reset();
   }
 
   return (
@@ -74,7 +89,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Enter your account details and the amount you wish to withdraw.
+             Your available balance is ${stats.availableBalance.toFixed(2)}. Enter your account details and the amount you wish to withdraw.
           </CardDescription>
         </CardHeader>
         <CardContent>

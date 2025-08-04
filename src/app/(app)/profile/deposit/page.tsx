@@ -34,6 +34,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy } from "lucide-react"
+import { useUserStats } from "@/hooks/use-user-stats"
 
 const depositFormSchema = z
   .object({
@@ -98,6 +99,8 @@ const bankDetails = {
 
 export default function DepositPage() {
   const { toast } = useToast()
+  const { addDeposit } = useUserStats()
+
 
   const form = useForm<DepositFormValues>({
     resolver: zodResolver(depositFormSchema),
@@ -114,14 +117,12 @@ export default function DepositPage() {
   const selectedMethod = form.watch("method")
 
   function onSubmit(data: DepositFormValues) {
+    addDeposit(data.amount);
     toast({
       title: "Deposit Submitted",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+      description: "Your deposit has been submitted and will be processed shortly.",
     })
+    form.reset();
   }
 
   const copyToClipboard = (textToCopy: string) => {
@@ -150,7 +151,7 @@ export default function DepositPage() {
                 Please send the desired amount to the following {isBankTransfer ? 'bank account' : 'agent number'}
                 before filling out this form.
               </p>
-              {isBankTransfer ? (
+              {selectedMethod === "bank" ? (
                 <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
                    <div className="flex items-center justify-between">
                      <span className="text-sm text-muted-foreground">Bank Name:</span>
@@ -170,7 +171,7 @@ export default function DepositPage() {
                       </Button>
                     </div>
                 </div>
-              ) : (
+              ) : selectedMethod ? (
                 <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
                   <span className="text-lg font-semibold text-primary">
                     {mobileAgent.number}
@@ -179,7 +180,7 @@ export default function DepositPage() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-              )}
+              ) : null }
             </AlertDescription>
           </Alert>
 

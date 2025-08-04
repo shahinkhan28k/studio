@@ -1,4 +1,6 @@
 
+"use client"
+
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -10,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Icons } from "@/components/icons"
+import { useUserStats } from "@/hooks/use-user-stats"
 
 const profileMenuItems = [
   { title: "Deposit", href: "/profile/deposit", icon: Icons.Deposit },
@@ -25,11 +28,11 @@ const profileMenuItems = [
 ]
 
 export default function ProfilePage() {
+  const { stats } = useUserStats()
   const user = {
     name: "John Doe",
     email: "john.doe@example.com",
     avatar: "https://placehold.co/100x100.png",
-    earnings: 1250.75,
   }
 
   return (
@@ -48,14 +51,41 @@ export default function ProfilePage() {
           </CardHeader>
         </Card>
 
-        <Card className="bg-primary text-primary-foreground">
-          <CardHeader>
-            <CardTitle className="text-lg font-normal">Total Earnings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold">${user.earnings.toFixed(2)}</p>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-2 gap-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">Total Earnings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">${stats.totalEarnings.toFixed(2)}</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">Available Balance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold text-primary">${stats.availableBalance.toFixed(2)}</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">Total Deposit</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">${stats.totalDeposit.toFixed(2)}</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">Total Withdraw</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">${stats.totalWithdraw.toFixed(2)}</p>
+                </CardContent>
+            </Card>
+        </div>
+
 
         <Card>
           <CardContent className="p-4">

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { useUserStats } from "@/hooks/use-user-stats"
 
 const initialTasks = [
   { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15 },
@@ -44,6 +45,8 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   const [isAdOpen, setIsAdOpen] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const { toast } = useToast()
+  const { addEarning } = useUserStats()
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -78,6 +81,8 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
         task.id === taskId ? { ...task, completed: true } : task
       )
     );
+    
+    addEarning(reward);
 
     toast({
       title: "Task Completed!",
