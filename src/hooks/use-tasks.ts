@@ -40,18 +40,27 @@ const setStoredData = <T>(key: string, data: T) => {
     if (typeof window === "undefined") return;
     try {
         window.localStorage.setItem(key, JSON.stringify(data));
+        // Manually dispatch a storage event to ensure same-page updates
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: key,
+            newValue: JSON.stringify(data),
+        }));
     } catch (error) {
         console.error(`Failed to save ${key} to localStorage`, error);
     }
 }
 
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>(() => getStoredData(TASKS_STORAGE_KEY, defaultTasks));
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    setTasks(getStoredData(TASKS_STORAGE_KEY, defaultTasks));
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === TASKS_STORAGE_KEY) {
-         setTasks(getStoredData(TASKS_STORAGE_KEY, defaultTasks))
+      if (event.key === TASKS_STORAGE_KEY && event.newValue) {
+         setTasks(JSON.parse(event.newValue));
       }
     }
     window.addEventListener("storage", handleStorageChange)
@@ -62,49 +71,40 @@ export function useTasks() {
   
   const updateTasks = useCallback((newTasks: Task[]) => {
     setStoredData(TASKS_STORAGE_KEY, newTasks);
-    setTasks(newTasks);
   }, []);
 
   const addTask = useCallback((taskData: TaskFormValues) => {
-    setTasks(prevTasks => {
-      const newId = prevTasks.length > 0 ? Math.max(...prevTasks.map(t => t.id)) + 1 : 1;
-      const newTask: Task = {
-        ...taskData,
-        id: newId,
-        completed: false,
-      };
-      const updatedTasks = [...prevTasks, newTask];
-      setStoredData(TASKS_STORAGE_KEY, updatedTasks);
-      return updatedTasks;
-    });
+    const currentTasks = getStoredData<Task[]>(TASKS_STORAGE_KEY, defaultTasks);
+    const newId = currentTasks.length > 0 ? Math.max(...currentTasks.map(t => t.id)) + 1 : 1;
+    const newTask: Task = {
+      ...taskData,
+      id: newId,
+      completed: false,
+    };
+    const updatedTasks = [...currentTasks, newTask];
+    setStoredData(TASKS_STORAGE_KEY, updatedTasks);
   }, []);
 
   const updateTask = useCallback((taskId: number, updatedData: Partial<TaskFormValues>) => {
-    setTasks(prevTasks => {
-        const updatedTasks = prevTasks.map(task => 
-            task.id === taskId ? { ...task, ...updatedData } : task
-        );
-        setStoredData(TASKS_STORAGE_KEY, updatedTasks);
-        return updatedTasks;
-    });
+    const currentTasks = getStoredData<Task[]>(TASKS_STORAGE_KEY, defaultTasks);
+    const updatedTasks = currentTasks.map(task => 
+        task.id === taskId ? { ...task, ...updatedData } : task
+    );
+    setStoredData(TASKS_STORAGE_KEY, updatedTasks);
   }, []);
 
   const deleteTask = useCallback((taskId: number) => {
-    setTasks(prevTasks => {
-        const updatedTasks = prevTasks.filter(task => task.id !== taskId);
-        setStoredData(TASKS_STORAGE_KEY, updatedTasks);
-        return updatedTasks;
-    });
+    const currentTasks = getStoredData<Task[]>(TASKS_STORAGE_KEY, defaultTasks);
+    const updatedTasks = currentTasks.filter(task => task.id !== taskId);
+    setStoredData(TASKS_STORAGE_KEY, updatedTasks);
   }, []);
 
   const completeTask = useCallback((taskId: number) => {
-     setTasks(prevTasks => {
-        const updatedTasks = prevTasks.map(task =>
-            task.id === taskId ? { ...task, completed: true } : task
-        );
-        setStoredData(TASKS_STORAGE_KEY, updatedTasks);
-        return updatedTasks;
-     });
+     const currentTasks = getStoredData<Task[]>(TASKS_STORAGE_KEY, defaultTasks);
+     const updatedTasks = currentTasks.map(task =>
+        task.id === taskId ? { ...task, completed: true } : task
+     );
+     setStoredData(TASKS_STORAGE_KEY, updatedTasks);
   }, []);
 
   return { tasks, setTasks: updateTasks, addTask, updateTask, deleteTask, completeTask };
