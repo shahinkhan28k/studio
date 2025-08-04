@@ -11,14 +11,18 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-
-const notices = [
-  { id: 1, title: "New high-value tasks available!", createdAt: "2024-07-28" },
-  { id: 2, title: "Referral Program Boost", createdAt: "2024-07-27" },
-  { id: 3, title: "Scheduled Maintenance", createdAt: "2024-07-26" },
-];
+import { useNotices } from "@/hooks/use-notices"
+import { format } from "date-fns"
 
 export default function NoticesAdminPage() {
+  const { notices, deleteNotice } = useNotices()
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this notice?")) {
+      deleteNotice(id)
+    }
+  }
+
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
@@ -33,7 +37,9 @@ export default function NoticesAdminPage() {
                 <p className="text-muted-foreground">Manage notices for all users.</p>
             </div>
         </div>
-        <Button>Add Notice</Button>
+        <Button asChild>
+          <Link href="/admin/notices/new">Add Notice</Link>
+        </Button>
       </div>
       <div className="border rounded-lg">
         <Table>
@@ -46,17 +52,23 @@ export default function NoticesAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {notices.map((notice) => (
-              <TableRow key={notice.id}>
-                <TableCell>{notice.id}</TableCell>
-                <TableCell>{notice.title}</TableCell>
-                <TableCell>{notice.createdAt}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2">Edit</Button>
-                  <Button variant="destructive" size="sm">Delete</Button>
-                </TableCell>
+            {notices.length > 0 ? (
+              notices.map((notice) => (
+                <TableRow key={notice.id}>
+                  <TableCell>{notice.id}</TableCell>
+                  <TableCell>{notice.title}</TableCell>
+                  <TableCell>{format(new Date(notice.createdAt), "PP")}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm" className="mr-2" disabled>Edit</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(notice.id)}>Delete</Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">No notices found.</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>

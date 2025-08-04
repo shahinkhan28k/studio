@@ -21,6 +21,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
 import { useAppContext } from "@/context/app-context"
+import { useNotices } from "@/hooks/use-notices"
 
 
 const banners = [
@@ -44,6 +45,7 @@ const banners = [
 
 export default function HomePage() {
   const { language } = useAppContext()
+  const { notices } = useNotices()
 
   return (
     <div className="container py-6">
@@ -101,34 +103,21 @@ export default function HomePage() {
             <CardTitle>{language.t('noticeBoardTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-4">
-              <li className="flex flex-col">
-                <p className="font-semibold">
-                  {language.t('notice1Title')}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {language.t('notice1Description')}
-                </p>
-              </li>
-              <Separator />
-              <li className="flex flex-col">
-                <p className="font-semibold">
-                  {language.t('notice2Title')}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {language.t('notice2Description')}
-                </p>
-              </li>
-              <Separator />
-              <li className="flex flex-col">
-                <p className="font-semibold">
-                 {language.t('notice3Title')}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                 {language.t('notice3Description')}
-                </p>
-              </li>
-            </ul>
+            {notices.length > 0 ? (
+                <ul className="space-y-4">
+                {notices.map((notice, index) => (
+                    <React.Fragment key={notice.id}>
+                    <li className="flex flex-col">
+                        <p className="font-semibold">{notice.title}</p>
+                        <p className="text-sm text-muted-foreground">{notice.description}</p>
+                    </li>
+                    {index < notices.length - 1 && <Separator />}
+                    </React.Fragment>
+                ))}
+                </ul>
+            ) : (
+                <p className="text-sm text-muted-foreground">No notices at the moment.</p>
+            )}
           </CardContent>
         </Card>
       </div>
