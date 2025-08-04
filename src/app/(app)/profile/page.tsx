@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { Icons } from "@/components/icons"
 const profileMenuItems = [
   { title: "Deposit", href: "/profile/deposit", icon: Icons.Deposit },
   { title: "Withdraw", href: "/profile/withdraw", icon: Icons.Withdraw },
+  { title: "Collaboration", href: "/refer", icon: Icons.Refer },
   { title: "Account Details", href: "/profile/account", icon: Icons.Profile },
   {
     title: "Personal Information",
