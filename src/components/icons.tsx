@@ -12,7 +12,8 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Languages,
-  HelpCircle
+  HelpCircle,
+  Loader
 } from "lucide-react"
 
 export const Icons = {
@@ -42,4 +43,5 @@ export const Icons = {
   Withdraw: ArrowUpFromLine,
   Languages,
   HelpCircle,
+  Spinner: Loader,
 }

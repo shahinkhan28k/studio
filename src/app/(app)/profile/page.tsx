@@ -16,6 +16,7 @@ import { useUserStats, UserStats } from "@/hooks/use-user-stats"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import React from "react"
+import { useAuth } from "@/context/auth-context"
 
 const defaultStats: UserStats = {
   totalEarnings: 0,
@@ -27,6 +28,7 @@ const defaultStats: UserStats = {
 export default function ProfilePage() {
   const { stats: userStats } = useUserStats()
   const { language, currency } = useAppContext()
+  const { user } = useAuth();
   const [stats, setStats] = React.useState<UserStats>(defaultStats);
   const [isClient, setIsClient] = React.useState(false)
 
@@ -49,11 +51,6 @@ export default function ProfilePage() {
     { title: language.t('helpSupport'), href: "/profile/help", icon: Icons.HelpCircle }, 
   ]
 
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "https://placehold.co/100x100.png",
-  }
 
   return (
     <div className="container py-6">
@@ -61,12 +58,12 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={user?.photoURL ?? "https://placehold.co/100x100.png"} alt={user?.displayName ?? "User"} />
+              <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-2xl">{user.name}</CardTitle>
-              <CardDescription>{user.email}</CardDescription>
+              <CardTitle className="text-2xl">{user?.displayName ?? "User"}</CardTitle>
+              <CardDescription>{user?.email}</CardDescription>
             </div>
           </CardHeader>
         </Card>

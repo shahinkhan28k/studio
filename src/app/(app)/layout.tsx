@@ -1,13 +1,30 @@
 
+"use client"
 import { AppHeader } from "@/components/app-header"
 import { FooterNav } from "@/components/footer-nav"
 import { AppProvider } from "@/context/app-context"
+import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
+import React from "react"
 
 export default function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+    }
+  }, [user, loading, router])
+
+  if (loading || !user) {
+    return null; // Or a loading spinner
+  }
+  
   return (
     <AppProvider>
       <div className="relative flex min-h-screen flex-col">

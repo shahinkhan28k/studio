@@ -16,12 +16,29 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 import { Home, Users, ClipboardList, Bell, Settings, Percent, LayoutDashboard, UserCog } from "lucide-react"
+import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
+import React from "react"
+
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+    const { user, loading } = useAuth()
+    const router = useRouter()
+
+    React.useEffect(() => {
+        if (!loading && !user) {
+        router.push("/login")
+        }
+    }, [user, loading, router])
+
+    if (loading || !user) {
+        return null; // Or a loading spinner
+    }
+
   return (
     <SidebarProvider>
       <Sidebar side="left" collapsible="icon">
