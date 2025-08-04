@@ -12,13 +12,29 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Icons } from "@/components/icons"
-import { useUserStats } from "@/hooks/use-user-stats"
+import { useUserStats, UserStats } from "@/hooks/use-user-stats"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
+import React from "react"
+
+const defaultStats: UserStats = {
+  totalEarnings: 0,
+  totalDeposit: 0,
+  totalWithdraw: 0,
+  availableBalance: 0,
+}
 
 export default function ProfilePage() {
-  const { stats } = useUserStats()
+  const { stats: userStats } = useUserStats()
   const { language, currency } = useAppContext()
+  const [stats, setStats] = React.useState<UserStats>(defaultStats);
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+    setStats(userStats)
+  }, [userStats]);
+
 
   const profileMenuItems = [
     { title: language.t('deposit'), href: "/profile/deposit", icon: Icons.Deposit },
@@ -61,7 +77,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalEarnings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.totalEarnings, currency)}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -69,7 +85,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('availableBalance')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold text-primary">{formatCurrency(stats.availableBalance, currency)}</p>
+                    <p className="text-2xl font-bold text-primary">{isClient ? formatCurrency(stats.availableBalance, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -77,7 +93,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalDeposit')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.totalDeposit, currency)}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposit, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -85,7 +101,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalWithdraw')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.totalWithdraw, currency)}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalWithdraw, currency) : '...'}</p>
                 </CardContent>
             </Card>
         </div>
