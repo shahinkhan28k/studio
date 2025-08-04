@@ -42,6 +42,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
+import { useSettings } from "@/hooks/use-settings"
 
 
 const depositFormSchema = z
@@ -93,27 +94,11 @@ const depositFormSchema = z
 
 type DepositFormValues = z.infer<typeof depositFormSchema>
 
-const mobileAgent = {
-  number: "01234567890",
-  type: "Agent",
-}
-
-const bankDetails = {
-  bankName: "Example Bank Ltd.",
-  accountName: "Onearn Platform",
-  accountNumber: "1234567890123",
-  branch: "Dhaka",
-}
-
-const usdtDetails = {
-  address: "TX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r",
-}
-
-
 export default function DepositPage() {
   const { toast } = useToast()
   const { addDeposit, depositHistory } = useUserStats()
   const { currency } = useAppContext();
+  const { settings } = useSettings();
 
 
   const form = useForm<DepositFormValues>({
@@ -146,10 +131,12 @@ export default function DepositPage() {
   }
 
   const copyToClipboard = (textToCopy: string) => {
-    navigator.clipboard.writeText(textToCopy)
-    toast({
-      title: "Copied to clipboard!",
-    })
+    if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy)
+        toast({
+          title: "Copied to clipboard!",
+        })
+    }
   }
   
   const isBankTransfer = selectedMethod === "bank"
@@ -182,30 +169,34 @@ export default function DepositPage() {
                 <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
                    <div className="flex items-center justify-between">
                      <span className="text-sm text-muted-foreground">Bank Name:</span>
-                     <span className="font-semibold text-primary">{bankDetails.bankName}</span>
+                     <span className="font-semibold text-primary">{settings.bankName}</span>
                    </div>
                    <div className="flex items-center justify-between">
                      <span className="text-sm text-muted-foreground">Account Name:</span>
-                     <span className="font-semibold text-primary">{bankDetails.accountName}</span>
+                     <span className="font-semibold text-primary">{settings.bankAccountName}</span>
                    </div>
                    <div className="flex items-center justify-between">
                      <span className="text-sm text-muted-foreground">Account Number:</span>
-                     <span className="font-semibold text-primary">{bankDetails.accountNumber}</span>
+                     <span className="font-semibold text-primary">{settings.bankAccountNumber}</span>
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm text-muted-foreground">Branch:</span>
+                     <span className="font-semibold text-primary">{settings.bankBranch}</span>
                    </div>
                     <div className="flex items-center justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(bankDetails.accountNumber)}>
+                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.bankAccountNumber)}>
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                 </div>
               ) : selectedMethod === 'usdt' ? (
                  <div className="mt-2 flex flex-col space-y-2 rounded-md bg-muted p-3">
-                  <span className="text-sm text-muted-foreground">USDT Address (BSC20):</span>
+                  <span className="text-sm text-muted-foreground">USDT Address (BEP20):</span>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-primary break-all">
-                      {usdtDetails.address}
+                      {settings.usdtAddress}
                     </span>
-                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(usdtDetails.address)}>
+                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.usdtAddress)}>
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -213,9 +204,9 @@ export default function DepositPage() {
               ) : selectedMethod && selectedMethod !== "bank" ? (
                 <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
                   <span className="text-lg font-semibold text-primary">
-                    {mobileAgent.number}
+                    {settings.agentNumber}
                   </span>
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(mobileAgent.number)}>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.agentNumber)}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>

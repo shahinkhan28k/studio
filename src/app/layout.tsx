@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
+import { SettingsProvider } from '@/hooks/use-settings';
 
 export const metadata: Metadata = {
   title: 'Onearn Platform',
@@ -26,9 +27,11 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
-        <AuthProvider>
-            {children}
-        </AuthProvider>
+        <SettingsProvider>
+          <AuthProvider>
+              {children}
+          </AuthProvider>
+        </SettingsProvider>
         <Toaster />
       </body>
     </html>

@@ -39,6 +39,7 @@ import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { useSettings } from "@/hooks/use-settings"
 
 const withdrawFormSchema = z
   .object({
@@ -104,12 +105,11 @@ const withdrawFormSchema = z
 
 type WithdrawFormValues = z.infer<typeof withdrawFormSchema>
 
-const referralCount = 5 // This is a placeholder
-
 export default function WithdrawPage() {
   const { toast } = useToast()
-  const { stats, addWithdrawal, withdrawalHistory } = useUserStats()
+  const { stats, addWithdrawal, withdrawalHistory, referrals } = useUserStats()
   const { language, currency } = useAppContext()
+  const { settings } = useSettings();
   const [isInitialized, setIsInitialized] = React.useState(false)
 
   const defaultValues = React.useMemo(() => ({
@@ -159,11 +159,11 @@ export default function WithdrawPage() {
   }, [formValues, isInitialized])
 
   function onSubmit(data: WithdrawFormValues) {
-    if (referralCount < 20) {
+    if (referrals.length < settings.withdrawalRequirement) {
       toast({
         title: "Withdrawal Requirement Not Met",
         description:
-          "You must refer at least 20 people to be eligible for a withdrawal.",
+          `You must refer at least ${settings.withdrawalRequirement} people to be eligible for a withdrawal.`,
         variant: "destructive",
       })
       return

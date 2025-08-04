@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
+import { useSettings } from "./use-settings";
 
 export type UserStats = {
   totalEarnings: number
@@ -41,8 +42,6 @@ export const defaultStats: UserStats = {
   availableBalance: 0,
 }
 
-const REFERRAL_COMMISSION_RATE = 0.05; // 5%
-
 const getStoredData = <T>(key: string, defaultValue: T): T => {
     if (typeof window === "undefined") {
         return defaultValue;
@@ -75,6 +74,7 @@ const setStoredData = <T>(key: string, data: T) => {
 
 export function useUserStats() {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const uid = user?.uid;
 
   const STATS_STORAGE_KEY = uid ? `userStats_${uid}` : 'userStats';
@@ -144,7 +144,7 @@ export function useUserStats() {
       
       const referrerId = localStorage.getItem(`referrer_${user.uid}`);
       if (referrerId) {
-          const commission = amount * REFERRAL_COMMISSION_RATE;
+          const commission = amount * (settings.referralCommissionRateL1 / 100);
           const referrerStatsKey = `userStats_${referrerId}`;
           const referrerStats = getStoredData<UserStats>(referrerStatsKey, defaultStats);
           
@@ -187,7 +187,7 @@ export function useUserStats() {
       setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
-  }, [user, STATS_STORAGE_KEY])
+  }, [user, STATS_STORAGE_KEY, settings.referralCommissionRateL1])
   
   const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date'>) => {
     if (!uid) return;
