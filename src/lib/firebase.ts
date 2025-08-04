@@ -3,13 +3,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id",
-  measurementId: "your-measurement-id"
+  apiKey: "AIzaSyCh3OwU5XxzJfKuGrhcf0xf_7Tg5D3ja3g",
+  authDomain: "onearn-platform.firebaseapp.com",
+  projectId: "onearn-platform",
+  storageBucket: "onearn-platform.appspot.com",
+  messagingSenderId: "350477123762",
+  appId: "1:350477123762:web:09b7987cf92882d04d09ab"
 };
 
 
