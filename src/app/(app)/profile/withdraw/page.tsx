@@ -47,6 +47,10 @@ const user = {
     name: "John Doe",
 }
 
+// This is a placeholder for the actual referral count logic
+const referralCount = 5;
+
+
 export default function WithdrawPage() {
   const { toast } = useToast()
   const { stats, addWithdrawal } = useUserStats();
@@ -60,6 +64,15 @@ export default function WithdrawPage() {
   })
 
   function onSubmit(data: WithdrawFormValues) {
+    if (referralCount < 20) {
+      toast({
+        title: "Withdrawal Requirement Not Met",
+        description: "You must refer at least 20 people to be eligible for a withdrawal.",
+        variant: "destructive"
+      })
+      return;
+    }
+
     if(data.amount > stats.availableBalance) {
         toast({
             title: "Insufficient Balance",
