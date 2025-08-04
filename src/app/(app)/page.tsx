@@ -1,3 +1,6 @@
+
+"use client"
+
 import Image from "next/image"
 import {
   Card,
@@ -15,6 +18,17 @@ import {
 } from "@/components/ui/carousel"
 import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+const withdrawalUsers = Array.from({ length: 100 }, (_, i) => `User ${i + 1}`)
 
 export default function HomePage() {
   return (
@@ -59,6 +73,44 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <TasksClient showFeaturedOnly />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>আজকের উত্তোলন</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 mb-4">
+              {withdrawalUsers.slice(0, 5).map((user, index) => (
+                <li key={index} className="text-sm text-muted-foreground">
+                  {user} made a withdrawal.
+                </li>
+              ))}
+            </ul>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  Show More
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>আজকের উত্তোলন</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="h-72 w-full rounded-md border">
+                  <div className="p-4">
+                    <ul className="space-y-2">
+                      {withdrawalUsers.map((user, index) => (
+                        <li key={index} className="text-sm">
+                          {user} made a withdrawal.
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 
