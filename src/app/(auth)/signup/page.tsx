@@ -7,7 +7,7 @@ import { z } from "zod"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
 import { Button } from "@/components/ui/button"
@@ -32,6 +32,7 @@ import { Icons } from "@/components/icons"
 
 const signupFormSchema = z
   .object({
+    name: z.string().min(1, "Name is required."),
     email: z.string().email("Please enter a valid email address."),
     password: z.string().min(6, "Password must be at least 6 characters."),
     confirmPassword: z.string(),
@@ -60,6 +61,7 @@ export default function SignupPage() {
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -71,6 +73,22 @@ export default function SignupPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password)
       const user = userCredential.user;
+
+      await updateProfile(user, {
+        displayName: data.name
+      });
+      
+      if (user) {
+        localStorage.setItem(`signup_${user.uid}`, JSON.stringify({
+            user: {
+                uid: user.uid,
+                email: user.email,
+                displayName: data.name,
+                photoURL: user.photoURL
+            },
+            timestamp: new Date().toISOString()
+        }));
+      }
 
       if (referrerId && user) {
         localStorage.setItem(`referrer_${user.uid}`, referrerId)
@@ -107,6 +125,22 @@ export default function SignupPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+             <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your full name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"

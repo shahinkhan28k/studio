@@ -1,4 +1,6 @@
 
+"use client"
+
 import {
   Card,
   CardContent,
@@ -6,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, Users, Activity, Eye, MoreVertical } from "lucide-react"
+import { DollarSign, Users, Activity, UserPlus, MoreVertical, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,8 +17,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { useAdminStats } from "@/hooks/use-admin-stats"
+import { formatCurrency } from "@/lib/utils"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import React from "react"
 
 export default function AdminPage() {
+  const { stats, recentSignups } = useAdminStats()
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-4">
@@ -62,14 +76,14 @@ export default function AdminPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Revenue
+              Total Earnings
             </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, 'USD') : "..."}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              Total earnings across all users
             </p>
           </CardContent>
         </Card>
@@ -79,9 +93,9 @@ export default function AdminPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">{isClient ? `+${stats.totalUsers}` : "..."}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              Total registered users
             </p>
           </CardContent>
         </Card>
@@ -93,23 +107,23 @@ export default function AdminPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">{isClient ? `+${stats.tasksCompleted}` : "..."}</div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              Across all users
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Users
+              Total Deposits
             </CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposits, 'USD') : "..."}</div>
             <p className="text-xs text-muted-foreground">
-              +201 since last hour
+              Total deposits made by users
             </p>
           </CardContent>
         </Card>
@@ -128,11 +142,32 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle>Recent Signups</CardTitle>
             <CardDescription>
-              You have 10 new signups this month.
+              {isClient ? `You have ${recentSignups.length} new signups.` : "..."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <p>Recent signups list placeholder</p>
+            {isClient ? (
+                <div className="space-y-4">
+                  {recentSignups.length > 0 ? (
+                    recentSignups.slice(0, 5).map((user) => (
+                      <div key={user.uid} className="flex items-center">
+                        <Avatar className="h-9 w-9">
+                           <AvatarImage src={user.photoURL || "https://placehold.co/100x100.png"} alt="Avatar" />
+                          <AvatarFallback>{user.email ? user.email.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="ml-4 space-y-1">
+                          <p className="text-sm font-medium leading-none">{user.displayName || 'New User'}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No new signups.</p>
+                  )}
+                </div>
+            ) : (
+              <p>Loading...</p>
+            )}
           </CardContent>
         </Card>
       </div>
