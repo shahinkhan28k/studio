@@ -60,6 +60,10 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
 
 
   const handleCompleteClick = (task: Task) => {
+    if (task.taskLink) {
+      window.open(task.taskLink, '_blank');
+    }
+    
     if (task.showAd) {
       setSelectedTask(task)
       setIsAdOpen(true)

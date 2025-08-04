@@ -13,7 +13,7 @@ export type Task = TaskFormValues & {
 const TASKS_STORAGE_KEY = "tasks"
 
 const defaultTasks: Task[] = [
-  { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15, status: "Active", adLink: "" },
+  { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15, status: "Active", adLink: "", taskLink: "https://google.com" },
   { id: 2, title: "App Download", description: "Download and install our partner's new mobile app.", reward: 10.00, completed: false, isFeatured: true, showAd: true, duration: 30, status: "Active", adLink: "" },
   { id: 3, title: "Watch a Video Ad", description: "Watch a 30-second promotional video.", reward: 2.50, completed: false, isFeatured: false, showAd: true, duration: 30, status: "Active", adLink: "" },
   { id: 4, title: "Social Media Share", description: "Share our promotional post on your social media profile.", reward: 7.50, completed: false, isFeatured: false, showAd: false, duration: 0, status: "Inactive", adLink: "" },

@@ -42,6 +42,7 @@ const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required."),
   description: z.string().min(1, "Description is required."),
   reward: z.coerce.number().positive("Reward must be a positive number."),
+  taskLink: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   isFeatured: z.boolean().default(false),
   showAd: z.boolean().default(false),
   duration: z.coerce.number().int().min(0).default(0),
@@ -62,6 +63,7 @@ export default function NewTaskPage() {
       title: "",
       description: "",
       reward: 0,
+      taskLink: "",
       isFeatured: false,
       showAd: false,
       duration: 0,
@@ -134,6 +136,22 @@ export default function NewTaskPage() {
                     <FormControl>
                       <Input type="number" placeholder="e.g. 5.00" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="taskLink"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Task Link (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/task-url" {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormDescription>
+                      If provided, the user will be redirected to this URL when they click the complete button.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
