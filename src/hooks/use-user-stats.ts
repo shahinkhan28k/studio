@@ -38,6 +38,9 @@ const defaultStats: UserStats = {
   availableBalance: 1500.75,
 }
 
+// This would be fetched from an admin-controlled setting in a real app
+const REFERRAL_COMMISSION_RATE = 0.05; // 5%
+
 // Helper to get data from localStorage
 const getStoredData = <T>(key: string, defaultValue: T): T => {
     if (typeof window === "undefined") {
@@ -63,6 +66,9 @@ const setStoredData = <T>(key: string, data: T) => {
         console.error(`Failed to save ${key} to localStorage`, error);
     }
 }
+
+// In a real app, this would be part of a user's data model.
+const hasReferrer = true;
 
 export function useUserStats() {
   const [stats, setStats] = useState<UserStats>(() => getStoredData(STATS_STORAGE_KEY, defaultStats));
@@ -101,11 +107,21 @@ export function useUserStats() {
     setStats((prevStats) => {
       const newTotalEarnings = prevStats.totalEarnings + amount
       const newAvailableBalance = prevStats.availableBalance + amount
+      
+      let referralBonus = 0;
+      if (hasReferrer) {
+          referralBonus = amount * REFERRAL_COMMISSION_RATE;
+      }
+      
       const updatedStats = {
         ...prevStats,
-        totalEarnings: newTotalEarnings,
+        totalEarnings: newTotalEarnings + referralBonus, // Add referral bonus to total earnings
         availableBalance: newAvailableBalance,
       }
+      
+      // In a real application, you would make an API call here to credit the referrer's account
+      // with `referralBonus`. For this simulation, we are adding it to the current user's earnings.
+      
       setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
