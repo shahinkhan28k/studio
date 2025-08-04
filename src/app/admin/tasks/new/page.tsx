@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +35,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useTasks } from "@/hooks/use-tasks"
 
 
 const taskFormSchema = z.object({
@@ -47,10 +49,13 @@ const taskFormSchema = z.object({
   adLink: z.string().optional(),
 })
 
-type TaskFormValues = z.infer<typeof taskFormSchema>
+export type TaskFormValues = z.infer<typeof taskFormSchema>
 
 export default function NewTaskPage() {
   const { toast } = useToast()
+  const router = useRouter()
+  const { addTask } = useTasks()
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
@@ -66,13 +71,12 @@ export default function NewTaskPage() {
   })
 
   function onSubmit(data: TaskFormValues) {
-    // Here you would typically send the data to your backend API
-    console.log(data)
+    addTask(data)
     toast({
       title: "Task Created",
       description: "The new task has been successfully created.",
     })
-    form.reset()
+    router.push("/admin/tasks")
   }
 
   return (

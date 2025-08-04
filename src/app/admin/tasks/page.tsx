@@ -12,15 +12,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-
-const tasks = [
-  { id: 1, title: "Survey Completion", reward: 5.0, isFeatured: true, status: "Active" },
-  { id: 2, title: "App Download", reward: 10.0, isFeatured: true, status: "Active" },
-  { id: 3, title: "Watch a Video Ad", reward: 2.5, isFeatured: false, status: "Active" },
-  { id: 4, title: "Social Media Share", reward: 7.5, isFeatured: false, status: "Inactive" },
-];
+import { useTasks } from "@/hooks/use-tasks"
+import { formatCurrency } from "@/lib/utils"
 
 export default function TasksAdminPage() {
+  const { tasks, deleteTask } = useTasks()
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this task?")) {
+      deleteTask(id)
+    }
+  }
+
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
@@ -56,7 +59,7 @@ export default function TasksAdminPage() {
               <TableRow key={task.id}>
                 <TableCell>{task.id}</TableCell>
                 <TableCell>{task.title}</TableCell>
-                <TableCell>${task.reward.toFixed(2)}</TableCell>
+                <TableCell>{formatCurrency(task.reward, 'USD')}</TableCell>
                 <TableCell>
                   <Badge variant={task.isFeatured ? "default" : "outline"}>
                     {task.isFeatured ? "Yes" : "No"}
@@ -68,8 +71,8 @@ export default function TasksAdminPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2">Edit</Button>
-                  <Button variant="destructive" size="sm">Delete</Button>
+                  <Button variant="outline" size="sm" className="mr-2" disabled>Edit</Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(task.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
             ))}

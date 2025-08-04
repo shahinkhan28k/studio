@@ -24,24 +24,15 @@ import { useToast } from "@/hooks/use-toast"
 import { cn, formatCurrency } from "@/lib/utils"
 import { useUserStats } from "@/hooks/use-user-stats"
 import { useAppContext } from "@/context/app-context"
-
-const initialTasks = [
-  { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15 },
-  { id: 2, title: "App Download", description: "Download and install our partner's new mobile app.", reward: 10.00, completed: false, isFeatured: true, showAd: true, duration: 30 },
-  { id: 3, title: "Watch a Video Ad", description: "Watch a 30-second promotional video.", reward: 2.50, completed: false, isFeatured: false, showAd: true, duration: 30 },
-  { id: 4, title: "Social Media Share", description: "Share our promotional post on your social media profile.", reward: 7.50, completed: false, isFeatured: false, showAd: false, duration: 0 },
-  { id: 5, title: "Product Review", description: "Write a review for a product you recently purchased.", reward: 12.00, completed: false, isFeatured: true, showAd: true, duration: 20 },
-  { id: 6, title: "Data Entry Task", description: "Enter data from a scanned document into a spreadsheet.", reward: 15.00, completed: false, isFeatured: false, showAd: false, duration: 0 },
-]
-
-type Task = typeof initialTasks[0];
+import { useTasks, Task } from "@/hooks/use-tasks"
 
 type TasksClientProps = {
   showFeaturedOnly?: boolean
 }
 
 export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
-  const [tasks, setTasks] = useState(initialTasks)
+  const { tasks: allTasks, completeTask: markTaskAsComplete } = useTasks()
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<number>>(new Set());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isAdOpen, setIsAdOpen] = useState(false)
   const [countdown, setCountdown] = useState(0)
@@ -78,12 +69,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   }
 
   const completeTask = (taskId: number, reward: number) => {
-     setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: true } : task
-      )
-    );
-    
+    setCompletedTaskIds(prev => new Set(prev).add(taskId))
     addEarning(reward);
 
     toast({
@@ -103,20 +89,21 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   }
 
   const displayedTasks = useMemo(() => {
+    const activeTasks = allTasks.filter(task => task.status === 'Active');
     if (showFeaturedOnly) {
-      return tasks.filter(task => task.isFeatured)
+      return activeTasks.filter(task => task.isFeatured)
     }
-    return tasks
-  }, [tasks, showFeaturedOnly])
+    return activeTasks
+  }, [allTasks, showFeaturedOnly])
 
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {displayedTasks.map((task) => (
-          <Card key={task.id} className={cn("flex flex-col transition-opacity duration-500", task.completed && "opacity-50")}>
+          <Card key={task.id} className={cn("flex flex-col transition-opacity duration-500", completedTaskIds.has(task.id) && "opacity-50")}>
             <CardHeader>
-              <CardTitle>{language.t(`task${task.id}Title`)}</CardTitle>
-              <CardDescription>{language.t(`task${task.id}Description`)}</CardDescription>
+              <CardTitle>{task.title}</CardTitle>
+              <CardDescription>{task.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
               <p className="text-lg font-bold text-primary">{formatCurrency(task.reward, currency)}</p>
@@ -125,9 +112,9 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
               <Button
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                 onClick={() => handleCompleteClick(task)}
-                disabled={task.completed}
+                disabled={completedTaskIds.has(task.id)}
               >
-                {task.completed ? language.t('completed') : language.t('completeTheTask')}
+                {completedTaskIds.has(task.id) ? language.t('completed') : language.t('completeTheTask')}
               </Button>
             </CardFooter>
           </Card>
@@ -145,7 +132,11 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="flex items-center justify-center h-48 bg-muted rounded-md">
-              <p className="text-muted-foreground">[Ad Content Placeholder]</p>
+              {selectedTask.adLink ? (
+                <iframe src={selectedTask.adLink} className="w-full h-full" />
+              ) : (
+                <p className="text-muted-foreground">[Ad Content Placeholder]</p>
+              )}
             </div>
             <AlertDialogFooter>
               <AlertDialogAction onClick={handleAdClose} disabled={countdown > 0}>
