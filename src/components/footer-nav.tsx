@@ -1,19 +1,22 @@
+
 "use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
-
-const navItems = [
-  { href: "/", label: "Home", icon: Icons.Home },
-  { href: "/tasks", label: "Tasks", icon: Icons.Tasks },
-  { href: "/refer", label: "Refer", icon: Icons.Refer },
-  { href: "/profile", label: "Account", icon: Icons.Profile },
-]
+import { useAppContext } from "@/context/app-context"
 
 export function FooterNav() {
   const pathname = usePathname()
+  const { language } = useAppContext()
+
+  const navItems = [
+    { href: "/", label: language.t('home'), icon: Icons.Home },
+    { href: "/tasks", label: language.t('tasks'), icon: Icons.Tasks },
+    { href: "/refer", label: language.t('refer'), icon: Icons.Refer },
+    { href: "/profile", label: language.t('account'), icon: Icons.Profile },
+  ]
 
   return (
     <div className="md:hidden">

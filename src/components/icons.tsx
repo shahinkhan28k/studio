@@ -1,3 +1,4 @@
+
 import type { SVGProps } from "react"
 import {
   Home,
@@ -10,6 +11,8 @@ import {
   Copy,
   ArrowDownToLine,
   ArrowUpFromLine,
+  Languages,
+  HelpCircle
 } from "lucide-react"
 
 export const Icons = {
@@ -37,4 +40,6 @@ export const Icons = {
   Copy,
   Deposit: ArrowDownToLine,
   Withdraw: ArrowUpFromLine,
+  Languages,
+  HelpCircle,
 }

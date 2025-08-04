@@ -1,12 +1,16 @@
+
+"use client"
 import { TasksClient } from "@/components/tasks-client"
+import { useAppContext } from "@/context/app-context";
 
 export default function TasksPage() {
+  const { language } = useAppContext();
   return (
     <div className="container py-6">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Available Tasks</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{language.t('availableTasksTitle')}</h1>
         <p className="text-muted-foreground">
-          Complete tasks to earn rewards. Your earnings will be added to your profile balance.
+          {language.t('availableTasksDescription')}
         </p>
       </div>
       <div className="mt-8">

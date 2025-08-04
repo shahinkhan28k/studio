@@ -21,8 +21,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
+import { cn, formatCurrency } from "@/lib/utils"
 import { useUserStats } from "@/hooks/use-user-stats"
+import { useAppContext } from "@/context/app-context"
 
 const initialTasks = [
   { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15 },
@@ -46,6 +47,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   const [countdown, setCountdown] = useState(0)
   const { toast } = useToast()
   const { addEarning } = useUserStats()
+  const { language, currency } = useAppContext()
 
 
   useEffect(() => {
@@ -85,8 +87,8 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
     addEarning(reward);
 
     toast({
-      title: "Task Completed!",
-      description: `You've earned $${reward.toFixed(2)}. Your balance will be updated shortly.`,
+      title: language.t('taskCompletedTitle'),
+      description: `${language.t('taskCompletedDescription')} ${formatCurrency(reward, currency)}.`,
       variant: "default",
     })
   }
@@ -113,11 +115,11 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
         {displayedTasks.map((task) => (
           <Card key={task.id} className={cn("flex flex-col transition-opacity duration-500", task.completed && "opacity-50")}>
             <CardHeader>
-              <CardTitle>{task.title}</CardTitle>
-              <CardDescription>{task.description}</CardDescription>
+              <CardTitle>{language.t(`task${task.id}Title`)}</CardTitle>
+              <CardDescription>{language.t(`task${task.id}Description`)}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
-              <p className="text-lg font-bold text-primary">${task.reward.toFixed(2)}</p>
+              <p className="text-lg font-bold text-primary">{formatCurrency(task.reward, currency)}</p>
             </CardContent>
             <CardFooter>
               <Button
@@ -125,7 +127,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
                 onClick={() => handleCompleteClick(task)}
                 disabled={task.completed}
               >
-                {task.completed ? "সম্পন্ন" : "কাজটি সম্পন্ন করুন"}
+                {task.completed ? language.t('completed') : language.t('completeTheTask')}
               </Button>
             </CardFooter>
           </Card>
@@ -147,7 +149,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
             </div>
             <AlertDialogFooter>
               <AlertDialogAction onClick={handleAdClose} disabled={countdown > 0}>
-                {countdown > 0 ? `Please wait ${countdown}s` : "Close Ad & Complete Task"}
+                {countdown > 0 ? `${language.t('pleaseWait')} ${countdown}s` : language.t('closeAdAndComplete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

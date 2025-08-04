@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -8,12 +9,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { useAppContext } from "@/context/app-context"
 
 export function AppHeader() {
+  const { language, setLanguage, currency, setCurrency } = useAppContext();
+
+  const handleLanguageChange = (lang: 'en' | 'bn') => {
+    setLanguage(lang);
+    if (lang === 'bn') {
+      setCurrency('BDT');
+    } else {
+      setCurrency('USD');
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -26,6 +44,22 @@ export function AppHeader() {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Icons.Languages className="h-5 w-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{language.t('languageCurrency')}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={language.locale} onValueChange={(value) => handleLanguageChange(value as 'en' | 'bn')}>
+                        <DropdownMenuRadioItem value="en">English (USD)</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="bn">বাংলা (BDT)</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -48,19 +82,19 @@ export function AppHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/profile">
                   <Icons.Profile className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>{language.t('profile')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/profile">
+                <Link href="/profile/account">
                   <Icons.Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{language.t('settings')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Icons.Logout className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{language.t('logOut')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -1,5 +1,7 @@
+
 import { AppHeader } from "@/components/app-header"
 import { FooterNav } from "@/components/footer-nav"
+import { AppProvider } from "@/context/app-context"
 
 export default function AppLayout({
   children,
@@ -7,10 +9,12 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <AppHeader />
-      <main className="flex-1">{children}</main>
-      <FooterNav />
-    </div>
+    <AppProvider>
+      <div className="relative flex min-h-screen flex-col">
+        <AppHeader />
+        <main className="flex-1">{children}</main>
+        <FooterNav />
+      </div>
+    </AppProvider>
   )
 }

@@ -13,22 +13,26 @@ import {
 } from "@/components/ui/card"
 import { Icons } from "@/components/icons"
 import { useUserStats } from "@/hooks/use-user-stats"
-
-const profileMenuItems = [
-  { title: "Deposit", href: "/profile/deposit", icon: Icons.Deposit },
-  { title: "Withdraw", href: "/profile/withdraw", icon: Icons.Withdraw },
-  { title: "Collaboration", href: "/refer", icon: Icons.Refer },
-  { title: "Account Details", href: "/profile/account", icon: Icons.Profile },
-  {
-    title: "Personal Information",
-    href: "/profile/info",
-    icon: Icons.Settings,
-  },
-  { title: "Help & Support", href: "/profile/help", icon: Icons.Home }, // Placeholder icon
-]
+import { useAppContext } from "@/context/app-context"
+import { formatCurrency } from "@/lib/utils"
 
 export default function ProfilePage() {
   const { stats } = useUserStats()
+  const { language, currency } = useAppContext()
+
+  const profileMenuItems = [
+    { title: language.t('deposit'), href: "/profile/deposit", icon: Icons.Deposit },
+    { title: language.t('withdraw'), href: "/profile/withdraw", icon: Icons.Withdraw },
+    { title: language.t('collaboration'), href: "/refer", icon: Icons.Refer },
+    { title: language.t('accountDetails'), href: "/profile/account", icon: Icons.Profile },
+    {
+      title: language.t('personalInformation'),
+      href: "/profile/info",
+      icon: Icons.Settings,
+    },
+    { title: language.t('helpSupport'), href: "/profile/help", icon: Icons.HelpCircle }, 
+  ]
+
   const user = {
     name: "John Doe",
     email: "john.doe@example.com",
@@ -54,34 +58,34 @@ export default function ProfilePage() {
         <div className="grid grid-cols-2 gap-4">
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg font-normal">Total Earnings</CardTitle>
+                    <CardTitle className="text-lg font-normal">{language.t('totalEarnings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">${stats.totalEarnings.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(stats.totalEarnings, currency)}</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg font-normal">Available Balance</CardTitle>
+                    <CardTitle className="text-lg font-normal">{language.t('availableBalance')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold text-primary">${stats.availableBalance.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-primary">{formatCurrency(stats.availableBalance, currency)}</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg font-normal">Total Deposit</CardTitle>
+                    <CardTitle className="text-lg font-normal">{language.t('totalDeposit')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">${stats.totalDeposit.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(stats.totalDeposit, currency)}</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg font-normal">Total Withdraw</CardTitle>
+                    <CardTitle className="text-lg font-normal">{language.t('totalWithdraw')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">${stats.totalWithdraw.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(stats.totalWithdraw, currency)}</p>
                 </CardContent>
             </Card>
         </div>
@@ -112,7 +116,7 @@ export default function ProfilePage() {
 
         <Button variant="destructive">
           <Icons.Logout className="mr-2 h-4 w-4" />
-          Log Out
+          {language.t('logOut')}
         </Button>
       </div>
     </div>

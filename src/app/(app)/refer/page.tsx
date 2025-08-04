@@ -1,3 +1,6 @@
+
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { useAppContext } from "@/context/app-context"
+import { formatCurrency } from "@/lib/utils"
 
 const referrals = [
   { id: "usr_001", name: "Alice", level: 1, earnings: 15.75 },
@@ -22,22 +27,23 @@ const referrals = [
 
 export default function ReferPage() {
   const referralLink = "https://onearn.platform/ref/user123"
+  const { language, currency } = useAppContext()
 
   return (
     <div className="container py-6">
       <div className="flex flex-col gap-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Refer & Earn</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{language.t('referAndEarnTitle')}</h1>
           <p className="text-muted-foreground">
-            Invite your friends and earn commissions from their tasks.
+            {language.t('referAndEarnDescription')}
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Your Referral Link</CardTitle>
+            <CardTitle>{language.t('yourReferralLinkTitle')}</CardTitle>
             <CardDescription>
-              Share this link with your friends. You'll earn a commission every time they complete a task.
+              {language.t('yourReferralLinkDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -52,46 +58,46 @@ export default function ReferPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Commission Structure</CardTitle>
+            <CardTitle>{language.t('commissionStructureTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">Level 1</h3>
-              <p className="text-muted-foreground">Earn 5% from your direct referrals.</p>
+              <h3 className="font-bold text-lg text-primary">{language.t('level1')}</h3>
+              <p className="text-muted-foreground">{language.t('level1Description')}</p>
             </div>
             <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">Level 2</h3>
-              <p className="text-muted-foreground">Earn 2% from their referrals.</p>
+              <h3 className="font-bold text-lg text-primary">{language.t('level2')}</h3>
+              <p className="text-muted-foreground">{language.t('level2Description')}</p>
             </div>
             <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">Level 3</h3>
-              <p className="text-muted-foreground">Earn 1% from the next level.</p>
+              <h3 className="font-bold text-lg text-primary">{language.t('level3')}</h3>
+              <p className="text-muted-foreground">{language.t('level3Description')}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Your Referrals</CardTitle>
+            <CardTitle>{language.t('yourReferralsTitle')}</CardTitle>
             <CardDescription>
-              Here's a list of members who joined using your link.
+              {language.t('yourReferralsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead className="text-right">Commission Earned</TableHead>
+                  <TableHead>{language.t('name')}</TableHead>
+                  <TableHead>{language.t('level')}</TableHead>
+                  <TableHead className="text-right">{language.t('commissionEarned')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {referrals.map((referral) => (
                   <TableRow key={referral.id}>
                     <TableCell className="font-medium">{referral.name}</TableCell>
-                    <TableCell><Badge variant="secondary">Level {referral.level}</Badge></TableCell>
-                    <TableCell className="text-right">${referral.earnings.toFixed(2)}</TableCell>
+                    <TableCell><Badge variant="secondary">{language.t('level')} {referral.level}</Badge></TableCell>
+                    <TableCell className="text-right">{formatCurrency(referral.earnings, currency)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

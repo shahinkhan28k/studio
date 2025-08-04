@@ -20,6 +20,8 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
 import { useToast } from "@/hooks/use-toast"
+import { useAppContext } from "@/context/app-context"
+import { formatCurrency } from "@/lib/utils"
 
 const withdrawalUsers = [
   "Abdullah Al Mamun", "Fatima Akter", "Rahim Ahmed", "Sadia Islam", "Kamal Hossain",
@@ -52,6 +54,7 @@ const shuffleArray = (array: string[]) => {
 
 export default function HomePage() {
   const { toast } = useToast()
+  const { language, currency } = useAppContext()
   const userQueue = React.useRef(shuffleArray([...withdrawalUsers]));
   const currentUserIndex = React.useRef(0);
 
@@ -66,12 +69,12 @@ export default function HomePage() {
       const randomUser = userQueue.current[currentUserIndex.current];
       currentUserIndex.current++;
 
-      const randomAmount = (Math.random() * (470 - 100) + 100).toFixed(2);
+      const randomAmount = (Math.random() * (470 - 100) + 100);
       const maskedName = maskUsername(randomUser);
 
       toast({
-        title: " সফল উত্তোলন!",
-        description: `${maskedName} এইমাত্র $${randomAmount} উত্তোলন করেছেন।`,
+        title: language.t('successfulWithdrawal'),
+        description: `${maskedName} ${language.t('justWithdrew')} ${formatCurrency(randomAmount, currency)}`,
       })
       
       const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
@@ -83,7 +86,7 @@ export default function HomePage() {
     return () => {
         clearTimeout(initialDelay);
     }
-  }, [toast])
+  }, [toast, currency, language])
 
 
   return (
@@ -121,9 +124,9 @@ export default function HomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>লাভজনক কাজগুলো</CardTitle>
+            <CardTitle>{language.t('featuredTasksTitle')}</CardTitle>
             <CardDescription>
-              এই কাজগুলো সম্পূর্ণ করে আরও বেশি উপার্জন করুন।
+              {language.t('featuredTasksDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -133,34 +136,34 @@ export default function HomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>নোটিশ বোর্ড</CardTitle>
+            <CardTitle>{language.t('noticeBoardTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  নতুন উচ্চ-মূল্যের কাজ পাওয়া যাচ্ছে!
+                  {language.t('notice1Title')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  আরও বেশি উপার্জনের সুযোগের জন্য টাস্ক বিভাগটি দেখুন। সীমিত সংখ্যক স্লট পাওয়া যাচ্ছে!
+                  {language.t('notice1Description')}
                 </p>
               </li>
               <Separator />
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  রেফারেল প্রোগ্রাম বুস্ট
+                  {language.t('notice2Title')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  সীমিত সময়ের জন্য, আপনার প্রথম-স্তরের রেফারেল কমিশনগুলিতে ১০% বোনাস পান।
+                  {language.t('notice2Description')}
                 </p>
               </li>
               <Separator />
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  পূর্বনির্ধারিত রক্ষণাবেক্ষণ
+                 {language.t('notice3Title')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  প্ল্যাটফর্মটি রবিবার দুপুর ২টা UTC-তে নির্ধারিত রক্ষণাবেক্ষণের জন্য ডাউন থাকবে।
+                 {language.t('notice3Description')}
                 </p>
               </li>
             </ul>

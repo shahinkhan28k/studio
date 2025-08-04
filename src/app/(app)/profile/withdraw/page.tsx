@@ -32,6 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAppContext } from "@/context/app-context"
+import { formatCurrency } from "@/lib/utils"
 
 const withdrawFormSchema = z
   .object({
@@ -108,6 +110,7 @@ export default function WithdrawPage() {
   const { toast } = useToast()
   const { stats, addWithdrawal } = useUserStats()
   const [availableBalance, setAvailableBalance] = React.useState(0)
+  const { language, currency } = useAppContext()
 
   React.useEffect(() => {
     setAvailableBalance(stats.availableBalance)
@@ -186,7 +189,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Your available balance is ${availableBalance.toFixed(2)}. Enter
+            Your available balance is {formatCurrency(availableBalance, currency)}. Enter
             your account details and the amount you wish to withdraw.
           </CardDescription>
         </CardHeader>
