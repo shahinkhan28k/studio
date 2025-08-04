@@ -56,7 +56,7 @@ export default function EditNoticePage() {
     if (notice) {
       form.reset(notice)
     }
-  }, [notice, form.reset])
+  }, [notice])
 
   function onSubmit(data: NoticeFormValues) {
     updateNotice(noticeId, data)
