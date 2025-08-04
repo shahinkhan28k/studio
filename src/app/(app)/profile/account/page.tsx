@@ -4,6 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import * as React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -32,16 +33,55 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 
-const accountFormSchema = z.object({
-  name: z.string().min(1, "Name is required."),
-  walletNumber: z.string().min(1, "Wallet number is required."),
-  address: z.string().optional(),
-  paymentMethod: z.string({ required_error: "Please select a payment method." }),
-})
+const accountFormSchema = z
+  .object({
+    name: z.string().min(1, "Name is required."),
+    walletNumber: z.string().min(1, "Wallet number is required."),
+    address: z.string().optional(),
+    paymentMethod: z.string({
+      required_error: "Please select a payment method.",
+    }),
+    bankName: z.string().optional(),
+    accountHolderName: z.string().optional(),
+    bankAccountNumber: z.string().optional(),
+    swiftCode: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.paymentMethod === "bank") {
+      if (!data.bankName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["bankName"],
+          message: "Bank name is required.",
+        })
+      }
+      if (!data.accountHolderName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["accountHolderName"],
+          message: "Account holder name is required.",
+        })
+      }
+      if (!data.bankAccountNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["bankAccountNumber"],
+          message: "Bank account number is required.",
+        })
+      }
+      if (!data.swiftCode) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["swiftCode"],
+          message: "SWIFT code is required.",
+        })
+      }
+    }
+  })
 
 type AccountFormValues = z.infer<typeof accountFormSchema>
 
-const user = {
+const defaultUser = {
   name: "John Doe",
   walletNumber: "01234567890",
   address: "123 Main St, Dhaka, Bangladesh",
@@ -52,13 +92,30 @@ export default function AccountDetailsPage() {
   const { toast } = useToast()
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues: {
-      name: user.name,
-      walletNumber: user.walletNumber,
-      address: user.address,
-      paymentMethod: user.paymentMethod,
-    },
+    defaultValues: defaultUser,
   })
+
+  const paymentMethod = form.watch("paymentMethod")
+  const formValues = form.watch()
+
+  React.useEffect(() => {
+    try {
+      const savedData = localStorage.getItem("accountDetails")
+      if (savedData) {
+        form.reset(JSON.parse(savedData))
+      }
+    } catch (error) {
+      console.error("Failed to parse account details from localStorage", error)
+    }
+  }, [form])
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("accountDetails", JSON.stringify(formValues))
+    } catch (error) {
+      console.error("Failed to save account details to localStorage", error)
+    }
+  }, [formValues])
 
   function onSubmit(data: AccountFormValues) {
     toast({
@@ -131,6 +188,78 @@ export default function AccountDetailsPage() {
                   </FormItem>
                 )}
               />
+              {paymentMethod === "bank" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bank Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter bank name"
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="accountHolderName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Holder Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter account holder name"
+                            {...field}
+                             value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bankAccountNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bank Account Number</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter bank account number"
+                            {...field}
+                             value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="swiftCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SWIFT Code</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter SWIFT code"
+                            {...field}
+                             value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
               <FormField
                 control={form.control}
                 name="address"
@@ -142,6 +271,7 @@ export default function AccountDetailsPage() {
                         placeholder="Enter your address"
                         className="resize-none"
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
