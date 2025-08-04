@@ -25,6 +25,8 @@ const getStoredData = <T>(key: string, defaultValue: T): T => {
         const stored = window.localStorage.getItem(key);
         if (stored) {
             return JSON.parse(stored) as T;
+        } else {
+             window.localStorage.setItem(key, JSON.stringify(defaultValue));
         }
     } catch (error) {
         console.error(`Failed to parse ${key} from localStorage`, error);
@@ -48,26 +50,27 @@ const setStoredData = <T>(key: string, data: T) => {
 export function useNotices() {
   const [notices, setNotices] = useState<Notice[]>([]);
 
-  useEffect(() => {
+  const loadNotices = useCallback(() => {
     const storedNotices = getStoredData(NOTICES_STORAGE_KEY, defaultNotices);
-    // Sort notices by creation date, newest first
     const sortedNotices = storedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     setNotices(sortedNotices);
   }, []);
 
   useEffect(() => {
+    loadNotices();
+  }, [loadNotices]);
+
+  useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === NOTICES_STORAGE_KEY && event.newValue) {
-         const newNotices = JSON.parse(event.newValue) as Notice[];
-         const sortedNotices = newNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-         setNotices(sortedNotices);
+      if (event.key === NOTICES_STORAGE_KEY) {
+         loadNotices();
       }
     }
     window.addEventListener("storage", handleStorageChange)
     return () => {
       window.removeEventListener("storage", handleStorageChange)
     }
-  }, [])
+  }, [loadNotices])
   
   const addNotice = useCallback((noticeData: NoticeFormValues) => {
     const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
