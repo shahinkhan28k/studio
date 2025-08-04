@@ -4,7 +4,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, Locale } from '@/lib/i18n';
 
-export type Currency = 'USD' | 'BDT';
+export type Currency = 'USD' | 'BDT' | 'EUR' | 'INR';
 
 interface AppContextType {
   language: Language;

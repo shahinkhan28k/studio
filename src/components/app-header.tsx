@@ -19,17 +19,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 import { useAppContext } from "@/context/app-context"
+import { Locale } from "@/lib/i18n"
+import { Currency } from "@/context/app-context"
 
 export function AppHeader() {
   const { language, setLanguage, currency, setCurrency } = useAppContext();
 
-  const handleLanguageChange = (lang: 'en' | 'bn') => {
+  const handleLanguageChange = (lang: Locale) => {
     setLanguage(lang);
-    if (lang === 'bn') {
-      setCurrency('BDT');
-    } else {
-      setCurrency('USD');
-    }
+    const currencyMap: Record<Locale, Currency> = {
+      'en': 'USD',
+      'bn': 'BDT',
+      'es': 'EUR',
+      'hi': 'INR'
+    };
+    setCurrency(currencyMap[lang]);
   }
 
   return (
@@ -53,9 +57,11 @@ export function AppHeader() {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{language.t('languageCurrency')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={language.locale} onValueChange={(value) => handleLanguageChange(value as 'en' | 'bn')}>
+                    <DropdownMenuRadioGroup value={language.locale} onValueChange={(value) => handleLanguageChange(value as Locale)}>
                         <DropdownMenuRadioItem value="en">English (USD)</DropdownMenuRadioItem>
                         <DropdownMenuRadioItem value="bn">বাংলা (BDT)</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="es">Español (EUR)</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="hi">हिन्दी (INR)</DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
             </DropdownMenu>
