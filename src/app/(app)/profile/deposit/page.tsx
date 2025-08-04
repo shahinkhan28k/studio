@@ -162,7 +162,7 @@ export default function DepositPage() {
             <AlertTitle className="font-bold">Send Money First</AlertTitle>
             <AlertDescription>
               <p className="text-muted-foreground">
-                Please send the desired amount to the following {isBankTransfer ? 'bank account' : isUsdtTransfer ? 'USDT address' : 'agent number'}
+                Please send the desired amount to the following {isBankTransfer ? 'bank account' : isUsdtTransfer ? 'USDT address' : 'number'}
                 before filling out this form.
               </p>
               {selectedMethod === "bank" ? (
@@ -202,13 +202,18 @@ export default function DepositPage() {
                   </div>
                 </div>
               ) : selectedMethod && selectedMethod !== "bank" ? (
-                <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
-                  <span className="text-lg font-semibold text-primary">
-                    {settings.agentNumber}
-                  </span>
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.agentNumber)}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Personal Number [Send Money]:</span>
+                    <span className="text-lg font-semibold text-primary">
+                      {settings.agentNumber}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.agentNumber)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ) : null }
             </AlertDescription>

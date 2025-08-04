@@ -166,16 +166,16 @@ export default function SettingsPage() {
                   <AccordionTrigger className="text-lg font-semibold">Deposit Settings</AccordionTrigger>
                   <AccordionContent className="space-y-4 pt-4">
                     <Card>
-                      <CardHeader><CardTitle>Mobile Agent</CardTitle></CardHeader>
+                      <CardHeader><CardTitle>Mobile Money</CardTitle></CardHeader>
                       <CardContent>
                         <FormField
                             control={form.control}
                             name="agentNumber"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Agent Number</FormLabel>
+                                <FormLabel>Personal Number [Send Money]</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter agent number for bKash, Nagad etc." {...field} />
+                                    <Input placeholder="Enter number for bKash, Nagad etc." {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
