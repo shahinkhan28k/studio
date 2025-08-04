@@ -95,6 +95,7 @@ export default function HomePage() {
       toast({
         title: language.t('successfulWithdrawal'),
         description: `${maskedName} ${language.t('justWithdrew')} ${formatCurrency(randomAmount, currency)}`,
+        duration: 5000, // Show toast for 5 seconds
       })
       
       const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
