@@ -22,11 +22,11 @@ import React from "react"
 
 // This is placeholder data. In a real application, you would fetch this from your backend.
 const referrals = [
-  { id: "usr_001", name: "Alice", level: 1, earnings: 0 },
-  { id: "usr_002", name: "Bob", level: 1, earnings: 0 },
-  { id: "usr_003", name: "Charlie", level: 2, earnings: 0 },
-  { id: "usr_004", name: "David", level: 2, earnings: 0 },
-  { id: "usr_005", name: "Eve", level: 3, earnings: 0 },
+  { id: "usr_001", name: "Alice", earnings: 0 },
+  { id: "usr_002", name: "Bob", earnings: 0 },
+  { id: "usr_003", name: "Charlie", earnings: 0 },
+  { id: "usr_004", name: "David", earnings: 0 },
+  { id: "usr_005", name: "Eve", earnings: 0 },
 ]
 
 export default function ReferPage() {
@@ -108,16 +108,16 @@ export default function ReferPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>User ID</TableHead>
                   <TableHead>{language.t('name')}</TableHead>
-                  <TableHead>{language.t('level')}</TableHead>
                   <TableHead className="text-right">{language.t('commissionEarned')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {referrals.map((referral) => (
                   <TableRow key={referral.id}>
-                    <TableCell className="font-medium">{referral.name}</TableCell>
-                    <TableCell><Badge variant="secondary">{language.t('level')} {referral.level}</Badge></TableCell>
+                    <TableCell className="font-medium">{referral.id}</TableCell>
+                    <TableCell>{referral.name}</TableCell>
                     <TableCell className="text-right">{formatCurrency(referral.earnings, currency)}</TableCell>
                   </TableRow>
                 ))}
