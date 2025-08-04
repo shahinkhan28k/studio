@@ -19,7 +19,7 @@ type UserInfo = {
     photoURL: string | null;
 }
 
-type AllUsersData = UserInfo & {
+export type AllUsersData = UserInfo & {
     stats: UserStats;
 }
 
@@ -48,15 +48,28 @@ export function useAdminStats() {
         const calculateStats = () => {
             const allItems = getAllLocalStorageItems()
             const userStatKeys = Object.keys(allItems).filter(k => k.startsWith('userStats_'))
-            const allSignups = Object.keys(allItems).filter(k => k.startsWith('signup_'))
+            
+            const allSignupsData = Object.keys(allItems)
+                .filter(k => k.startsWith('signup_'))
+                .map(key => {
+                    try {
+                        const data = JSON.parse(allItems[key]);
+                        return data.user as UserInfo;
+                    } catch (e) {
+                        return null;
+                    }
+                })
+                .filter((u): u is UserInfo => u !== null);
 
             let totalEarnings = 0;
             let totalDeposits = 0;
             let totalWithdrawals = 0;
-            let tasksCompleted = 0; // This is a simplification, will need better tracking for real accuracy
+            let tasksCompleted = 0;
 
             const usersData: AllUsersData[] = [];
+            const processedUids = new Set<string>();
 
+            // Process users who have stats
             userStatKeys.forEach(key => {
                 try {
                     const userStats: UserStats = JSON.parse(allItems[key]);
@@ -65,15 +78,12 @@ export function useAdminStats() {
                     totalWithdrawals += userStats.totalWithdraw;
 
                     const uid = key.replace('userStats_', '');
-                    const signupKey = `signup_${uid}`;
-                    let userInfo: UserInfo = { uid, email: null, displayName: null, photoURL: null };
-                    if(allItems[signupKey]){
-                       const signupData = JSON.parse(allItems[signupKey])
-                       userInfo = { ...userInfo, ...signupData.user }
-                    }
+                    processedUids.add(uid);
+
+                    const signupInfo = allSignupsData.find(u => u.uid === uid) || { uid, email: null, displayName: null, photoURL: null };
 
                     usersData.push({
-                        ...userInfo,
+                        ...signupInfo,
                         stats: userStats
                     });
 
@@ -82,22 +92,29 @@ export function useAdminStats() {
                 }
             })
             
-             // A simple heuristic for tasks completed based on earnings.
-             // Assumes an average reward of $5 per task. This should be improved.
+            // Add users who have signed up but have no stats yet
+            allSignupsData.forEach(signup => {
+                if (!processedUids.has(signup.uid)) {
+                    usersData.push({
+                        ...signup,
+                        stats: defaultStats
+                    })
+                }
+            });
+
+
             tasksCompleted = Math.floor(totalEarnings / 5);
 
 
-            const signups: UserInfo[] = allSignups.map(key => {
-                try {
-                    return JSON.parse(allItems[key]).user as UserInfo;
-                } catch(e) {
-                    return null;
-                }
-            }).filter((u): u is UserInfo => u !== null);
+            const signups: UserInfo[] = allSignupsData.sort((a,b) => {
+                 const aData = JSON.parse(allItems[`signup_${a.uid}`]);
+                 const bData = JSON.parse(allItems[`signup_${b.uid}`]);
+                 return new Date(bData.timestamp).getTime() - new Date(aData.timestamp).getTime();
+            });
 
 
             setStats({
-                totalUsers: userStatKeys.length,
+                totalUsers: usersData.length,
                 totalEarnings,
                 totalDeposits,
                 totalWithdrawals,
