@@ -2,25 +2,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const protectedRoutes = ['/profile', '/admin'];
-const authRoutes = ['/login', '/signup'];
+// Middleware is not currently required as auth is handled client-side.
+// This file can be used in the future to implement server-side route protection.
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const isAuthenticated = request.cookies.get('firebase-auth-token')?.value;
-
-  if (protectedRoutes.some(route => pathname.startsWith(route)) && !isAuthenticated) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  if (authRoutes.includes(pathname) && isAuthenticated) {
-     const url = request.nextUrl.clone()
-     url.pathname = '/'
-     return NextResponse.redirect(url)
-  }
-
   return NextResponse.next()
 }
 
