@@ -1,5 +1,11 @@
 import Image from "next/image"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -8,6 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Separator } from "@/components/ui/separator"
+import { TasksClient } from "@/components/tasks-client"
 
 export default function HomePage() {
   return (
@@ -45,34 +52,46 @@ export default function HomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notice Board</CardTitle>
+            <CardTitle>লাভজনক কাজগুলো</CardTitle>
+            <CardDescription>
+              এই কাজগুলো সম্পূর্ণ করে আরও বেশি উপার্জন করুন।
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TasksClient showFeaturedOnly />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>নোটিশ বোর্ড</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  New High-Value Tasks Available!
+                  নতুন উচ্চ-মূল্যের কাজ পাওয়া যাচ্ছে!
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Check out the tasks section for new opportunities to earn more. Limited slots available!
+                  আরও বেশি উপার্জনের সুযোগের জন্য টাস্ক বিভাগটি দেখুন। সীমিত সংখ্যক স্লট পাওয়া যাচ্ছে!
                 </p>
               </li>
               <Separator />
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  Referral Program Boost
+                  রেফারেল প্রোগ্রাম বুস্ট
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  For a limited time, get a 10% bonus on your first-level referral commissions.
+                  সীমিত সময়ের জন্য, আপনার প্রথম-স্তরের রেফারেল কমিশনগুলিতে ১০% বোনাস পান।
                 </p>
               </li>
               <Separator />
               <li className="flex flex-col">
                 <p className="font-semibold">
-                  Scheduled Maintenance
+                  পূর্বনির্ধারিত রক্ষণাবেক্ষণ
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  The platform will be down for scheduled maintenance on Sunday at 2 AM UTC.
+                  প্ল্যাটফর্মটি রবিবার দুপুর ২টা UTC-তে নির্ধারিত রক্ষণাবেক্ষণের জন্য ডাউন থাকবে।
                 </p>
               </li>
             </ul>
