@@ -44,6 +44,7 @@ const taskFormSchema = z.object({
   showAd: z.boolean().default(false),
   duration: z.coerce.number().int().min(0).default(0),
   status: z.enum(["Active", "Inactive"]),
+  adLink: z.string().optional(),
 })
 
 type TaskFormValues = z.infer<typeof taskFormSchema>
@@ -60,6 +61,7 @@ export default function NewTaskPage() {
       showAd: false,
       duration: 0,
       status: "Active",
+      adLink: "",
     },
   })
 
@@ -197,22 +199,40 @@ export default function NewTaskPage() {
               </div>
               
               {form.watch("showAd") && (
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ad Duration (seconds)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 30" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The number of seconds the user must watch the ad.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-8">
+                    <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Ad Duration (seconds)</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g. 30" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                            The number of seconds the user must watch the ad.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="adLink"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Advertisement Link</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://ad.example.com" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                             <FormDescription>
+                                Enter the link for the advertisement (e.g. from AdSense or Adsterra).
+                            </FormDescription>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                </div>
               )}
 
               <Button type="submit">Create Task</Button>
