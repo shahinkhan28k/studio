@@ -20,12 +20,13 @@ import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import React from "react"
 
+// This is placeholder data. In a real application, you would fetch this from your backend.
 const referrals = [
-  { id: "usr_001", name: "Alice", level: 1, earnings: 15.75 },
-  { id: "usr_002", name: "Bob", level: 1, earnings: 5.50 },
-  { id: "usr_003", name: "Charlie", level: 2, earnings: 2.25 },
-  { id: "usr_004", name: "David", level: 2, earnings: 8.00 },
-  { id: "usr_005", name: "Eve", level: 3, earnings: 1.20 },
+  { id: "usr_001", name: "Alice", level: 1, earnings: 0 },
+  { id: "usr_002", name: "Bob", level: 1, earnings: 0 },
+  { id: "usr_003", name: "Charlie", level: 2, earnings: 0 },
+  { id: "usr_004", name: "David", level: 2, earnings: 0 },
+  { id: "usr_005", name: "Eve", level: 3, earnings: 0 },
 ]
 
 export default function ReferPage() {
