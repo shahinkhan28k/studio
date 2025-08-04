@@ -34,13 +34,52 @@ import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy } from "lucide-react"
 
-const depositFormSchema = z.object({
-  method: z.string({ required_error: "Please select a deposit method." }),
-  amount: z.coerce
-    .number({ required_error: "Please enter an amount." })
-    .positive({ message: "Amount must be positive." }),
-  transactionId: z.string().min(1, { message: "Transaction ID is required." }),
-})
+const depositFormSchema = z
+  .object({
+    method: z.string({ required_error: "Please select a deposit method." }),
+    amount: z.coerce
+      .number({ required_error: "Please enter an amount." })
+      .positive({ message: "Amount must be positive." }),
+    transactionId: z
+      .string()
+      .min(1, { message: "Transaction ID is required." }),
+    bankName: z.string().optional(),
+    accountHolderName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    swiftCode: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.method === "bank") {
+      if (!data.bankName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["bankName"],
+          message: "Bank name is required.",
+        })
+      }
+      if (!data.accountHolderName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["accountHolderName"],
+          message: "Account holder name is required.",
+        })
+      }
+      if (!data.accountNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["accountNumber"],
+          message: "Account number is required.",
+        })
+      }
+      if (!data.swiftCode) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["swiftCode"],
+          message: "SWIFT code is required.",
+        })
+      }
+    }
+  })
 
 type DepositFormValues = z.infer<typeof depositFormSchema>
 
@@ -53,8 +92,14 @@ export default function DepositPage() {
     defaultValues: {
       amount: 0,
       transactionId: "",
-    }
+      bankName: "",
+      accountHolderName: "",
+      accountNumber: "",
+      swiftCode: "",
+    },
   })
+
+  const selectedMethod = form.watch("method")
 
   function onSubmit(data: DepositFormValues) {
     toast({
@@ -88,10 +133,13 @@ export default function DepositPage() {
             <AlertTitle className="font-bold">Send Money First</AlertTitle>
             <AlertDescription>
               <p className="text-muted-foreground">
-                Please send the desired amount to the following agent number before filling out this form.
+                Please send the desired amount to the following agent number
+                before filling out this form.
               </p>
-              <div className="flex items-center justify-between mt-2 p-3 bg-muted rounded-md">
-                <span className="text-lg font-semibold text-primary">{agentNumber}</span>
+              <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
+                <span className="text-lg font-semibold text-primary">
+                  {agentNumber}
+                </span>
                 <Button variant="ghost" size="icon" onClick={copyToClipboard}>
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -107,7 +155,10 @@ export default function DepositPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Deposit Method</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a method" />
@@ -131,12 +182,80 @@ export default function DepositPage() {
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Enter amount" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="Enter amount"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {selectedMethod === "bank" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bank Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter bank name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="accountHolderName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Holder Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter account holder name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="accountNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Number</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter account number"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="swiftCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SWIFT Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter SWIFT code" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               <FormField
                 control={form.control}
                 name="transactionId"
