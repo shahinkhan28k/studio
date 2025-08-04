@@ -16,6 +16,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
+import { useAuth } from "@/context/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import React from "react"
 
 const referrals = [
   { id: "usr_001", name: "Alice", level: 1, earnings: 15.75 },
@@ -26,8 +29,25 @@ const referrals = [
 ]
 
 export default function ReferPage() {
-  const referralLink = "https://onearn.platform/ref/user123"
   const { language, currency } = useAppContext()
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const [referralLink, setReferralLink] = React.useState("")
+
+  React.useEffect(() => {
+    if (user && typeof window !== "undefined") {
+      const baseUrl = `${window.location.protocol}//${window.location.host}`
+      setReferralLink(`${baseUrl}/signup?ref=${user.uid}`)
+    }
+  }, [user])
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(referralLink)
+    toast({
+      title: "Copied!",
+      description: "Referral link copied to clipboard.",
+    })
+  }
 
   return (
     <div className="container py-6">
@@ -49,7 +69,7 @@ export default function ReferPage() {
           <CardContent>
             <div className="flex w-full max-w-sm items-center space-x-2">
               <Input type="text" value={referralLink} readOnly />
-              <Button type="submit" size="icon" variant="outline">
+              <Button type="button" size="icon" variant="outline" onClick={copyToClipboard} disabled={!referralLink}>
                 <Icons.Copy className="h-4 w-4" />
               </Button>
             </div>

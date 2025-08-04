@@ -4,9 +4,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
@@ -46,7 +46,16 @@ type SignupFormValues = z.infer<typeof signupFormSchema>
 export default function SignupPage() {
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+  const [referrerId, setReferrerId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) {
+      setReferrerId(ref)
+    }
+  }, [searchParams])
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -60,7 +69,13 @@ export default function SignupPage() {
   async function onSubmit(data: SignupFormValues) {
     setIsLoading(true)
     try {
-      await createUserWithEmailAndPassword(auth, data.email, data.password)
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password)
+      const user = userCredential.user;
+
+      if (referrerId && user) {
+        localStorage.setItem(`referrer_${user.uid}`, referrerId)
+      }
+
       toast({
         title: "Account Created",
         description: "Welcome! You have been successfully signed up.",
