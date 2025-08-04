@@ -29,6 +29,8 @@ const getStoredData = <T>(key: string, defaultValue: T): T => {
         const stored = window.localStorage.getItem(key);
         if (stored) {
             return JSON.parse(stored) as T;
+        } else {
+             window.localStorage.setItem(key, JSON.stringify(defaultValue));
         }
     } catch (error) {
         console.error(`Failed to parse ${key} from localStorage`, error);
@@ -106,6 +108,11 @@ export function useTasks() {
      );
      setStoredData(TASKS_STORAGE_KEY, updatedTasks);
   }, []);
+  
+  const getTaskById = useCallback((taskId: number): Task | undefined => {
+    const currentTasks = getStoredData<Task[]>(TASKS_STORAGE_KEY, defaultTasks);
+    return currentTasks.find(task => task.id === taskId);
+  }, []);
 
-  return { tasks, setTasks: updateTasks, addTask, updateTask, deleteTask, completeTask };
+  return { tasks, setTasks: updateTasks, addTask, updateTask, deleteTask, completeTask, getTaskById };
 }

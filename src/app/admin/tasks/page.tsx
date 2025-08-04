@@ -71,7 +71,9 @@ export default function TasksAdminPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2" disabled>Edit</Button>
+                  <Button variant="outline" size="sm" className="mr-2" asChild>
+                    <Link href={`/admin/tasks/${task.id}/edit`}>Edit</Link>
+                  </Button>
                   <Button variant="destructive" size="sm" onClick={() => handleDelete(task.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
