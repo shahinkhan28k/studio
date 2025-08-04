@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Copy } from "lucide-react"
 
 const depositFormSchema = z.object({
   method: z.string({ required_error: "Please select a deposit method." }),
@@ -44,6 +46,8 @@ type DepositFormValues = z.infer<typeof depositFormSchema>
 
 export default function DepositPage() {
   const { toast } = useToast()
+  const agentNumber = "01234567890"
+
   const form = useForm<DepositFormValues>({
     resolver: zodResolver(depositFormSchema),
     defaultValues: {
@@ -63,6 +67,13 @@ export default function DepositPage() {
     })
   }
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(agentNumber)
+    toast({
+      title: "Copied to clipboard!",
+    })
+  }
+
   return (
     <div className="container py-6">
       <Card>
@@ -73,6 +84,21 @@ export default function DepositPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-8">
+            <AlertTitle className="font-bold">Send Money First</AlertTitle>
+            <AlertDescription>
+              <p className="text-muted-foreground">
+                Please send the desired amount to the following agent number before filling out this form.
+              </p>
+              <div className="flex items-center justify-between mt-2 p-3 bg-muted rounded-md">
+                <span className="text-lg font-semibold text-primary">{agentNumber}</span>
+                <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
