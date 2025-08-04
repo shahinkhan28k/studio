@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useSettings, Settings } from "@/hooks/use-settings"
+import { useSettings, Settings } from "@/hooks/use-settings.tsx"
 import {
   Accordion,
   AccordionContent,

@@ -42,7 +42,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
-import { useSettings } from "@/hooks/use-settings"
+import { useSettings } from "@/hooks/use-settings.tsx"
 
 
 const depositFormSchema = z

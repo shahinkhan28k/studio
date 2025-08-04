@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
-import { useSettings } from "./use-settings";
+import { useSettings } from "./use-settings.tsx";
 
 export type UserStats = {
   totalEarnings: number

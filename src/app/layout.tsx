@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
-import { SettingsProvider } from '@/hooks/use-settings';
+import { SettingsProvider } from '@/hooks/use-settings.tsx';
 
 export const metadata: Metadata = {
   title: 'Onearn Platform',

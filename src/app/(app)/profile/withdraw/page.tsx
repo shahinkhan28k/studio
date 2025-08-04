@@ -39,7 +39,7 @@ import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { useSettings } from "@/hooks/use-settings"
+import { useSettings } from "@/hooks/use-settings.tsx"
 
 const withdrawFormSchema = z
   .object({
