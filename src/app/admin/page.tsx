@@ -53,9 +53,6 @@ export default function AdminPage() {
             <DropdownMenuItem asChild>
               <Link href="/admin/users">Users</Link>
             </DropdownMenuItem>
-             <DropdownMenuItem asChild>
-              <Link href="/admin/user-profile">Profile Settings</Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/admin/tasks">Tasks</Link>
             </DropdownMenuItem>

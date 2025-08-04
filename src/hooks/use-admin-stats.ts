@@ -23,6 +23,13 @@ export type AllUsersData = UserInfo & {
     stats: UserStats;
 }
 
+export type ReferralDetail = UserInfo & {
+    referrerId: string | null;
+    referrerName: string | null;
+    referralCount: number;
+}
+
+
 const defaultAdminStats: AdminStats = {
     totalUsers: 0,
     totalEarnings: 0,
@@ -43,6 +50,7 @@ export function useAdminStats() {
     const [stats, setStats] = useState<AdminStats>(defaultAdminStats)
     const [recentSignups, setRecentSignups] = useState<UserInfo[]>([])
     const [allUsersData, setAllUsersData] = useState<AllUsersData[]>([])
+    const [referralDetails, setReferralDetails] = useState<ReferralDetail[]>([]);
 
     const calculateStats = useCallback(() => {
         const allItems = getAllLocalStorageItems()
@@ -111,6 +119,21 @@ export function useAdminStats() {
              return new Date(bData.timestamp).getTime() - new Date(aData.timestamp).getTime();
         });
 
+        const referralData = allSignupsData.map(user => {
+            const referrerId = allItems[`referrer_${user.uid}`] || null;
+            const referrer = referrerId ? allSignupsData.find(u => u.uid === referrerId) : null;
+            
+            const referralsKey = `referrals_${user.uid}`;
+            const referrals = getStoredData<any[]>(referralsKey, []);
+            
+            return {
+                ...user,
+                referrerId: referrerId,
+                referrerName: referrer?.displayName || referrerId,
+                referralCount: referrals.length
+            };
+        });
+
 
         setStats({
             totalUsers: usersData.length,
@@ -122,6 +145,7 @@ export function useAdminStats() {
         
         setRecentSignups(signups);
         setAllUsersData(usersData);
+        setReferralDetails(referralData);
     }, [])
 
     useEffect(() => {
@@ -164,5 +188,5 @@ export function useAdminStats() {
         }
     }, [calculateStats]);
 
-    return { stats, recentSignups, allUsersData, deleteUser }
+    return { stats, recentSignups, allUsersData, deleteUser, referralDetails }
 }

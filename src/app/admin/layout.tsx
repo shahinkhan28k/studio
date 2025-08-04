@@ -73,12 +73,6 @@ export default function AdminLayout({
                     <span>Users</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
-                  <SidebarMenuButton href="/admin/user-profile" tooltip="Profile Settings">
-                    <UserCog />
-                    <span>Profile Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
              </SidebarGroup>
 
             <SidebarSeparator />
