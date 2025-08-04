@@ -37,14 +37,36 @@ const maskUsername = (name: string) => {
   return `${name.substring(0, 3)}...`;
 };
 
+// Function to shuffle an array
+const shuffleArray = (array: string[]) => {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+};
+
 
 export default function HomePage() {
   const { toast } = useToast()
+  const userQueue = React.useRef(shuffleArray([...withdrawalUsers]));
+  const currentUserIndex = React.useRef(0);
+
 
   React.useEffect(() => {
     const showRandomToast = () => {
-      const randomUser = withdrawalUsers[Math.floor(Math.random() * withdrawalUsers.length)];
-      const randomAmount = (Math.random() * (5000 - 500) + 500).toFixed(2);
+       if (currentUserIndex.current >= userQueue.current.length) {
+          userQueue.current = shuffleArray([...withdrawalUsers]);
+          currentUserIndex.current = 0;
+       }
+      
+      const randomUser = userQueue.current[currentUserIndex.current];
+      currentUserIndex.current++;
+
+      const randomAmount = (Math.random() * (470 - 100) + 100).toFixed(2);
       const maskedName = maskUsername(randomUser);
 
       toast({
