@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,7 +27,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const value = { user, loading };
+  const refreshUser = useCallback(async () => {
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      const refreshedUser = auth.currentUser;
+      setUser(refreshedUser);
+    }
+  }, []);
+
+  const value = { user, loading, refreshUser };
 
   if (loading) {
     return (

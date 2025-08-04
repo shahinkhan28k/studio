@@ -92,7 +92,7 @@ type AccountFormValues = z.infer<typeof accountFormSchema>
 export default function AccountDetailsPage() {
   const { toast } = useToast()
   const { language } = useAppContext()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [isInitialized, setIsInitialized] = React.useState(false);
 
   const defaultValues = React.useMemo(() => ({
@@ -158,6 +158,8 @@ export default function AccountDetailsPage() {
         await updateProfile(auth.currentUser, {
             displayName: data.name,
         });
+
+        await refreshUser();
 
         toast({
           title: "Account Updated",
