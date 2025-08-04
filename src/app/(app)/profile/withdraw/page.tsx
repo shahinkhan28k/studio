@@ -36,7 +36,7 @@ import {
 const withdrawFormSchema = z
   .object({
     method: z.string({ required_error: "Please select a payment method." }),
-    walletNumber: z.string().min(1, "Wallet number is required."),
+    walletNumber: z.string().optional(),
     amount: z.coerce
       .number({ required_error: "Please enter an amount." })
       .positive({ message: "Amount must be positive." }),
@@ -44,6 +44,7 @@ const withdrawFormSchema = z
     accountHolderName: z.string().optional(),
     bankAccountNumber: z.string().optional(),
     swiftCode: z.string().optional(),
+    usdtAddress: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.method === "bank") {
@@ -73,6 +74,22 @@ const withdrawFormSchema = z
           code: z.ZodIssueCode.custom,
           path: ["swiftCode"],
           message: "SWIFT code is required.",
+        })
+      }
+    } else if (data.method === "usdt") {
+      if (!data.usdtAddress) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["usdtAddress"],
+          message: "Binance USDT address is required.",
+        })
+      }
+    } else if (["bkash", "nagad", "rocket"].includes(data.method)) {
+      if (!data.walletNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["walletNumber"],
+          message: "Wallet number is required.",
         })
       }
     }
@@ -196,6 +213,7 @@ export default function WithdrawPage() {
                         <SelectItem value="nagad">Nagad</SelectItem>
                         <SelectItem value="rocket">Rocket</SelectItem>
                         <SelectItem value="bank">Bank Transfer</SelectItem>
+                        <SelectItem value="usdt">Binance (USDT)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -274,7 +292,21 @@ export default function WithdrawPage() {
                     )}
                   />
                 </>
-              ) : (
+              ) : paymentMethod === 'usdt' ? (
+                <FormField
+                  control={form.control}
+                  name="usdtAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Binance USDT Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your Binance USDT address" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : paymentMethod && (
                  <FormField
                     control={form.control}
                     name="walletNumber"
@@ -282,7 +314,7 @@ export default function WithdrawPage() {
                       <FormItem>
                         <FormLabel>Wallet Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter wallet number" {...field} />
+                          <Input placeholder="Enter wallet number" {...field} value={field.value ?? ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
