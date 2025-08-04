@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 const tasks = [
   { id: 1, title: "Survey Completion", reward: 5.0, isFeatured: true, status: "Active" },
@@ -26,7 +27,9 @@ export default function TasksAdminPage() {
           <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
           <p className="text-muted-foreground">Manage tasks for users.</p>
         </div>
-        <Button>Add Task</Button>
+        <Button asChild>
+          <Link href="/admin/tasks/new">Add Task</Link>
+        </Button>
       </div>
       <div className="border rounded-lg">
         <Table>
