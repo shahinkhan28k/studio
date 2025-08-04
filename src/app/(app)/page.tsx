@@ -2,6 +2,7 @@
 "use client"
 
 import Image from "next/image"
+import * as React from "react"
 import {
   Card,
   CardContent,
@@ -18,19 +19,51 @@ import {
 } from "@/components/ui/carousel"
 import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useToast } from "@/hooks/use-toast"
 
-const withdrawalUsers = Array.from({ length: 100 }, (_, i) => `User ${i + 1}`)
+const withdrawalUsers = [
+  "Abdullah Al Mamun", "Fatima Akter", "Rahim Ahmed", "Sadia Islam", "Kamal Hossain",
+  "Nusrat Jahan", "Jamal Uddin", "Ayesha Siddika", "Fahim Chowdhury", "Sumaiya Khatun"
+];
+
+const maskUsername = (name: string) => {
+  if (name.length <= 4) {
+    return name;
+  }
+  const [firstName, lastName] = name.split(" ");
+  if (lastName) {
+    return `${firstName.charAt(0)}... ${lastName}`;
+  }
+  return `${name.substring(0, 3)}...`;
+};
+
 
 export default function HomePage() {
+  const { toast } = useToast()
+
+  React.useEffect(() => {
+    const showRandomToast = () => {
+      const randomUser = withdrawalUsers[Math.floor(Math.random() * withdrawalUsers.length)];
+      const randomAmount = (Math.random() * (5000 - 500) + 500).toFixed(2);
+      const maskedName = maskUsername(randomUser);
+
+      toast({
+        title: " সফল উত্তোলন!",
+        description: `${maskedName} এইমাত্র $${randomAmount} উত্তোলন করেছেন।`,
+      })
+      
+      const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
+      setTimeout(showRandomToast, nextToastDelay);
+    }
+    
+    const initialDelay = setTimeout(showRandomToast, 3000);
+
+    return () => {
+        clearTimeout(initialDelay);
+    }
+  }, [toast])
+
+
   return (
     <div className="container py-6">
       <div className="flex flex-col gap-8">
@@ -73,44 +106,6 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <TasksClient showFeaturedOnly />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>আজকের উত্তোলন</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 mb-4">
-              {withdrawalUsers.slice(0, 5).map((user, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
-                  {user} made a withdrawal.
-                </li>
-              ))}
-            </ul>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  Show More
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>আজকের উত্তোলন</DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="h-72 w-full rounded-md border">
-                  <div className="p-4">
-                    <ul className="space-y-2">
-                      {withdrawalUsers.map((user, index) => (
-                        <li key={index} className="text-sm">
-                          {user} made a withdrawal.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
           </CardContent>
         </Card>
 
