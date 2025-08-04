@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,12 +24,12 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 const initialTasks = [
-  { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true },
-  { id: 2, title: "App Download", description: "Download and install our partner's new mobile app.", reward: 10.00, completed: false, isFeatured: true, showAd: true },
-  { id: 3, title: "Watch a Video Ad", description: "Watch a 30-second promotional video.", reward: 2.50, completed: false, isFeatured: false, showAd: true },
-  { id: 4, title: "Social Media Share", description: "Share our promotional post on your social media profile.", reward: 7.50, completed: false, isFeatured: false, showAd: false },
-  { id: 5, title: "Product Review", description: "Write a review for a product you recently purchased.", reward: 12.00, completed: false, isFeatured: true, showAd: true },
-  { id: 6, title: "Data Entry Task", description: "Enter data from a scanned document into a spreadsheet.", reward: 15.00, completed: false, isFeatured: false, showAd: false },
+  { id: 1, title: "Survey Completion", description: "Complete a short survey about your shopping habits.", reward: 5.00, completed: false, isFeatured: true, showAd: true, duration: 15 },
+  { id: 2, title: "App Download", description: "Download and install our partner's new mobile app.", reward: 10.00, completed: false, isFeatured: true, showAd: true, duration: 30 },
+  { id: 3, title: "Watch a Video Ad", description: "Watch a 30-second promotional video.", reward: 2.50, completed: false, isFeatured: false, showAd: true, duration: 30 },
+  { id: 4, title: "Social Media Share", description: "Share our promotional post on your social media profile.", reward: 7.50, completed: false, isFeatured: false, showAd: false, duration: 0 },
+  { id: 5, title: "Product Review", description: "Write a review for a product you recently purchased.", reward: 12.00, completed: false, isFeatured: true, showAd: true, duration: 20 },
+  { id: 6, title: "Data Entry Task", description: "Enter data from a scanned document into a spreadsheet.", reward: 15.00, completed: false, isFeatured: false, showAd: false, duration: 0 },
 ]
 
 type Task = typeof initialTasks[0];
@@ -41,7 +42,26 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   const [tasks, setTasks] = useState(initialTasks)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isAdOpen, setIsAdOpen] = useState(false)
+  const [countdown, setCountdown] = useState(0)
   const { toast } = useToast()
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (isAdOpen && selectedTask && selectedTask.duration > 0) {
+      setCountdown(selectedTask.duration)
+      timer = setInterval(() => {
+        setCountdown((prevCountdown) => {
+          if (prevCountdown <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prevCountdown - 1
+        })
+      }, 1000)
+    }
+    return () => clearInterval(timer)
+  }, [isAdOpen, selectedTask])
+
 
   const handleCompleteClick = (task: Task) => {
     if (task.showAd) {
@@ -72,6 +92,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
     }
     setIsAdOpen(false)
     setSelectedTask(null)
+    setCountdown(0)
   }
 
   const displayedTasks = useMemo(() => {
@@ -120,8 +141,8 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
               <p className="text-muted-foreground">[Ad Content Placeholder]</p>
             </div>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={handleAdClose}>
-                Close Ad & Complete Task
+              <AlertDialogAction onClick={handleAdClose} disabled={countdown > 0}>
+                {countdown > 0 ? `Please wait ${countdown}s` : "Close Ad & Complete Task"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
