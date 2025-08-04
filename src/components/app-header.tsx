@@ -21,6 +21,7 @@ import { Icons } from "@/components/icons"
 import { useAppContext } from "@/context/app-context"
 import { Locale } from "@/lib/i18n"
 import { Currency } from "@/context/app-context"
+import { Shield } from "lucide-react"
 
 export function AppHeader() {
   const { language, setLanguage, currency, setCurrency } = useAppContext();
@@ -95,6 +96,12 @@ export function AppHeader() {
                 <Link href="/profile/account">
                   <Icons.Settings className="mr-2 h-4 w-4" />
                   <span>{language.t('settings')}</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin">
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Admin Panel</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
