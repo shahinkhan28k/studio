@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useAuth } from "@/context/auth-context"
 
 export type UserStats = {
   totalEarnings: number
@@ -26,22 +27,15 @@ export type WithdrawalRecord = {
     status: TransactionStatus;
 }
 
-const STATS_STORAGE_KEY = "userStats"
-const DEPOSIT_HISTORY_KEY = "depositHistory"
-const WITHDRAWAL_HISTORY_KEY = "withdrawalHistory"
-
-
 const defaultStats: UserStats = {
-  totalEarnings: 1250.75,
-  totalDeposit: 500.00,
-  totalWithdraw: 250.00,
-  availableBalance: 1500.75,
+  totalEarnings: 0,
+  totalDeposit: 0,
+  totalWithdraw: 0,
+  availableBalance: 0,
 }
 
-// This would be fetched from an admin-controlled setting in a real app
 const REFERRAL_COMMISSION_RATE = 0.05; // 5%
 
-// Helper to get data from localStorage
 const getStoredData = <T>(key: string, defaultValue: T): T => {
     if (typeof window === "undefined") {
         return defaultValue;
@@ -57,7 +51,6 @@ const getStoredData = <T>(key: string, defaultValue: T): T => {
     return defaultValue;
 }
 
-// Helper to set data in localStorage
 const setStoredData = <T>(key: string, data: T) => {
     if (typeof window === "undefined") return;
     try {
@@ -67,13 +60,27 @@ const setStoredData = <T>(key: string, data: T) => {
     }
 }
 
-// In a real app, this would be part of a user's data model.
 const hasReferrer = true;
 
 export function useUserStats() {
+  const { user } = useAuth();
+  const uid = user?.uid;
+
+  const STATS_STORAGE_KEY = uid ? `userStats_${uid}` : 'userStats';
+  const DEPOSIT_HISTORY_KEY = uid ? `depositHistory_${uid}` : 'depositHistory';
+  const WITHDRAWAL_HISTORY_KEY = uid ? `withdrawalHistory_${uid}` : 'withdrawalHistory';
+
   const [stats, setStats] = useState<UserStats>(() => getStoredData(STATS_STORAGE_KEY, defaultStats));
   const [depositHistory, setDepositHistory] = useState<DepositRecord[]>(() => getStoredData(DEPOSIT_HISTORY_KEY, []));
   const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRecord[]>(() => getStoredData(WITHDRAWAL_HISTORY_KEY, []));
+
+  useEffect(() => {
+    if (uid) {
+        setStats(getStoredData(STATS_STORAGE_KEY, defaultStats));
+        setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, []));
+        setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, []));
+    }
+  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY]);
 
 
   useEffect(() => {
@@ -93,7 +100,7 @@ export function useUserStats() {
     return () => {
       window.removeEventListener("storage", handleStorageChange)
     }
-  }, [])
+  }, [STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY])
   
   const updateStats = useCallback((newStats: Partial<UserStats>) => {
     setStats((prevStats) => {
@@ -101,7 +108,7 @@ export function useUserStats() {
       setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
-  }, [])
+  }, [STATS_STORAGE_KEY])
 
   const addEarning = useCallback((amount: number) => {
     setStats((prevStats) => {
@@ -115,17 +122,14 @@ export function useUserStats() {
       
       const updatedStats = {
         ...prevStats,
-        totalEarnings: newTotalEarnings + referralBonus, // Add referral bonus to total earnings
+        totalEarnings: newTotalEarnings + referralBonus,
         availableBalance: newAvailableBalance,
       }
-      
-      // In a real application, you would make an API call here to credit the referrer's account
-      // with `referralBonus`. For this simulation, we are adding it to the current user's earnings.
       
       setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
-  }, [])
+  }, [STATS_STORAGE_KEY])
   
   const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date'>) => {
     setStats((prevStats) => {
@@ -147,7 +151,7 @@ export function useUserStats() {
         return updatedHistory;
     })
 
-  }, []);
+  }, [STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY]);
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date'>) => {
     setStats((prevStats) => {
@@ -172,7 +176,7 @@ export function useUserStats() {
         return updatedHistory;
     });
 
-  }, []);
+  }, [STATS_STORAGE_KEY, WITHDRAWAL_HISTORY_KEY]);
 
 
   return { stats, updateStats, addEarning, addDeposit, addWithdrawal, depositHistory, withdrawalHistory }
