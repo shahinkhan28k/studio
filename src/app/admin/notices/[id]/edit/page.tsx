@@ -46,7 +46,7 @@ export default function EditNoticePage() {
 
   const form = useForm<NoticeFormValues>({
     resolver: zodResolver(noticeFormSchema),
-    defaultValues: {
+    defaultValues: notice || {
       title: "",
       description: "",
     },
@@ -56,7 +56,8 @@ export default function EditNoticePage() {
     if (notice) {
       form.reset(notice)
     }
-  }, [notice])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notice, form.reset])
 
   function onSubmit(data: NoticeFormValues) {
     updateNotice(noticeId, data)
