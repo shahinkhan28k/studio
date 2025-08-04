@@ -105,9 +105,10 @@ export default function HomePage() {
     }
     
     // Show the first toast after an initial delay of 3 seconds.
-    timeoutRef.current = setTimeout(showRandomToast, 3000);
+    const initialTimeout = setTimeout(showRandomToast, 3000);
 
     return () => {
+        clearTimeout(initialTimeout);
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
