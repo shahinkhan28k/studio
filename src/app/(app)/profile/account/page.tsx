@@ -7,6 +7,8 @@ import { z } from "zod"
 import * as React from "react"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+import { updateProfile } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -120,7 +122,7 @@ export default function AccountDetailsPage() {
         const savedData = localStorage.getItem(`accountDetails_${user.uid}`)
         if (savedData) {
           const parsedData = JSON.parse(savedData)
-          form.reset({ ...defaultValues, ...parsedData })
+          form.reset({ ...defaultValues, ...parsedData, name: user?.displayName ?? parsedData.name ?? "" })
         } else {
           form.reset(defaultValues)
         }
@@ -142,11 +144,33 @@ export default function AccountDetailsPage() {
     }
   }, [formValues, user, isInitialized])
 
-  function onSubmit(data: AccountFormValues) {
-    toast({
-      title: "Account Updated",
-      description: "Your account details have been successfully updated.",
-    })
+  async function onSubmit(data: AccountFormValues) {
+     if (!auth.currentUser) {
+        toast({
+            title: "Error",
+            description: "You must be logged in to update your account.",
+            variant: "destructive"
+        });
+        return;
+    }
+    
+    try {
+        await updateProfile(auth.currentUser, {
+            displayName: data.name,
+        });
+
+        toast({
+          title: "Account Updated",
+          description: "Your account details have been successfully updated.",
+        })
+    } catch (error) {
+        console.error("Error updating profile: ", error);
+        toast({
+            title: "Update Failed",
+            description: "Could not update your profile. Please try again.",
+            variant: "destructive"
+        })
+    }
   }
 
   return (
