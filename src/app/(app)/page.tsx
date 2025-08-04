@@ -20,38 +20,8 @@ import {
 } from "@/components/ui/carousel"
 import { Separator } from "@/components/ui/separator"
 import { TasksClient } from "@/components/tasks-client"
-import { useToast } from "@/hooks/use-toast"
 import { useAppContext } from "@/context/app-context"
-import { formatCurrency } from "@/lib/utils"
 
-const withdrawalUsers = [
-  "Abdullah Al Mamun", "Fatima Akter", "Rahim Ahmed", "Sadia Islam", "Kamal Hossain",
-  "Nusrat Jahan", "Jamal Uddin", "Ayesha Siddika", "Fahim Chowdhury", "Sumaiya Khatun",
-  "Rofiq Islam", "Jannatul Ferdous", "Mehedi Hasan", "Sultana Razia", "Arif Khan"
-];
-
-const maskUsername = (name: string) => {
-  if (name.length <= 4) {
-    return name;
-  }
-  const [firstName, lastName] = name.split(" ");
-  if (lastName) {
-    return `${firstName.charAt(0)}... ${lastName}`;
-  }
-  return `${name.substring(0, 3)}...`;
-};
-
-// Function to shuffle an array
-const shuffleArray = (array: string[]) => {
-  let currentIndex = array.length, randomIndex;
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
-  return array;
-};
 
 const banners = [
     {
@@ -73,49 +43,7 @@ const banners = [
 
 
 export default function HomePage() {
-  const { toast, dismiss } = useToast()
-  const { language, currency } = useAppContext()
-  const userQueue = React.useRef(shuffleArray([...withdrawalUsers]));
-  const currentUserIndex = React.useRef(0);
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-
-  React.useEffect(() => {
-    const showRandomToast = () => {
-       if (currentUserIndex.current >= userQueue.current.length) {
-          userQueue.current = shuffleArray([...withdrawalUsers]);
-          currentUserIndex.current = 0;
-       }
-      
-      const randomUser = userQueue.current[currentUserIndex.current];
-      currentUserIndex.current++;
-
-      const randomAmount = (Math.random() * (470 - 100) + 100);
-      const maskedName = maskUsername(randomUser);
-
-      toast({
-        title: language.t('successfulWithdrawal'),
-        description: `${maskedName} ${language.t('justWithdrew')} ${formatCurrency(randomAmount, currency)}`,
-        duration: 5000,
-      })
-      
-      // Delay for the next toast is between 4 and 8 seconds.
-      const nextToastDelay = Math.random() * (8000 - 4000) + 4000;
-      timeoutRef.current = setTimeout(showRandomToast, nextToastDelay);
-    }
-    
-    // Show the first toast after an initial delay of 3 seconds.
-    const initialTimeout = setTimeout(showRandomToast, 3000);
-
-    return () => {
-        clearTimeout(initialTimeout);
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-        dismiss(); // Dismiss any active toasts when leaving the page
-    }
-  }, [toast, currency, language, dismiss])
-
+  const { language } = useAppContext()
 
   return (
     <div className="container py-6">
