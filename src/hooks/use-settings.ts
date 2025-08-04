@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
 
 export type Settings = {
   referralCommissionRateL1: number;
@@ -30,6 +30,14 @@ const defaultSettings: Settings = {
   bankBranch: "Dhaka",
   usdtAddress: "TX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r",
 };
+
+interface SettingsContextType {
+    settings: Settings;
+    setSettings: (settings: Settings) => void;
+}
+
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+
 
 const getStoredData = <T>(key: string, defaultValue: T): T => {
     if (typeof window === "undefined") {
@@ -61,36 +69,51 @@ const setStoredData = <T>(key: string, data: T) => {
     }
 }
 
+export const SettingsProvider = ({ children }: { children: ReactNode }) => {
+    const [settings, setSettingsState] = useState<Settings>(() => 
+        getStoredData(SETTINGS_STORAGE_KEY, defaultSettings)
+    );
+
+    const loadSettings = useCallback(() => {
+        const storedSettings = getStoredData(SETTINGS_STORAGE_KEY, defaultSettings);
+        setSettingsState(storedSettings);
+    }, []);
+
+    useEffect(() => {
+        loadSettings();
+    }, [loadSettings]);
+
+    useEffect(() => {
+        const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === SETTINGS_STORAGE_KEY) {
+            loadSettings();
+        }
+        }
+        window.addEventListener("storage", handleStorageChange);
+        return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        }
+    }, [loadSettings]);
+
+    const setSettings = useCallback((newSettings: Settings) => {
+        setStoredData(SETTINGS_STORAGE_KEY, newSettings);
+        setSettingsState(newSettings);
+    }, []);
+
+    const value = { settings, setSettings };
+
+    return (
+        <SettingsContext.Provider value={value}>
+            {children}
+        </SettingsContext.Provider>
+    );
+};
+
+
 export function useSettings() {
-  const [settings, setSettingsState] = useState<Settings>(() => 
-    getStoredData(SETTINGS_STORAGE_KEY, defaultSettings)
-  );
-
-  const loadSettings = useCallback(() => {
-    const storedSettings = getStoredData(SETTINGS_STORAGE_KEY, defaultSettings);
-    setSettingsState(storedSettings);
-  }, []);
-
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
-
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === SETTINGS_STORAGE_KEY) {
-         loadSettings();
-      }
-    }
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    }
-  }, [loadSettings]);
-
-  const setSettings = useCallback((newSettings: Settings) => {
-    setStoredData(SETTINGS_STORAGE_KEY, newSettings);
-    setSettingsState(newSettings);
-  }, []);
-
-  return { settings, setSettings };
+  const context = useContext(SettingsContext);
+  if (context === undefined) {
+    throw new Error("useSettings must be used within a SettingsProvider");
+  }
+  return context;
 }
