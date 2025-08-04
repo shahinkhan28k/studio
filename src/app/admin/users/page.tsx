@@ -72,8 +72,11 @@ export default function UsersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
-                    View
+                  <Button variant="outline" size="sm" className="mr-2">
+                    Edit
+                  </Button>
+                   <Button variant="destructive" size="sm">
+                    Delete
                   </Button>
                 </TableCell>
               </TableRow>
