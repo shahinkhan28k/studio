@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStats } from "@/hooks/use-user-stats"
+import * as React from "react"
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,8 +36,6 @@ import {
 
 const withdrawFormSchema = z.object({
   method: z.string({ required_error: "Please select a payment method." }),
-  accountNumber: z.string().min(1, { message: "Account number is required." }),
-  accountHolderName: z.string().min(1, { message: "Account holder name is required." }),
   amount: z.coerce
     .number({ required_error: "Please enter an amount." })
     .positive({ message: "Amount must be positive." }),
@@ -54,9 +54,8 @@ export default function WithdrawPage() {
   const form = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawFormSchema),
     defaultValues: {
-        accountNumber: "",
-        accountHolderName: user.name,
         amount: 0,
+        method: "",
     }
   })
 
@@ -70,8 +69,6 @@ export default function WithdrawPage() {
         return;
     }
     
-    // In a real app, this would be an API call.
-    // For now, we simulate the withdrawal approval.
     addWithdrawal(data.amount);
 
     toast({
@@ -121,32 +118,13 @@ export default function WithdrawPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="accountHolderName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Account Holder Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter account holder name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="accountNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Account Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter account number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Account Holder Name</FormLabel>
+                <FormControl>
+                    <Input readOnly value={user.name} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
               <FormField
                 control={form.control}
                 name="amount"

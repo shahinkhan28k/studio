@@ -107,6 +107,7 @@ export default function DepositPage() {
     defaultValues: {
       amount: 0,
       transactionId: "",
+      method: "",
       bankName: "",
       accountHolderName: "",
       accountNumber: "",
@@ -171,7 +172,7 @@ export default function DepositPage() {
                       </Button>
                     </div>
                 </div>
-              ) : selectedMethod ? (
+              ) : selectedMethod && selectedMethod !== "bank" ? (
                 <div className="mt-2 flex items-center justify-between rounded-md bg-muted p-3">
                   <span className="text-lg font-semibold text-primary">
                     {mobileAgent.number}
