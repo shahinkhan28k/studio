@@ -32,10 +32,13 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { useAppContext } from "@/context/app-context"
 
 const accountFormSchema = z
   .object({
     name: z.string().min(1, "Name is required."),
+    email: z.string().email("Please enter a valid email address."),
+    mobileNumber: z.string().optional(),
     walletNumber: z.string().min(1, "Wallet number is required."),
     address: z.string().optional(),
     paymentMethod: z.string({
@@ -83,6 +86,8 @@ type AccountFormValues = z.infer<typeof accountFormSchema>
 
 const defaultUser = {
   name: "John Doe",
+  email: "john.doe@example.com",
+  mobileNumber: "+8801234567890",
   walletNumber: "01234567890",
   address: "123 Main St, Dhaka, Bangladesh",
   paymentMethod: "bkash",
@@ -90,6 +95,7 @@ const defaultUser = {
 
 export default function AccountDetailsPage() {
   const { toast } = useToast()
+  const { language } = useAppContext()
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
     defaultValues: defaultUser,
@@ -128,7 +134,7 @@ export default function AccountDetailsPage() {
     <div className="container py-6">
       <Card>
         <CardHeader>
-          <CardTitle>Account Details</CardTitle>
+          <CardTitle>{language.t('accountDetails')}</CardTitle>
           <CardDescription>
             View and update your account information.
           </CardDescription>
@@ -144,6 +150,32 @@ export default function AccountDetailsPage() {
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="mobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="Enter your mobile number" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
