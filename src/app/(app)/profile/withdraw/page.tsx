@@ -55,6 +55,12 @@ const referralCount = 5;
 export default function WithdrawPage() {
   const { toast } = useToast()
   const { stats, addWithdrawal } = useUserStats();
+  const [availableBalance, setAvailableBalance] = React.useState(0);
+
+  React.useEffect(() => {
+    setAvailableBalance(stats.availableBalance);
+  }, [stats.availableBalance]);
+
 
   const form = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawFormSchema),
@@ -101,7 +107,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-             Your available balance is ${stats.availableBalance.toFixed(2)}. Enter your account details and the amount you wish to withdraw.
+             Your available balance is ${availableBalance.toFixed(2)}. Enter your account details and the amount you wish to withdraw.
           </CardDescription>
         </CardHeader>
         <CardContent>
