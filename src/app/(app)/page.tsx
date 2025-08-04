@@ -3,6 +3,7 @@
 
 import Image from "next/image"
 import * as React from "react"
+import Autoplay from "embla-carousel-autoplay"
 import {
   Card,
   CardContent,
@@ -51,6 +52,24 @@ const shuffleArray = (array: string[]) => {
   return array;
 };
 
+const banners = [
+    {
+        src: "https://placehold.co/1200x500.png",
+        alt: "Promotional Banner 1",
+        "data-ai-hint": "digital marketing"
+    },
+    {
+        src: "https://placehold.co/1200x500.png",
+        alt: "Promotional Banner 2",
+        "data-ai-hint": "online earnings"
+    },
+    {
+        src: "https://placehold.co/1200x500.png",
+        alt: "Promotional Banner 3",
+        "data-ai-hint": "successful teamwork"
+    }
+]
+
 
 export default function HomePage() {
   const { toast } = useToast()
@@ -98,19 +117,25 @@ export default function HomePage() {
             align: "start",
             loop: true,
           }}
+          plugins={[
+            Autoplay({
+              delay: 3000,
+              stopOnInteraction: false,
+            }),
+          ]}
         >
           <CarouselContent>
-            {Array.from({ length: 3 }).map((_, index) => (
+             {banners.map((banner, index) => (
               <CarouselItem key={index}>
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden rounded-xl shadow-lg">
                   <CardContent className="p-0">
                     <div className="aspect-video md:aspect-[2.4/1] relative">
                       <Image
-                        src={`https://placehold.co/1200x500.png`}
-                        alt={`Banner ${index + 1}`}
+                        src={banner.src}
+                        alt={banner.alt}
                         fill
                         className="object-cover"
-                        data-ai-hint="abstract background"
+                        data-ai-hint={banner['data-ai-hint']}
                       />
                     </div>
                   </CardContent>
@@ -118,8 +143,8 @@ export default function HomePage() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
+          <CarouselPrevious className="hidden md:flex left-4" />
+          <CarouselNext className="hidden md:flex right-4" />
         </Carousel>
 
         <Card>
