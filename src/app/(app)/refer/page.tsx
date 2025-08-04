@@ -19,21 +19,14 @@ import { formatCurrency } from "@/lib/utils"
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import React from "react"
-
-// This is placeholder data. In a real application, you would fetch this from your backend.
-const referrals = [
-  { id: "usr_001", name: "Alice", earnings: 0 },
-  { id: "usr_002", name: "Bob", earnings: 0 },
-  { id: "usr_003", name: "Charlie", earnings: 0 },
-  { id: "usr_004", name: "David", earnings: 0 },
-  { id: "usr_005", name: "Eve", earnings: 0 },
-]
+import { useUserStats } from "@/hooks/use-user-stats"
 
 export default function ReferPage() {
   const { language, currency } = useAppContext()
   const { user } = useAuth()
   const { toast } = useToast()
   const [referralLink, setReferralLink] = React.useState("")
+  const { referrals } = useUserStats();
 
   React.useEffect(() => {
     if (user) {
@@ -114,13 +107,21 @@ export default function ReferPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {referrals.map((referral) => (
-                  <TableRow key={referral.id}>
-                    <TableCell className="font-medium">{referral.id}</TableCell>
-                    <TableCell>{referral.name}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(referral.earnings, currency)}</TableCell>
+                {referrals.length > 0 ? (
+                  referrals.map((referral) => (
+                    <TableRow key={referral.id}>
+                      <TableCell className="font-medium">{referral.id}</TableCell>
+                      <TableCell>{referral.name}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(referral.earnings, currency)}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center">
+                      You haven't referred anyone yet.
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>

@@ -27,6 +27,13 @@ export type WithdrawalRecord = {
     status: TransactionStatus;
 }
 
+export type Referral = {
+    id: string;
+    name: string;
+    earnings: number;
+}
+
+
 const defaultStats: UserStats = {
   totalEarnings: 0,
   totalDeposit: 0,
@@ -65,17 +72,6 @@ const setStoredData = <T>(key: string, data: T) => {
     }
 }
 
-// This is a placeholder. In a real app, you'd fetch this from your backend/DB.
-const hasReferrer = (uid: string | undefined): boolean => {
-    if (!uid) return false;
-    // In a real app, you would check if the user with this 'uid' was referred by someone.
-    // For this demo, we'll just check for a query param saved during signup.
-    if (typeof window !== "undefined") {
-        return !!localStorage.getItem(`referrer_${uid}`);
-    }
-    return false;
-}
-
 
 export function useUserStats() {
   const { user } = useAuth();
@@ -84,23 +80,30 @@ export function useUserStats() {
   const STATS_STORAGE_KEY = uid ? `userStats_${uid}` : 'userStats';
   const DEPOSIT_HISTORY_KEY = uid ? `depositHistory_${uid}` : 'depositHistory';
   const WITHDRAWAL_HISTORY_KEY = uid ? `withdrawalHistory_${uid}` : 'withdrawalHistory';
+  const REFERRALS_KEY = uid ? `referrals_${uid}` : 'referrals';
+
 
   const [stats, setStats] = useState<UserStats>(() => getStoredData(STATS_STORAGE_KEY, defaultStats));
   const [depositHistory, setDepositHistory] = useState<DepositRecord[]>(() => getStoredData(DEPOSIT_HISTORY_KEY, []));
   const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRecord[]>(() => getStoredData(WITHDRAWAL_HISTORY_KEY, []));
+  const [referrals, setReferrals] = useState<Referral[]>(() => getStoredData(REFERRALS_KEY, []));
+
 
   useEffect(() => {
     if (uid) {
         setStats(getStoredData(STATS_STORAGE_KEY, defaultStats));
         setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, []));
         setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, []));
+        setReferrals(getStoredData(REFERRALS_KEY, []));
+
     } else {
         // Clear stats if user logs out
         setStats(defaultStats);
         setDepositHistory([]);
         setWithdrawalHistory([]);
+        setReferrals([]);
     }
-  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY]);
+  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY, REFERRALS_KEY]);
 
 
   useEffect(() => {
@@ -110,6 +113,7 @@ export function useUserStats() {
             [STATS_STORAGE_KEY]: () => setStats(getStoredData(STATS_STORAGE_KEY, defaultStats)),
             [DEPOSIT_HISTORY_KEY]: () => setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, [])),
             [WITHDRAWAL_HISTORY_KEY]: () => setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, [])),
+            [REFERRALS_KEY]: () => setReferrals(getStoredData(REFERRALS_KEY, [])),
         };
 
         if (event.key && event.key in keys) {
@@ -121,7 +125,7 @@ export function useUserStats() {
     return () => {
       window.removeEventListener("storage", handleStorageChange)
     }
-  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY])
+  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY, REFERRALS_KEY])
   
   const updateStats = useCallback((newStats: Partial<UserStats>) => {
     if (!uid) return;
@@ -133,14 +137,12 @@ export function useUserStats() {
   }, [uid, STATS_STORAGE_KEY])
 
   const addEarning = useCallback((amount: number) => {
-    if (!uid) return;
+    if (!user) return;
     setStats((prevStats) => {
       const newTotalEarnings = prevStats.totalEarnings + amount
       const newAvailableBalance = prevStats.availableBalance + amount
       
-      // In a real app, you would have a backend service calculate and distribute commission.
-      // This is a simplified client-side simulation.
-      const referrerId = localStorage.getItem(`referrer_${uid}`);
+      const referrerId = localStorage.getItem(`referrer_${user.uid}`);
       if (referrerId) {
           const commission = amount * REFERRAL_COMMISSION_RATE;
           const referrerStatsKey = `userStats_${referrerId}`;
@@ -152,6 +154,28 @@ export function useUserStats() {
               availableBalance: referrerStats.availableBalance + commission
           };
           setStoredData(referrerStatsKey, updatedReferrerStats);
+
+          const referrerReferralsKey = `referrals_${referrerId}`;
+          const currentReferrals = getStoredData<Referral[]>(referrerReferralsKey, []);
+          
+          let referredUserExists = false;
+          const updatedReferrals = currentReferrals.map(r => {
+              if (r.id === user.uid) {
+                  referredUserExists = true;
+                  return { ...r, earnings: r.earnings + commission };
+              }
+              return r;
+          });
+
+          if (!referredUserExists) {
+              updatedReferrals.push({
+                  id: user.uid,
+                  name: user.displayName || user.email || 'Anonymous',
+                  earnings: commission
+              });
+          }
+          
+          setStoredData(referrerReferralsKey, updatedReferrals);
       }
       
       const updatedStats = {
@@ -163,7 +187,7 @@ export function useUserStats() {
       setStoredData(STATS_STORAGE_KEY, updatedStats)
       return updatedStats
     })
-  }, [uid, STATS_STORAGE_KEY])
+  }, [user, STATS_STORAGE_KEY])
   
   const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date'>) => {
     if (!uid) return;
@@ -215,5 +239,5 @@ export function useUserStats() {
   }, [uid, STATS_STORAGE_KEY, WITHDRAWAL_HISTORY_KEY]);
 
 
-  return { stats, updateStats, addEarning, addDeposit, addWithdrawal, depositHistory, withdrawalHistory }
+  return { stats, updateStats, addEarning, addDeposit, addWithdrawal, depositHistory, withdrawalHistory, referrals }
 }
