@@ -57,7 +57,7 @@ export default function EditNoticePage() {
       form.reset(notice)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notice, form.reset])
+  }, [notice])
 
   function onSubmit(data: NoticeFormValues) {
     updateNotice(noticeId, data)
