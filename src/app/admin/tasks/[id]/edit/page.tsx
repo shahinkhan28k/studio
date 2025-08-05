@@ -55,7 +55,7 @@ export default function EditTaskPage() {
   const { toast } = useToast()
   const router = useRouter()
   const params = useParams()
-  const { updateTask, getTaskById } = useTasks()
+  const { updateTask, getTaskById, tasks: allTasks } = useTasks()
   const [task, setTask] = React.useState<Task | null>(null);
   const [loading, setLoading] = React.useState(true);
   
@@ -66,7 +66,8 @@ export default function EditTaskPage() {
   })
   
   React.useEffect(() => {
-    if (taskId) {
+    // We need to wait until allTasks are loaded from localStorage
+    if (allTasks.length > 0 && taskId) {
       setLoading(true);
       const taskData = getTaskById(taskId);
       if (taskData) {
@@ -74,12 +75,17 @@ export default function EditTaskPage() {
         form.reset(taskData);
       }
       setLoading(false);
+    } else if (taskId && allTasks.length === 0) {
+      // Still waiting for tasks to load, do nothing until they are loaded.
+      setLoading(true);
+    } else if (!taskId) {
+      setLoading(false);
     }
-  }, [taskId, getTaskById, form]);
+  }, [taskId, getTaskById, form, allTasks]);
 
   async function onSubmit(data: TaskFormValues) {
     if (!taskId) return;
-    await updateTask(taskId, data)
+    updateTask(taskId, data)
     toast({
       title: "Task Updated",
       description: "The task has been successfully updated.",
