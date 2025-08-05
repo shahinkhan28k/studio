@@ -32,6 +32,8 @@ export function useTasks(userId?: string) {
       const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
       if (storedTasks) {
         setTasks(JSON.parse(storedTasks));
+      } else {
+        setTasks([]); // Start with an empty array if no tasks are in storage
       }
 
       if (userId) {
@@ -48,13 +50,36 @@ export function useTasks(userId?: string) {
   }, [userId]);
 
   useEffect(() => {
-    loadTasks();
-    const handleStorageChange = () => loadTasks();
+    // To clear tasks, we can start with an empty array and save it.
+    const initialTasks: Task[] = [];
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
+    setTasks(initialTasks);
+    
+    if (userId) {
+        const completedKey = `${USER_COMPLETED_TASKS_PREFIX}${userId}`;
+        const storedCompleted = localStorage.getItem(completedKey);
+        if (storedCompleted) {
+          setCompletedTaskIds(new Set(JSON.parse(storedCompleted)));
+        }
+      }
+
+    const handleStorageChange = () => {
+        try {
+            const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+            if (storedTasks) {
+                setTasks(JSON.parse(storedTasks));
+            } else {
+                setTasks([]);
+            }
+        } catch (error) {
+            console.error("Error fetching tasks from localStorage: ", error);
+        }
+    };
     window.addEventListener('storage', handleStorageChange);
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [loadTasks]);
+  }, [userId]);
 
   const addTask = useCallback((taskData: TaskFormValues) => {
     try {
@@ -110,8 +135,9 @@ export function useTasks(userId?: string) {
   }, [userId, completedTaskIds]);
   
   const getTaskById = useCallback((taskId: string): Task | undefined => {
-    return tasks.find(t => t.id === taskId);
-  }, [tasks]);
+    const allTasks = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY) || '[]') as Task[];
+    return allTasks.find(t => t.id === taskId);
+  }, []);
 
   return { tasks, addTask, updateTask, deleteTask, completeTask, getTaskById, completedTaskIds };
 }
