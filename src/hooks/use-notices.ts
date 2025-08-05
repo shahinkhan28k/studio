@@ -32,10 +32,7 @@ export function useNotices() {
   }, []);
 
   useEffect(() => {
-    // Clear existing notices on initial load
-    localStorage.removeItem(NOTICES_STORAGE_KEY);
-    setNotices([]);
-
+    loadNotices();
     const handleStorageChange = () => {
         loadNotices();
     };
@@ -48,7 +45,8 @@ export function useNotices() {
   
   const addNotice = useCallback((noticeData: NoticeFormValues) => {
     try {
-      const currentNotices = notices;
+      const storedNotices = localStorage.getItem(NOTICES_STORAGE_KEY);
+      const currentNotices = storedNotices ? JSON.parse(storedNotices) : [];
       const newNotice: Notice = {
         ...noticeData,
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
@@ -61,33 +59,38 @@ export function useNotices() {
     } catch (error) {
       console.error("Error adding notice to localStorage: ", error);
     }
-  }, [notices]);
+  }, []);
 
   const updateNotice = useCallback((noticeId: string, noticeData: NoticeFormValues) => {
     try {
-      const updatedNotices = notices.map(n => n.id === noticeId ? { ...n, ...noticeData } : n);
-      localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
-      setNotices(updatedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      window.dispatchEvent(new Event('storage'));
+        const storedNotices = localStorage.getItem(NOTICES_STORAGE_KEY);
+        const currentNotices = storedNotices ? JSON.parse(storedNotices) : [];
+        const updatedNotices = currentNotices.map(n => n.id === noticeId ? { ...n, ...noticeData } : n);
+        localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
+        setNotices(updatedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error("Error updating notice in localStorage: ", error);
     }
-  }, [notices]);
+  }, []);
 
   const deleteNotice = useCallback((noticeId: string) => {
     try {
-      const updatedNotices = notices.filter(notice => notice.id !== noticeId);
-      localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
-      setNotices(updatedNotices);
-      window.dispatchEvent(new Event('storage'));
+        const storedNotices = localStorage.getItem(NOTICES_STORAGE_KEY);
+        const currentNotices = storedNotices ? JSON.parse(storedNotices) : [];
+        const updatedNotices = currentNotices.filter(notice => notice.id !== noticeId);
+        localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
+        setNotices(updatedNotices);
+        window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error("Error deleting notice from localStorage: ", error);
     }
-  }, [notices]);
+  }, []);
   
   const getNoticeById = useCallback((noticeId: string): Notice | undefined => {
-    return notices.find(n => n.id === noticeId);
-  }, [notices]);
+    const allNotices = JSON.parse(localStorage.getItem(NOTICES_STORAGE_KEY) || '[]') as Notice[];
+    return allNotices.find(n => n.id === noticeId);
+  }, []);
 
   return { notices, addNotice, updateNotice, deleteNotice, getNoticeById, refreshNotices: loadNotices };
 }
