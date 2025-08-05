@@ -13,14 +13,27 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useNotices } from "@/hooks/use-notices"
 import { format } from "date-fns"
+import React from "react"
 
 export default function NoticesAdminPage() {
   const { notices, deleteNotice } = useNotices()
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (notices) {
+      setIsLoading(false);
+    }
+  }, [notices]);
+
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this notice?")) {
+    if (window.confirm("Are you sure you want to delete this notice?")) {
       deleteNotice(id)
     }
+  }
+
+  if (isLoading) {
+    return <div className="container py-6">Loading notices...</div>;
   }
 
   return (

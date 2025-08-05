@@ -36,7 +36,7 @@ export default function EditNoticePage() {
   const { toast } = useToast()
   const router = useRouter()
   const params = useParams()
-  const { updateNotice, getNoticeById } = useNotices()
+  const { updateNotice, getNoticeById, notices: allNotices } = useNotices()
   const [notice, setNotice] = React.useState<Notice | null>(null);
   const [loading, setLoading] = React.useState(true);
   
@@ -51,18 +51,20 @@ export default function EditNoticePage() {
   })
   
   React.useEffect(() => {
-    if (!noticeId) return;
-    setLoading(true);
-    const noticeData = getNoticeById(noticeId);
-    if (noticeData) {
-        setNotice(noticeData);
-        form.reset(noticeData);
+    if (noticeId && allNotices.length > 0) {
+        setLoading(true);
+        const noticeData = getNoticeById(noticeId);
+        if (noticeData) {
+            setNotice(noticeData);
+            form.reset(noticeData);
+        }
+        setLoading(false);
     }
-    setLoading(false);
-  }, [noticeId, getNoticeById, form])
+  }, [noticeId, allNotices, getNoticeById, form])
 
   async function onSubmit(data: NoticeFormValues) {
-    await updateNotice(noticeId, data)
+    if (!noticeId) return;
+    updateNotice(noticeId, data)
     toast({
       title: "Notice Updated",
       description: "The notice has been successfully updated.",
