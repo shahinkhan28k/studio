@@ -41,7 +41,11 @@ export function useTasks(userId?: string) {
         const storedCompleted = localStorage.getItem(completedKey);
         if (storedCompleted) {
           setCompletedTaskIds(new Set(JSON.parse(storedCompleted)));
+        } else {
+          setCompletedTaskIds(new Set());
         }
+      } else {
+        setCompletedTaskIds(new Set());
       }
 
     } catch (error) {
@@ -50,40 +54,21 @@ export function useTasks(userId?: string) {
   }, [userId]);
 
   useEffect(() => {
-    // To clear tasks, we can start with an empty array and save it.
-    const initialTasks: Task[] = [];
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
-    setTasks(initialTasks);
-    
-    if (userId) {
-        const completedKey = `${USER_COMPLETED_TASKS_PREFIX}${userId}`;
-        const storedCompleted = localStorage.getItem(completedKey);
-        if (storedCompleted) {
-          setCompletedTaskIds(new Set(JSON.parse(storedCompleted)));
-        }
-      }
+    loadTasks();
 
     const handleStorageChange = () => {
-        try {
-            const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-            if (storedTasks) {
-                setTasks(JSON.parse(storedTasks));
-            } else {
-                setTasks([]);
-            }
-        } catch (error) {
-            console.error("Error fetching tasks from localStorage: ", error);
-        }
+        loadTasks();
     };
     window.addEventListener('storage', handleStorageChange);
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [userId]);
+  }, [loadTasks]);
 
   const addTask = useCallback((taskData: TaskFormValues) => {
     try {
-      const currentTasks = tasks;
+      const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+      const currentTasks = storedTasks ? JSON.parse(storedTasks) : [];
       const newTask: Task = {
         ...taskData,
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
@@ -96,29 +81,33 @@ export function useTasks(userId?: string) {
     } catch (error) {
       console.error("Error adding task to localStorage: ", error);
     }
-  }, [tasks]);
+  }, []);
 
   const updateTask = useCallback((taskId: string, updatedData: Partial<TaskFormValues>) => {
     try {
-        const updatedTasks = tasks.map(t => t.id === taskId ? {...t, ...updatedData} : t);
+        const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+        const currentTasks = storedTasks ? JSON.parse(storedTasks) : [];
+        const updatedTasks = currentTasks.map(t => t.id === taskId ? {...t, ...updatedData} : t);
         setTasks(updatedTasks);
         localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
         window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error("Error updating task in localStorage: ", error);
     }
-  }, [tasks]);
+  }, []);
 
   const deleteTask = useCallback((taskId: string) => {
     try {
-      const updatedTasks = tasks.filter(task => task.id !== taskId);
+      const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+      const currentTasks = storedTasks ? JSON.parse(storedTasks) : [];
+      const updatedTasks = currentTasks.filter(task => task.id !== taskId);
       setTasks(updatedTasks);
       localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
       window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error("Error deleting task from localStorage: ", error);
     }
-  }, [tasks]);
+  }, []);
 
   const completeTask = useCallback((taskId: string) => {
     if (!userId) {
@@ -139,5 +128,5 @@ export function useTasks(userId?: string) {
     return allTasks.find(t => t.id === taskId);
   }, []);
 
-  return { tasks, addTask, updateTask, deleteTask, completeTask, getTaskById, completedTaskIds };
+  return { tasks, addTask, updateTask, deleteTask, completeTask, getTaskById, completedTaskIds, refreshTasks: loadTasks };
 }
