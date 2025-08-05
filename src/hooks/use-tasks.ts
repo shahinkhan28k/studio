@@ -21,7 +21,8 @@ export type Task = TaskFormValues & {
 };
 
 const TASKS_STORAGE_KEY = "tasks"
-const USER_COMPLETED_TASKS_PREFIX = "completedTasks-";
+const ALL_COMPLETED_TASKS_KEY = "allCompletedTasks";
+
 
 export function useTasks(userId?: string) {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -30,20 +31,13 @@ export function useTasks(userId?: string) {
   const loadTasks = useCallback(() => {
     try {
       const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
-      } else {
-        setTasks([]);
-      }
+      setTasks(storedTasks ? JSON.parse(storedTasks) : []);
 
       if (userId) {
-        const completedKey = `${USER_COMPLETED_TASKS_PREFIX}${userId}`;
-        const storedCompleted = localStorage.getItem(completedKey);
-        if (storedCompleted) {
-          setCompletedTaskIds(new Set(JSON.parse(storedCompleted)));
-        } else {
-          setCompletedTaskIds(new Set());
-        }
+        const allCompletedTasksStr = localStorage.getItem(ALL_COMPLETED_TASKS_KEY);
+        const allCompletedTasks = allCompletedTasksStr ? JSON.parse(allCompletedTasksStr) : {};
+        const userCompleted = allCompletedTasks[userId] || [];
+        setCompletedTaskIds(new Set(userCompleted));
       } else {
         setCompletedTaskIds(new Set());
       }
@@ -116,13 +110,22 @@ export function useTasks(userId?: string) {
         return;
     }
     try {
-        const newCompletedTaskIds = new Set(completedTaskIds).add(taskId);
-        setCompletedTaskIds(newCompletedTaskIds);
-        localStorage.setItem(`${USER_COMPLETED_TASKS_PREFIX}${userId}`, JSON.stringify(Array.from(newCompletedTaskIds)));
+        const allCompletedTasksStr = localStorage.getItem(ALL_COMPLETED_TASKS_KEY);
+        const allCompletedTasks = allCompletedTasksStr ? JSON.parse(allCompletedTasksStr) : {};
+        
+        const userCompleted = allCompletedTasks[userId] || [];
+        const newCompletedSet = new Set(userCompleted).add(taskId);
+        
+        allCompletedTasks[userId] = Array.from(newCompletedSet);
+
+        setCompletedTaskIds(newCompletedSet);
+        localStorage.setItem(ALL_COMPLETED_TASKS_KEY, JSON.stringify(allCompletedTasks));
+        window.dispatchEvent(new Event('storage'));
+
     } catch (error) {
         console.error("Error completing task in localStorage: ", error);
     }
-  }, [userId, completedTaskIds]);
+  }, [userId]);
   
   const getTaskById = useCallback((taskId: string): Task | undefined => {
     const allTasks = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY) || '[]') as Task[];
