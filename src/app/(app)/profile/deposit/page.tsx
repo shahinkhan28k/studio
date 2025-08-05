@@ -141,6 +141,17 @@ export default function DepositPage() {
   const isBankTransfer = selectedMethod === "bank"
   const isUsdtTransfer = selectedMethod === "usdt"
   
+  const getAgentNumber = () => {
+    switch(selectedMethod) {
+        case 'bkash':
+        case 'nagad':
+        case 'rocket':
+            return settings.agentNumber;
+        default:
+            return '';
+    }
+  }
+
   return (
     <div className="container py-6 space-y-8">
       <Button variant="ghost" asChild className="mb-4 -ml-4">
@@ -205,11 +216,11 @@ export default function DepositPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Personal Number [Send Money]:</span>
                     <span className="text-lg font-semibold text-primary">
-                      {settings.agentNumber}
+                      {getAgentNumber()}
                     </span>
                   </div>
                   <div className="flex items-center justify-end">
-                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.agentNumber)}>
+                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(getAgentNumber())}>
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
