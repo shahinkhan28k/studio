@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
@@ -18,21 +17,25 @@ import React from "react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function UsersPage() {
-  const { allUsersData, deleteUser } = useAdminStats()
+  const { allUsersData, deleteUser, loading } = useAdminStats()
   const { toast } = useToast()
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
   
-  const handleDeleteUser = (uid: string, name: string | null) => {
+  const handleDeleteUser = async (uid: string, name: string | null) => {
     if (confirm(`Are you sure you want to delete user: ${name || uid}? This action cannot be undone.`)) {
-        deleteUser(uid);
-        toast({
-            title: "User Deleted",
-            description: `User ${name || uid} has been permanently deleted.`
-        })
+        try {
+            await deleteUser(uid);
+            toast({
+                title: "User Deleted",
+                description: `User ${name || uid} has been permanently deleted.`
+            })
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete user.",
+                variant: "destructive"
+            });
+        }
     }
   }
 
@@ -65,7 +68,13 @@ export default function UsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isClient && allUsersData.length > 0 ? (
+            {loading ? (
+                 <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                       Loading...
+                    </TableCell>
+                </TableRow>
+            ) : allUsersData.length > 0 ? (
               allUsersData.map((user) => (
               <TableRow key={user.uid}>
                 <TableCell className="font-mono text-xs">{user.uid}</TableCell>
@@ -89,7 +98,7 @@ export default function UsersPage() {
             ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="text-center">
-                        {isClient ? "No users found." : "Loading..."}
+                        No users found.
                     </TableCell>
                 </TableRow>
             )}

@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useSettings, Settings } from "@/hooks/use-settings.tsx"
+import { useSettings, Settings } from "@/hooks/use-settings"
 import {
   Accordion,
   AccordionContent,
@@ -34,7 +34,6 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useBanners } from "@/hooks/use-banners"
-import type { BannerFormValues } from "@/app/admin/homepage/page"
 import {
   Table,
   TableBody,
@@ -64,10 +63,13 @@ const bannerFormSchema = z.object({
   "data-ai-hint": z.string().min(1, "AI hint is required."),
 })
 
+export type BannerFormValues = z.infer<typeof bannerFormSchema>
+
+
 export default function SettingsPage() {
   const { toast } = useToast()
-  const { settings, setSettings } = useSettings()
-  const { banners, addBanner, deleteBanner } = useBanners()
+  const { settings, setSettings, loading: settingsLoading } = useSettings()
+  const { banners, addBanner, deleteBanner, loading: bannersLoading } = useBanners()
 
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -84,19 +86,21 @@ export default function SettingsPage() {
   })
 
   useEffect(() => {
-    settingsForm.reset(settings)
+    if (settings) {
+      settingsForm.reset(settings)
+    }
   }, [settings, settingsForm])
 
-  function onSettingsSubmit(data: z.infer<typeof settingsSchema>) {
-    setSettings(data)
+  async function onSettingsSubmit(data: z.infer<typeof settingsSchema>) {
+    await setSettings(data)
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
     })
   }
   
-  function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
-    addBanner(data)
+  async function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
+    await addBanner(data)
     toast({
       title: "Banner Added",
       description: "The new banner has been successfully added.",
@@ -104,10 +108,14 @@ export default function SettingsPage() {
     bannerForm.reset()
   }
 
-  const handleDeleteBanner = (id: number) => {
+  const handleDeleteBanner = async (id: string) => {
     if (confirm("Are you sure you want to delete this banner?")) {
-      deleteBanner(id)
+      await deleteBanner(id)
     }
+  }
+
+  if (settingsLoading || bannersLoading) {
+    return <div className="container py-6">Loading settings...</div>
   }
 
 

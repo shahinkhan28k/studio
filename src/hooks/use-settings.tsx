@@ -2,6 +2,8 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export type Settings = {
   referralCommissionRateL1: number;
@@ -16,7 +18,8 @@ export type Settings = {
   usdtAddress: string;
 };
 
-const SETTINGS_STORAGE_KEY = "platformSettings";
+const SETTINGS_DOC_ID = "platformSettings";
+const SETTINGS_COLLECTION = "configuration";
 
 const defaultSettings: Settings = {
   referralCommissionRateL1: 5,
@@ -33,74 +36,51 @@ const defaultSettings: Settings = {
 
 interface SettingsContextType {
     settings: Settings;
-    setSettings: (settings: Settings) => void;
+    setSettings: (settings: Settings) => Promise<void>;
+    loading: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-
-const getStoredData = <T>(key: string, defaultValue: T): T => {
-    if (typeof window === "undefined") {
-        return defaultValue;
-    }
-    try {
-        const stored = window.localStorage.getItem(key);
-        if (stored) {
-            return { ...defaultValue, ...JSON.parse(stored) };
-        } else {
-             window.localStorage.setItem(key, JSON.stringify(defaultValue));
-        }
-    } catch (error) {
-        console.error(`Failed to parse ${key} from localStorage`, error);
-    }
-    return defaultValue;
-}
-
-const setStoredData = <T>(key: string, data: T) => {
-    if (typeof window === "undefined") return;
-    try {
-        window.localStorage.setItem(key, JSON.stringify(data));
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: key,
-            newValue: JSON.stringify(data),
-        }));
-    } catch (error) {
-        console.error(`Failed to save ${key} to localStorage`, error);
-    }
-}
-
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-    const [settings, setSettingsState] = useState<Settings>(() => 
-        getStoredData(SETTINGS_STORAGE_KEY, defaultSettings)
-    );
+    const [settings, setSettingsState] = useState<Settings>(defaultSettings);
+    const [loading, setLoading] = useState(true);
 
-    const loadSettings = useCallback(() => {
-        const storedSettings = getStoredData(SETTINGS_STORAGE_KEY, defaultSettings);
-        setSettingsState(storedSettings);
+    const loadSettings = useCallback(async () => {
+        setLoading(true);
+        try {
+            const settingsRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                setSettingsState({ ...defaultSettings, ...docSnap.data() } as Settings);
+            } else {
+                // If settings don't exist, create them with default values
+                await setDoc(settingsRef, defaultSettings);
+                setSettingsState(defaultSettings);
+            }
+        } catch (error) {
+            console.error("Error loading settings from Firestore: ", error);
+            setSettingsState(defaultSettings);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => {
         loadSettings();
     }, [loadSettings]);
 
-    useEffect(() => {
-        const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === SETTINGS_STORAGE_KEY) {
-            loadSettings();
+    const setSettings = useCallback(async (newSettings: Settings) => {
+        try {
+            const settingsRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
+            await setDoc(settingsRef, newSettings);
+            setSettingsState(newSettings);
+        } catch (error) {
+            console.error("Error saving settings to Firestore: ", error);
         }
-        }
-        window.addEventListener("storage", handleStorageChange);
-        return () => {
-        window.removeEventListener("storage", handleStorageChange);
-        }
-    }, [loadSettings]);
-
-    const setSettings = useCallback((newSettings: Settings) => {
-        setStoredData(SETTINGS_STORAGE_KEY, newSettings);
-        setSettingsState(newSettings);
     }, []);
 
-    const value = { settings, setSettings };
+    const value = { settings, setSettings, loading };
 
     return (
         <SettingsContext.Provider value={value}>

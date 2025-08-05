@@ -2,107 +2,101 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import type { NoticeFormValues } from "@/app/admin/notices/new/page"
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
+export interface NoticeFormValues {
+  title: string;
+  description: string;
+}
 
 export type Notice = NoticeFormValues & {
-  id: number;
-  createdAt: string;
+  id: string;
+  createdAt: any;
 };
 
-const NOTICES_STORAGE_KEY = "notices"
-
-const defaultNotices: Notice[] = [
-  { id: 1, title: "New high-value tasks available!", description: "Check the tasks section for more earning opportunities. Limited slots available!", createdAt: "2024-07-28T10:00:00Z" },
-  { id: 2, title: "Referral Program Boost", description: "For a limited time, get a 10% bonus on your first-level referral commissions.", createdAt: "2024-07-27T10:00:00Z" },
-  { id: 3, title: "Scheduled Maintenance", description: "The platform will be down for scheduled maintenance on Sunday at 2 PM UTC.", createdAt: "2024-07-26T10:00:00Z" },
-]
-
-const getStoredData = <T>(key: string, defaultValue: T): T => {
-    if (typeof window === "undefined") {
-        return defaultValue;
-    }
-    try {
-        const stored = window.localStorage.getItem(key);
-        if (stored) {
-            return JSON.parse(stored) as T;
-        } else {
-             window.localStorage.setItem(key, JSON.stringify(defaultValue));
-        }
-    } catch (error) {
-        console.error(`Failed to parse ${key} from localStorage`, error);
-    }
-    return defaultValue;
-}
-
-const setStoredData = <T>(key: string, data: T) => {
-    if (typeof window === "undefined") return;
-    try {
-        window.localStorage.setItem(key, JSON.stringify(data));
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: key,
-            newValue: JSON.stringify(data),
-        }));
-    } catch (error) {
-        console.error(`Failed to save ${key} to localStorage`, error);
-    }
-}
+const NOTICES_COLLECTION = "notices"
 
 export function useNotices() {
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadNotices = useCallback(() => {
-    const storedNotices = getStoredData(NOTICES_STORAGE_KEY, defaultNotices);
-    const sortedNotices = storedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    setNotices(sortedNotices);
+  const loadNotices = useCallback(async () => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, NOTICES_COLLECTION), orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      const noticesData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Notice));
+      setNotices(noticesData);
+    } catch (error) {
+      console.error("Error fetching notices: ", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     loadNotices();
   }, [loadNotices]);
+  
+  const addNotice = useCallback(async (noticeData: NoticeFormValues) => {
+    try {
+      await addDoc(collection(db, NOTICES_COLLECTION), {
+        ...noticeData,
+        createdAt: serverTimestamp()
+      });
+      await loadNotices();
+    } catch (error) {
+      console.error("Error adding notice: ", error);
+    }
+  }, [loadNotices]);
 
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === NOTICES_STORAGE_KEY) {
-         loadNotices();
+  const updateNotice = useCallback(async (noticeId: string, noticeData: NoticeFormValues) => {
+    try {
+      const noticeRef = doc(db, NOTICES_COLLECTION, noticeId);
+      await updateDoc(noticeRef, noticeData);
+      await loadNotices();
+    } catch (error) {
+      console.error("Error updating notice: ", error);
+    }
+  }, [loadNotices]);
+
+  const deleteNotice = useCallback(async (noticeId: string) => {
+    try {
+      await deleteDoc(doc(db, NOTICES_COLLECTION, noticeId));
+      setNotices(prevNotices => prevNotices.filter(notice => notice.id !== noticeId));
+    } catch (error) {
+      console.error("Error deleting notice: ", error);
+    }
+  }, []);
+  
+  const getNoticeById = useCallback(async (noticeId: string): Promise<Notice | undefined> => {
+    try {
+      const noticeRef = doc(db, NOTICES_COLLECTION, noticeId);
+      const docSnap = await getDoc(noticeRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Notice;
       }
+      return undefined;
+    } catch (error) {
+      console.error("Error fetching notice by ID: ", error);
+      return undefined;
     }
-    window.addEventListener("storage", handleStorageChange)
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-    }
-  }, [loadNotices])
-  
-  const addNotice = useCallback((noticeData: NoticeFormValues) => {
-    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
-    const newId = currentNotices.length > 0 ? Math.max(...currentNotices.map(t => t.id)) + 1 : 1;
-    const newNotice: Notice = {
-      ...noticeData,
-      id: newId,
-      createdAt: new Date().toISOString(),
-    };
-    const updatedNotices = [...currentNotices, newNotice];
-    setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
   }, []);
 
-  const updateNotice = useCallback((noticeId: number, noticeData: NoticeFormValues) => {
-    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
-    const updatedNotices = currentNotices.map(notice => 
-        notice.id === noticeId ? { ...notice, ...noticeData } : notice
-    );
-    setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
-  }, []);
-
-  const deleteNotice = useCallback((noticeId: number) => {
-    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
-    const updatedNotices = currentNotices.filter(notice => notice.id !== noticeId);
-    setStoredData(NOTICES_STORAGE_KEY, updatedNotices);
-  }, []);
-  
-  const getNoticeById = useCallback((noticeId: number): Notice | undefined => {
-    const currentNotices = getStoredData<Notice[]>(NOTICES_STORAGE_KEY, defaultNotices);
-    return currentNotices.find(notice => notice.id === noticeId);
-  }, []);
-
-
-  return { notices, addNotice, updateNotice, deleteNotice, getNoticeById };
+  return { notices, loading, addNotice, updateNotice, deleteNotice, getNoticeById, refreshNotices: loadNotices };
 }

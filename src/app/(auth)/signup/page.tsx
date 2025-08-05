@@ -8,7 +8,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -77,23 +78,17 @@ export default function SignupPage() {
       await updateProfile(user, {
         displayName: data.name
       });
+
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: data.name,
+        photoURL: user.photoURL,
+        createdAt: serverTimestamp(),
+        referrerId: referrerId || null,
+      });
       
-      if (user) {
-        localStorage.setItem(`signup_${user.uid}`, JSON.stringify({
-            user: {
-                uid: user.uid,
-                email: user.email,
-                displayName: data.name,
-                photoURL: user.photoURL
-            },
-            timestamp: new Date().toISOString()
-        }));
-      }
-
-      if (referrerId && user) {
-        localStorage.setItem(`referrer_${user.uid}`, referrerId)
-      }
-
       toast({
         title: "Account Created",
         description: "Welcome! You have been successfully signed up.",
@@ -104,6 +99,7 @@ export default function SignupPage() {
       if (error.code === 'auth/email-already-in-use') {
         description = "This email is already in use. Please try another one."
       }
+       console.error("Sign up error:", error);
       toast({
         title: "Sign Up Failed",
         description: description,

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -25,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { useNotices } from "@/hooks/use-notices"
+import { useNotices, NoticeFormValues } from "@/hooks/use-notices"
 import React from "react"
 
 const noticeFormSchema = z.object({
@@ -33,39 +32,49 @@ const noticeFormSchema = z.object({
   description: z.string().min(1, "Description is required."),
 })
 
-export type NoticeFormValues = z.infer<typeof noticeFormSchema>
-
 export default function EditNoticePage() {
   const { toast } = useToast()
   const router = useRouter()
   const params = useParams()
   const { updateNotice, getNoticeById } = useNotices()
+  const [notice, setNotice] = React.useState<NoticeFormValues | null>(null);
+  const [loading, setLoading] = React.useState(true);
   
-  const noticeId = Number(params.id)
-  const notice = getNoticeById(noticeId)
+  const noticeId = params.id as string
 
   const form = useForm<NoticeFormValues>({
     resolver: zodResolver(noticeFormSchema),
-    defaultValues: notice || {
+    defaultValues: {
       title: "",
       description: "",
     },
   })
   
   React.useEffect(() => {
-    if (notice) {
-      form.reset(notice)
+    const fetchNotice = async () => {
+        if (!noticeId) return;
+        setLoading(true);
+        const noticeData = await getNoticeById(noticeId);
+        if (noticeData) {
+            setNotice(noticeData);
+            form.reset(noticeData);
+        }
+        setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notice])
+    fetchNotice();
+  }, [noticeId, getNoticeById, form])
 
-  function onSubmit(data: NoticeFormValues) {
-    updateNotice(noticeId, data)
+  async function onSubmit(data: NoticeFormValues) {
+    await updateNotice(noticeId, data)
     toast({
       title: "Notice Updated",
       description: "The notice has been successfully updated.",
     })
     router.push("/admin/notices")
+  }
+
+  if (loading) {
+      return <div className="container py-6">Loading notice...</div>
   }
 
   if (!notice) {

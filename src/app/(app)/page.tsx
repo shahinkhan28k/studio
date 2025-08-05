@@ -27,8 +27,12 @@ import { useBanners } from "@/hooks/use-banners"
 
 export default function HomePage() {
   const { language } = useAppContext()
-  const { notices } = useNotices()
-  const { banners } = useBanners()
+  const { notices, loading: noticesLoading } = useNotices()
+  const { banners, loading: bannersLoading } = useBanners()
+
+  if (bannersLoading || noticesLoading) {
+    return <div className="container py-6">Loading...</div>;
+  }
 
   return (
     <div className="container py-6">

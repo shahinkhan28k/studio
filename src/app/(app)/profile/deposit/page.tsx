@@ -42,8 +42,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
-import { useSettings } from "@/hooks/use-settings.tsx"
-
+import { useSettings } from "@/hooks/use-settings"
 
 const depositFormSchema = z
   .object({
@@ -96,9 +95,9 @@ type DepositFormValues = z.infer<typeof depositFormSchema>
 
 export default function DepositPage() {
   const { toast } = useToast()
-  const { addDeposit, depositHistory } = useUserStats()
+  const { addDeposit, depositHistory, loading } = useUserStats()
   const { currency } = useAppContext();
-  const { settings } = useSettings();
+  const { settings, loading: settingsLoading } = useSettings();
 
 
   const form = useForm<DepositFormValues>({
@@ -116,13 +115,13 @@ export default function DepositPage() {
 
   const selectedMethod = form.watch("method")
 
-  function onSubmit(data: DepositFormValues) {
-    const depositData: Omit<DepositRecord, 'date'> = {
+  async function onSubmit(data: DepositFormValues) {
+    const depositData: Omit<DepositRecord, 'date' | 'id'> = {
       amount: data.amount,
       method: data.method,
       status: 'pending'
     }
-    addDeposit(depositData);
+    await addDeposit(depositData);
     toast({
       title: "Deposit Submitted",
       description: "Your deposit has been submitted and will be processed shortly.",
@@ -138,9 +137,13 @@ export default function DepositPage() {
         })
     }
   }
-  
+
   const isBankTransfer = selectedMethod === "bank"
   const isUsdtTransfer = selectedMethod === "usdt"
+  
+  if (loading || settingsLoading) {
+    return <div className="container py-6">Loading...</div>
+  }
 
   return (
     <div className="container py-6 space-y-8">
@@ -369,9 +372,9 @@ export default function DepositPage() {
                 </TableHeader>
                 <TableBody>
                    {depositHistory.length > 0 ? (
-                     depositHistory.map((deposit, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{format(new Date(deposit.date), "PP")}</TableCell>
+                     depositHistory.map((deposit) => (
+                        <TableRow key={deposit.id}>
+                            <TableCell>{format(deposit.date.toDate(), "PP")}</TableCell>
                             <TableCell>{formatCurrency(deposit.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{deposit.method}</TableCell>
                             <TableCell>

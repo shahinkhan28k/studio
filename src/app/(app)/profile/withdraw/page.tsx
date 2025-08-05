@@ -39,7 +39,10 @@ import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { useSettings } from "@/hooks/use-settings.tsx"
+import { useSettings } from "@/hooks/use-settings"
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { useAuth } from "@/context/auth-context"
 
 const withdrawFormSchema = z
   .object({
@@ -107,10 +110,12 @@ type WithdrawFormValues = z.infer<typeof withdrawFormSchema>
 
 export default function WithdrawPage() {
   const { toast } = useToast()
-  const { stats, addWithdrawal, withdrawalHistory, referrals } = useUserStats()
+  const { user } = useAuth();
+  const { stats, addWithdrawal, withdrawalHistory, referrals, loading } = useUserStats()
   const { language, currency } = useAppContext()
-  const { settings } = useSettings();
-  const [isInitialized, setIsInitialized] = React.useState(false)
+  const { settings, loading: settingsLoading } = useSettings();
+  const [isFetching, setIsFetching] = React.useState(true);
+
 
   const defaultValues = React.useMemo(() => ({
     amount: 0,
@@ -129,36 +134,32 @@ export default function WithdrawPage() {
   })
   
   const paymentMethod = form.watch("method")
-  const formValues = form.watch()
   
   React.useEffect(() => {
-    if (!isInitialized) {
-      try {
-        const savedData = localStorage.getItem("withdrawalDetails")
-        if (savedData) {
-          const parsedData = JSON.parse(savedData)
-          if (parsedData.method) {
-              form.reset({ ...defaultValues, ...parsedData });
+    const fetchWithdrawalDetails = async () => {
+      if (user) {
+        setIsFetching(true);
+        const docRef = doc(db, "accountDetails", user.uid);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            form.reset({ ...defaultValues, ...data });
           }
+        } catch (error) {
+           console.error("Error fetching account details for withdrawal:", error);
+        } finally {
+            setIsFetching(false);
         }
-      } catch (error) {
-        console.error("Failed to parse withdrawal details from localStorage", error)
       }
-      setIsInitialized(true);
+    };
+    if (user) {
+        fetchWithdrawalDetails();
     }
-  }, [form, defaultValues, isInitialized])
+  }, [user, form, defaultValues]);
   
-   React.useEffect(() => {
-    if (isInitialized) {
-      try {
-        localStorage.setItem("withdrawalDetails", JSON.stringify(formValues))
-      } catch (error) {
-        console.error("Failed to save withdrawal details to localStorage", error)
-      }
-    }
-  }, [formValues, isInitialized])
 
-  function onSubmit(data: WithdrawFormValues) {
+  async function onSubmit(data: WithdrawFormValues) {
     if (referrals.length < settings.withdrawalRequirement) {
       toast({
         title: "Withdrawal Requirement Not Met",
@@ -178,22 +179,32 @@ export default function WithdrawPage() {
       return
     }
 
-    const withdrawalData: Omit<WithdrawalRecord, 'date'> = {
+    const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id'> = {
       amount: data.amount,
       method: data.method,
       status: 'pending'
     }
 
-    addWithdrawal(withdrawalData)
-
-    toast({
-      title: "Withdrawal Request Submitted",
-      description:
-        "Your request has been submitted and will be processed shortly.",
-    })
-    form.reset()
-    localStorage.removeItem("withdrawalDetails");
+    try {
+        await addWithdrawal(withdrawalData);
+        toast({
+            title: "Withdrawal Request Submitted",
+            description: "Your request has been submitted and will be processed shortly.",
+        });
+        form.reset();
+    } catch (error) {
+         toast({
+            title: "Withdrawal Failed",
+            description: "Could not submit your request. Please try again.",
+            variant: "destructive"
+        })
+    }
   }
+
+  if (loading || settingsLoading || isFetching) {
+    return <div className="container py-6">Loading...</div>
+  }
+
 
   return (
     <div className="container py-6 space-y-8">
@@ -327,7 +338,7 @@ export default function WithdrawPage() {
                     </FormItem>
                   )}
                 />
-              ) : paymentMethod && (
+              ) : paymentMethod ? (
                  <FormField
                     control={form.control}
                     name="walletNumber"
@@ -341,7 +352,7 @@ export default function WithdrawPage() {
                       </FormItem>
                     )}
                   />
-              )}
+              ) : null}
 
               <FormField
                 control={form.control}
@@ -385,9 +396,9 @@ export default function WithdrawPage() {
                 </TableHeader>
                 <TableBody>
                    {withdrawalHistory.length > 0 ? (
-                    withdrawalHistory.map((withdrawal, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
+                    withdrawalHistory.map((withdrawal) => (
+                        <TableRow key={withdrawal.id}>
+                            <TableCell>{format(withdrawal.date.toDate(), "PP")}</TableCell>
                             <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>

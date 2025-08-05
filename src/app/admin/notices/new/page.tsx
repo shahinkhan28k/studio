@@ -25,14 +25,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { useNotices } from "@/hooks/use-notices"
+import { useNotices, NoticeFormValues } from "@/hooks/use-notices"
 
-const noticeFormSchema = z.object({
-  title: z.string().min(1, "Title is required."),
-  description: z.string().min(1, "Description is required."),
-})
-
-export type NoticeFormValues = z.infer<typeof noticeFormSchema>
 
 export default function NewNoticePage() {
   const { toast } = useToast()
@@ -40,15 +34,20 @@ export default function NewNoticePage() {
   const { addNotice } = useNotices()
 
   const form = useForm<NoticeFormValues>({
-    resolver: zodResolver(noticeFormSchema),
+    resolver: zodResolver(
+      z.object({
+        title: z.string().min(1, "Title is required."),
+        description: z.string().min(1, "Description is required."),
+      })
+    ),
     defaultValues: {
       title: "",
       description: "",
     },
   })
 
-  function onSubmit(data: NoticeFormValues) {
-    addNotice(data)
+  async function onSubmit(data: NoticeFormValues) {
+    await addNotice(data)
     toast({
       title: "Notice Created",
       description: "The new notice has been successfully created.",

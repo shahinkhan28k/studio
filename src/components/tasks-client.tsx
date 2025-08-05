@@ -25,21 +25,21 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { useUserStats } from "@/hooks/use-user-stats"
 import { useAppContext } from "@/context/app-context"
 import { useTasks, Task } from "@/hooks/use-tasks"
+import { useAuth } from "@/context/auth-context"
 
 type TasksClientProps = {
   showFeaturedOnly?: boolean
 }
 
 export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
-  const { tasks: allTasks, completeTask: markTaskAsComplete } = useTasks()
-  const [completedTaskIds, setCompletedTaskIds] = useState<Set<number>>(new Set());
+  const { user } = useAuth();
+  const { tasks, loading, completedTaskIds, completeTask: markTaskAsComplete } = useTasks(user?.uid)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isAdOpen, setIsAdOpen] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const { toast } = useToast()
   const { addEarning } = useUserStats()
   const { language, currency } = useAppContext()
-
 
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -68,12 +68,12 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
       setSelectedTask(task)
       setIsAdOpen(true)
     } else {
-      completeTask(task.id, task.reward)
+      processTaskCompletion(task.id, task.reward)
     }
   }
 
-  const completeTask = (taskId: number, reward: number) => {
-    setCompletedTaskIds(prev => new Set(prev).add(taskId))
+  const processTaskCompletion = (taskId: string, reward: number) => {
+    markTaskAsComplete(taskId);
     addEarning(reward);
 
     toast({
@@ -85,7 +85,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
 
   const handleAdClose = () => {
     if (selectedTask) {
-      completeTask(selectedTask.id, selectedTask.reward)
+      processTaskCompletion(selectedTask.id, selectedTask.reward)
     }
     setIsAdOpen(false)
     setSelectedTask(null)
@@ -93,12 +93,16 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   }
 
   const displayedTasks = useMemo(() => {
-    const activeTasks = allTasks.filter(task => task.status === 'Active');
+    const activeTasks = tasks.filter(task => task.status === 'Active');
     if (showFeaturedOnly) {
       return activeTasks.filter(task => task.isFeatured)
     }
     return activeTasks
-  }, [allTasks, showFeaturedOnly])
+  }, [tasks, showFeaturedOnly])
+  
+  if (loading) {
+    return <div>Loading tasks...</div>
+  }
 
   return (
     <>
@@ -137,7 +141,7 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
             </AlertDialogHeader>
             <div className="flex items-center justify-center h-48 bg-muted rounded-md">
               {selectedTask.adLink ? (
-                <iframe src={selectedTask.adLink} className="w-full h-full" />
+                <iframe src={selectedTask.adLink} className="w-full h-full" title="Advertisement" />
               ) : (
                 <p className="text-muted-foreground">[Ad Content Placeholder]</p>
               )}

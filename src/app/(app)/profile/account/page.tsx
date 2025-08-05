@@ -8,7 +8,8 @@ import * as React from "react"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { updateProfile } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
+import { doc, setDoc, getDoc } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -92,10 +93,11 @@ type AccountFormValues = z.infer<typeof accountFormSchema>
 export default function AccountDetailsPage() {
   const { toast } = useToast()
   const { language } = useAppContext()
-  const { user, refreshUser } = useAuth()
-  const [isInitialized, setIsInitialized] = React.useState(false);
+  const { user, refreshUser, loading } = useAuth()
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isFetching, setIsFetching] = React.useState(true);
 
-  const defaultValues = React.useMemo(() => ({
+  const defaultValues: AccountFormValues = React.useMemo(() => ({
     name: user?.displayName ?? "",
     email: user?.email ?? "",
     mobileNumber: user?.phoneNumber ?? "",
@@ -114,35 +116,32 @@ export default function AccountDetailsPage() {
   })
 
   const paymentMethod = form.watch("paymentMethod")
-  const formValues = form.watch()
 
   React.useEffect(() => {
-    if (user && !isInitialized) {
-      try {
-        const savedData = localStorage.getItem(`accountDetails_${user.uid}`)
-        if (savedData) {
-          const parsedData = JSON.parse(savedData)
-          form.reset({ ...defaultValues, ...parsedData, name: user?.displayName ?? parsedData.name ?? "" })
-        } else {
-          form.reset(defaultValues)
+    const fetchAccountDetails = async () => {
+      if (user) {
+        setIsFetching(true);
+        const docRef = doc(db, "accountDetails", user.uid);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data() as AccountFormValues;
+             form.reset({ ...defaultValues, ...data, name: user?.displayName ?? data.name ?? "" })
+          } else {
+             form.reset(defaultValues);
+          }
+        } catch (error) {
+           console.error("Error fetching account details:", error);
+           form.reset(defaultValues);
+        } finally {
+            setIsFetching(false);
         }
-      } catch (error) {
-        console.error("Failed to parse account details from localStorage", error)
-        form.reset(defaultValues)
       }
-      setIsInitialized(true);
+    };
+    if (!loading) {
+       fetchAccountDetails();
     }
-  }, [form, user, defaultValues, isInitialized])
-
-  React.useEffect(() => {
-    if (user && isInitialized) {
-      try {
-        localStorage.setItem(`accountDetails_${user.uid}`, JSON.stringify(formValues))
-      } catch (error) {
-        console.error("Failed to save account details to localStorage", error)
-      }
-    }
-  }, [formValues, user, isInitialized])
+  }, [user, loading, form, defaultValues]);
 
   async function onSubmit(data: AccountFormValues) {
      if (!auth.currentUser) {
@@ -153,11 +152,15 @@ export default function AccountDetailsPage() {
         });
         return;
     }
+    setIsSubmitting(true);
     
     try {
         await updateProfile(auth.currentUser, {
             displayName: data.name,
         });
+
+        const docRef = doc(db, "accountDetails", auth.currentUser.uid);
+        await setDoc(docRef, data, { merge: true });
 
         await refreshUser();
 
@@ -172,7 +175,13 @@ export default function AccountDetailsPage() {
             description: "Could not update your profile. Please try again.",
             variant: "destructive"
         })
+    } finally {
+        setIsSubmitting(false);
     }
+  }
+
+  if (loading || isFetching) {
+    return <div className="container py-6">Loading account details...</div>
   }
 
   return (
@@ -361,7 +370,9 @@ export default function AccountDetailsPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Update Account</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Updating..." : "Update Account"}
+              </Button>
             </form>
           </Form>
         </CardContent>

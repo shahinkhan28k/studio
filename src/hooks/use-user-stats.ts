@@ -3,7 +3,20 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
-import { useSettings } from "./use-settings.tsx";
+import { useSettings } from "./use-settings"
+import {
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  getDocs,
+  writeBatch,
+  serverTimestamp,
+} from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 export type UserStats = {
   totalEarnings: number
@@ -15,25 +28,26 @@ export type UserStats = {
 export type TransactionStatus = 'pending' | 'completed' | 'failed';
 
 export type DepositRecord = {
-  date: string;
+  id?: string;
+  date: any;
   amount: number;
   method: string;
   status: TransactionStatus;
 }
 
 export type WithdrawalRecord = {
-    date: string;
+    id?: string;
+    date: any;
     amount: number;
     method: string;
     status: TransactionStatus;
 }
 
 export type Referral = {
-    id: string;
+    id: string; // The UID of the referred user
     name: string;
-    earnings: number;
+    earnings: number; // Commission earned from this specific referral
 }
-
 
 export const defaultStats: UserStats = {
   totalEarnings: 0,
@@ -42,202 +56,195 @@ export const defaultStats: UserStats = {
   availableBalance: 0,
 }
 
-const getStoredData = <T>(key: string, defaultValue: T): T => {
-    if (typeof window === "undefined") {
-        return defaultValue;
-    }
-    try {
-        const stored = window.localStorage.getItem(key);
-        if (stored) {
-            return JSON.parse(stored) as T;
-        }
-    } catch (error) {
-        console.error(`Failed to parse ${key} from localStorage`, error);
-    }
-    return defaultValue;
-}
-
-const setStoredData = <T>(key: string, data: T) => {
-    if (typeof window === "undefined") return;
-    try {
-        window.localStorage.setItem(key, JSON.stringify(data));
-        // Manually dispatch a storage event to ensure same-page updates
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: key,
-            newValue: JSON.stringify(data),
-        }));
-    } catch (error) {
-        console.error(`Failed to save ${key} to localStorage`, error);
-    }
-}
-
-
 export function useUserStats() {
-  const { user } = useAuth();
-  const { settings } = useSettings();
-  const uid = user?.uid;
+  const { user } = useAuth()
+  const { settings, loading: settingsLoading } = useSettings()
+  const uid = user?.uid
 
-  const STATS_STORAGE_KEY = uid ? `userStats_${uid}` : 'userStats';
-  const DEPOSIT_HISTORY_KEY = uid ? `depositHistory_${uid}` : 'depositHistory';
-  const WITHDRAWAL_HISTORY_KEY = uid ? `withdrawalHistory_${uid}` : 'withdrawalHistory';
-  const REFERRALS_KEY = uid ? `referrals_${uid}` : 'referrals';
+  const [stats, setStats] = useState<UserStats>(defaultStats)
+  const [depositHistory, setDepositHistory] = useState<DepositRecord[]>([])
+  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRecord[]>([])
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [loading, setLoading] = useState(true)
 
+  const loadAllUserData = useCallback(async () => {
+    if (!uid || settingsLoading) return;
+    setLoading(true);
 
-  const [stats, setStats] = useState<UserStats>(() => getStoredData(STATS_STORAGE_KEY, defaultStats));
-  const [depositHistory, setDepositHistory] = useState<DepositRecord[]>(() => getStoredData(DEPOSIT_HISTORY_KEY, []));
-  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRecord[]>(() => getStoredData(WITHDRAWAL_HISTORY_KEY, []));
-  const [referrals, setReferrals] = useState<Referral[]>(() => getStoredData(REFERRALS_KEY, []));
+    try {
+      // Fetch stats
+      const statsRef = doc(db, "userStats", uid);
+      const statsSnap = await getDoc(statsRef);
+      if (statsSnap.exists()) {
+        setStats(statsSnap.data() as UserStats);
+      } else {
+        await setDoc(statsRef, defaultStats); // Initialize stats if not present
+        setStats(defaultStats);
+      }
 
+      // Fetch deposit history
+      const depositQuery = query(collection(db, `users/${uid}/depositHistory`), orderBy("date", "desc"));
+      const depositSnapshot = await getDocs(depositQuery);
+      setDepositHistory(depositSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DepositRecord)));
+
+      // Fetch withdrawal history
+      const withdrawalQuery = query(collection(db, `users/${uid}/withdrawalHistory`), orderBy("date", "desc"));
+      const withdrawalSnapshot = await getDocs(withdrawalQuery);
+      setWithdrawalHistory(withdrawalSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WithdrawalRecord)));
+      
+      // Fetch referrals
+      const referralsQuery = query(collection(db, `users/${uid}/referrals`), orderBy("earnings", "desc"));
+      const referralsSnapshot = await getDocs(referralsQuery);
+      setReferrals(referralsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Referral)));
+
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [uid, settingsLoading]);
 
   useEffect(() => {
     if (uid) {
-        setStats(getStoredData(STATS_STORAGE_KEY, defaultStats));
-        setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, []));
-        setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, []));
-        setReferrals(getStoredData(REFERRALS_KEY, []));
-
+      loadAllUserData();
     } else {
-        // Clear stats if user logs out
-        setStats(defaultStats);
-        setDepositHistory([]);
-        setWithdrawalHistory([]);
-        setReferrals([]);
+      // Clear stats if user logs out
+      setStats(defaultStats);
+      setDepositHistory([]);
+      setWithdrawalHistory([]);
+      setReferrals([]);
+      setLoading(false);
     }
-  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY, REFERRALS_KEY]);
+  }, [uid, loadAllUserData]);
 
+  const addEarning = useCallback(async (amount: number) => {
+    if (!user || !user.uid) return;
 
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-        if (!uid) return;
-        const keys = {
-            [STATS_STORAGE_KEY]: () => setStats(getStoredData(STATS_STORAGE_KEY, defaultStats)),
-            [DEPOSIT_HISTORY_KEY]: () => setDepositHistory(getStoredData(DEPOSIT_HISTORY_KEY, [])),
-            [WITHDRAWAL_HISTORY_KEY]: () => setWithdrawalHistory(getStoredData(WITHDRAWAL_HISTORY_KEY, [])),
-            [REFERRALS_KEY]: () => setReferrals(getStoredData(REFERRALS_KEY, [])),
-        };
+    const batch = writeBatch(db);
+    const currentUserStatsRef = doc(db, "userStats", user.uid);
 
-        if (event.key && event.key in keys) {
-            (keys as any)[event.key]();
+    try {
+        const currentUserStatsSnap = await getDoc(currentUserStatsRef);
+        const currentStats = currentUserStatsSnap.exists() ? currentUserStatsSnap.data() as UserStats : defaultStats;
+
+        const newTotalEarnings = currentStats.totalEarnings + amount;
+        const newAvailableBalance = currentStats.availableBalance + amount;
+
+        batch.update(currentUserStatsRef, {
+            totalEarnings: newTotalEarnings,
+            availableBalance: newAvailableBalance,
+        });
+        setStats(prev => ({ ...prev, totalEarnings: newTotalEarnings, availableBalance: newAvailableBalance }));
+
+        // Handle referral commission
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const userData = userDocSnap.data();
+        const referrerId = userData?.referrerId;
+
+        if (referrerId) {
+            const commission = amount * (settings.referralCommissionRateL1 / 100);
+            const referrerStatsRef = doc(db, "userStats", referrerId);
+            const referrerReferralRef = doc(db, `users/${referrerId}/referrals`, user.uid);
+
+            const referrerStatsSnap = await getDoc(referrerStatsRef);
+            const referrerStats = referrerStatsSnap.exists() ? referrerStatsSnap.data() as UserStats : defaultStats;
+
+            batch.update(referrerStatsRef, {
+                totalEarnings: referrerStats.totalEarnings + commission,
+                availableBalance: referrerStats.availableBalance + commission
+            });
+            
+            const referrerReferralSnap = await getDoc(referrerReferralRef);
+            if (referrerReferralSnap.exists()) {
+                 const currentReferralEarnings = referrerReferralSnap.data().earnings || 0;
+                 batch.update(referrerReferralRef, { earnings: currentReferralEarnings + commission });
+            } else {
+                 batch.set(referrerReferralRef, {
+                    name: user.displayName || user.email || 'Anonymous',
+                    earnings: commission
+                 });
+            }
         }
+        
+        await batch.commit();
+
+    } catch (error) {
+        console.error("Error adding earning:", error);
     }
-
-    window.addEventListener("storage", handleStorageChange)
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-    }
-  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY, WITHDRAWAL_HISTORY_KEY, REFERRALS_KEY])
+  }, [user, settings.referralCommissionRateL1]);
   
-  const updateStats = useCallback((newStats: Partial<UserStats>) => {
+  const addDeposit = useCallback(async (deposit: Omit<DepositRecord, 'date' | 'id'>) => {
     if (!uid) return;
-    setStats((prevStats) => {
-      const updatedStats = { ...prevStats, ...newStats }
-      setStoredData(STATS_STORAGE_KEY, updatedStats)
-      return updatedStats
-    })
-  }, [uid, STATS_STORAGE_KEY])
+    
+    const batch = writeBatch(db);
+    const statsRef = doc(db, "userStats", uid);
+    const newDepositRef = doc(collection(db, `users/${uid}/depositHistory`));
+    
+    try {
+        const statsSnap = await getDoc(statsRef);
+        const currentStats = statsSnap.exists() ? statsSnap.data() as UserStats : defaultStats;
 
-  const addEarning = useCallback((amount: number) => {
-    if (!user) return;
-    setStats((prevStats) => {
-      const newTotalEarnings = prevStats.totalEarnings + amount
-      const newAvailableBalance = prevStats.availableBalance + amount
-      
-      const referrerId = localStorage.getItem(`referrer_${user.uid}`);
-      if (referrerId) {
-          const commission = amount * (settings.referralCommissionRateL1 / 100);
-          const referrerStatsKey = `userStats_${referrerId}`;
-          const referrerStats = getStoredData<UserStats>(referrerStatsKey, defaultStats);
-          
-          const updatedReferrerStats = {
-              ...referrerStats,
-              totalEarnings: referrerStats.totalEarnings + commission,
-              availableBalance: referrerStats.availableBalance + commission
-          };
-          setStoredData(referrerStatsKey, updatedReferrerStats);
+        const newTotalDeposit = currentStats.totalDeposit + deposit.amount;
+        const newAvailableBalance = currentStats.availableBalance + deposit.amount;
 
-          const referrerReferralsKey = `referrals_${referrerId}`;
-          const currentReferrals = getStoredData<Referral[]>(referrerReferralsKey, []);
-          
-          let referredUserExists = false;
-          const updatedReferrals = currentReferrals.map(r => {
-              if (r.id === user.uid) {
-                  referredUserExists = true;
-                  return { ...r, earnings: r.earnings + commission };
-              }
-              return r;
-          });
-
-          if (!referredUserExists) {
-              updatedReferrals.push({
-                  id: user.uid,
-                  name: user.displayName || user.email || 'Anonymous',
-                  earnings: commission
-              });
-          }
-          
-          setStoredData(referrerReferralsKey, updatedReferrals);
-      }
-      
-      const updatedStats = {
-        ...prevStats,
-        totalEarnings: newTotalEarnings,
-        availableBalance: newAvailableBalance,
-      }
-      
-      setStoredData(STATS_STORAGE_KEY, updatedStats)
-      return updatedStats
-    })
-  }, [user, STATS_STORAGE_KEY, settings.referralCommissionRateL1])
-  
-  const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date'>) => {
-    if (!uid) return;
-    setStats((prevStats) => {
-        const newTotalDeposit = prevStats.totalDeposit + deposit.amount;
-        const newAvailableBalance = prevStats.availableBalance + deposit.amount;
-        const updatedStats = {
-            ...prevStats,
+        batch.update(statsRef, {
             totalDeposit: newTotalDeposit,
-            availableBalance: newAvailableBalance
-        };
-        setStoredData(STATS_STORAGE_KEY, updatedStats);
-        return updatedStats;
-    });
+            availableBalance: newAvailableBalance,
+        });
 
-    setDepositHistory(prevHistory => {
-        const newRecord: DepositRecord = { ...deposit, date: new Date().toISOString() };
-        const updatedHistory = [newRecord, ...prevHistory];
-        setStoredData(DEPOSIT_HISTORY_KEY, updatedHistory);
-        return updatedHistory;
-    })
+        const newRecord: DepositRecord = { ...deposit, date: serverTimestamp() };
+        batch.set(newDepositRef, newRecord);
 
-  }, [uid, STATS_STORAGE_KEY, DEPOSIT_HISTORY_KEY]);
+        await batch.commit();
+
+        setStats(prev => ({...prev, totalDeposit: newTotalDeposit, availableBalance: newAvailableBalance}));
+        setDepositHistory(prev => [{...newRecord, id: newDepositRef.id}, ...prev]);
+
+    } catch (error) {
+        console.error("Error adding deposit:", error);
+    }
+  }, [uid]);
   
-  const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date'>) => {
+  const addWithdrawal = useCallback(async (withdrawal: Omit<WithdrawalRecord, 'date' | 'id'>) => {
     if (!uid) return;
-    setStats((prevStats) => {
-        if(withdrawal.amount > prevStats.availableBalance) {
-            return prevStats;
+
+    const batch = writeBatch(db);
+    const statsRef = doc(db, "userStats", uid);
+    const newWithdrawalRef = doc(collection(db, `users/${uid}/withdrawalHistory`));
+
+    try {
+        const statsSnap = await getDoc(statsRef);
+        const currentStats = statsSnap.exists() ? statsSnap.data() as UserStats : defaultStats;
+
+        if (withdrawal.amount > currentStats.availableBalance) {
+            console.error("Withdrawal amount exceeds available balance.");
+            // Optionally throw an error to be caught by the UI
+            throw new Error("Insufficient Balance");
         }
-        const newTotalWithdraw = prevStats.totalWithdraw + withdrawal.amount;
-        const newAvailableBalance = prevStats.availableBalance - withdrawal.amount;
-        const updatedStats = {
-            ...prevStats,
+
+        const newTotalWithdraw = currentStats.totalWithdraw + withdrawal.amount;
+        const newAvailableBalance = currentStats.availableBalance - withdrawal.amount;
+        
+        batch.update(statsRef, {
             totalWithdraw: newTotalWithdraw,
-            availableBalance: newAvailableBalance
-        };
-        setStoredData(STATS_STORAGE_KEY, updatedStats);
-        return updatedStats;
-    });
+            availableBalance: newAvailableBalance,
+        });
 
-    setWithdrawalHistory(prevHistory => {
-        const newRecord: WithdrawalRecord = { ...withdrawal, date: new Date().toISOString() };
-        const updatedHistory = [newRecord, ...prevHistory];
-        setStoredData(WITHDRAWAL_HISTORY_KEY, updatedHistory);
-        return updatedHistory;
-    });
+        const newRecord: WithdrawalRecord = { ...withdrawal, date: serverTimestamp() };
+        batch.set(newWithdrawalRef, newRecord);
+        
+        await batch.commit();
 
-  }, [uid, STATS_STORAGE_KEY, WITHDRAWAL_HISTORY_KEY]);
+        setStats(prev => ({...prev, totalWithdraw: newTotalWithdraw, availableBalance: newAvailableBalance}));
+        setWithdrawalHistory(prev => [{...newRecord, id: newWithdrawalRef.id}, ...prev]);
 
+    } catch (error) {
+        console.error("Error adding withdrawal:", error);
+        // Rethrow for UI handling
+        throw error;
+    }
+  }, [uid]);
 
-  return { stats, updateStats, addEarning, addDeposit, addWithdrawal, depositHistory, withdrawalHistory, referrals }
+  return { stats, depositHistory, withdrawalHistory, referrals, loading, addEarning, addDeposit, addWithdrawal, refresh: loadAllUserData };
 }

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -36,7 +35,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useTasks } from "@/hooks/use-tasks"
+import { useTasks, Task, TaskFormValues } from "@/hooks/use-tasks"
 
 
 const taskFormSchema = z.object({
@@ -51,35 +50,46 @@ const taskFormSchema = z.object({
   adLink: z.string().optional(),
 })
 
-export type TaskFormValues = z.infer<typeof taskFormSchema>
 
 export default function EditTaskPage() {
   const { toast } = useToast()
   const router = useRouter()
   const params = useParams()
   const { updateTask, getTaskById } = useTasks()
+  const [task, setTask] = React.useState<Task | null>(null);
+  const [loading, setLoading] = React.useState(true);
   
-  const taskId = Number(params.id)
-  const task = getTaskById(taskId)
+  const taskId = params.id as string;
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
-    defaultValues: task || {},
   })
   
   React.useEffect(() => {
-    if (task) {
-      form.reset(task)
+    if (taskId) {
+      setLoading(true);
+      getTaskById(taskId).then(taskData => {
+        if (taskData) {
+          setTask(taskData);
+          form.reset(taskData);
+        }
+        setLoading(false);
+      });
     }
-  }, [task, form])
+  }, [taskId, getTaskById, form]);
 
-  function onSubmit(data: TaskFormValues) {
-    updateTask(taskId, data)
+  async function onSubmit(data: TaskFormValues) {
+    if (!taskId) return;
+    await updateTask(taskId, data)
     toast({
       title: "Task Updated",
       description: "The task has been successfully updated.",
     })
     router.push("/admin/tasks")
+  }
+
+  if (loading) {
+      return <div className="container py-6">Loading task...</div>;
   }
   
   if (!task) {

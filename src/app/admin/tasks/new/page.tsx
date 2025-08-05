@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -35,7 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useTasks } from "@/hooks/use-tasks"
+import { useTasks, TaskFormValues } from "@/hooks/use-tasks"
 
 
 const taskFormSchema = z.object({
@@ -49,8 +48,6 @@ const taskFormSchema = z.object({
   status: z.enum(["Active", "Inactive"]),
   adLink: z.string().optional(),
 })
-
-export type TaskFormValues = z.infer<typeof taskFormSchema>
 
 export default function NewTaskPage() {
   const { toast } = useToast()
@@ -72,8 +69,8 @@ export default function NewTaskPage() {
     },
   })
 
-  function onSubmit(data: TaskFormValues) {
-    addTask(data)
+  async function onSubmit(data: TaskFormValues) {
+    await addTask(data)
     toast({
       title: "Task Created",
       description: "The new task has been successfully created.",

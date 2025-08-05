@@ -15,9 +15,9 @@ import { useNotices } from "@/hooks/use-notices"
 import { format } from "date-fns"
 
 export default function NoticesAdminPage() {
-  const { notices, deleteNotice } = useNotices()
+  const { notices, deleteNotice, loading } = useNotices()
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this notice?")) {
       deleteNotice(id)
     }
@@ -52,12 +52,16 @@ export default function NoticesAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {notices.length > 0 ? (
+            {loading ? (
+                <TableRow>
+                    <TableCell colSpan={4} className="text-center">Loading notices...</TableCell>
+                </TableRow>
+            ) : notices.length > 0 ? (
               notices.map((notice) => (
                 <TableRow key={notice.id}>
                   <TableCell>{notice.id}</TableCell>
                   <TableCell>{notice.title}</TableCell>
-                  <TableCell>{format(new Date(notice.createdAt), "PP")}</TableCell>
+                  <TableCell>{format(notice.createdAt.toDate(), "PP")}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" className="mr-2" asChild>
                         <Link href={`/admin/notices/${notice.id}/edit`}>Edit</Link>

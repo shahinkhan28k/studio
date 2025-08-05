@@ -16,9 +16,9 @@ import { useTasks } from "@/hooks/use-tasks"
 import { formatCurrency } from "@/lib/utils"
 
 export default function TasksAdminPage() {
-  const { tasks, deleteTask } = useTasks()
+  const { tasks, deleteTask, loading } = useTasks()
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this task?")) {
       deleteTask(id)
     }
@@ -55,29 +55,39 @@ export default function TasksAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task.id}>
-                <TableCell>{task.id}</TableCell>
-                <TableCell>{task.title}</TableCell>
-                <TableCell>{formatCurrency(task.reward, 'USD')}</TableCell>
-                <TableCell>
-                  <Badge variant={task.isFeatured ? "default" : "outline"}>
-                    {task.isFeatured ? "Yes" : "No"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={task.status === "Active" ? "default" : "secondary"}>
-                    {task.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2" asChild>
-                    <Link href={`/admin/tasks/${task.id}/edit`}>Edit</Link>
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(task.id)}>Delete</Button>
-                </TableCell>
-              </TableRow>
-            ))}
+             {loading ? (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center">Loading tasks...</TableCell>
+                </TableRow>
+            ) : tasks.length > 0 ? (
+                tasks.map((task) => (
+                <TableRow key={task.id}>
+                    <TableCell>{task.id}</TableCell>
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>{formatCurrency(task.reward, 'USD')}</TableCell>
+                    <TableCell>
+                    <Badge variant={task.isFeatured ? "default" : "outline"}>
+                        {task.isFeatured ? "Yes" : "No"}
+                    </Badge>
+                    </TableCell>
+                    <TableCell>
+                    <Badge variant={task.status === "Active" ? "default" : "secondary"}>
+                        {task.status}
+                    </Badge>
+                    </TableCell>
+                    <TableCell>
+                    <Button variant="outline" size="sm" className="mr-2" asChild>
+                        <Link href={`/admin/tasks/${task.id}/edit`}>Edit</Link>
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(task.id)}>Delete</Button>
+                    </TableCell>
+                </TableRow>
+                ))
+            ) : (
+                 <TableRow>
+                    <TableCell colSpan={6} className="text-center">No tasks found.</TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
