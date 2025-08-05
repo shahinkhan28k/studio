@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { useNotices, NoticeFormValues } from "@/hooks/use-notices"
+import { useNotices, Notice, NoticeFormValues } from "@/hooks/use-notices"
 import React from "react"
 
 const noticeFormSchema = z.object({
@@ -37,7 +37,7 @@ export default function EditNoticePage() {
   const router = useRouter()
   const params = useParams()
   const { updateNotice, getNoticeById } = useNotices()
-  const [notice, setNotice] = React.useState<NoticeFormValues | null>(null);
+  const [notice, setNotice] = React.useState<Notice | null>(null);
   const [loading, setLoading] = React.useState(true);
   
   const noticeId = params.id as string
@@ -51,17 +51,14 @@ export default function EditNoticePage() {
   })
   
   React.useEffect(() => {
-    const fetchNotice = async () => {
-        if (!noticeId) return;
-        setLoading(true);
-        const noticeData = await getNoticeById(noticeId);
-        if (noticeData) {
-            setNotice(noticeData);
-            form.reset(noticeData);
-        }
-        setLoading(false);
+    if (!noticeId) return;
+    setLoading(true);
+    const noticeData = getNoticeById(noticeId);
+    if (noticeData) {
+        setNotice(noticeData);
+        form.reset(noticeData);
     }
-    fetchNotice();
+    setLoading(false);
   }, [noticeId, getNoticeById, form])
 
   async function onSubmit(data: NoticeFormValues) {

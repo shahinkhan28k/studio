@@ -68,13 +68,12 @@ export default function EditTaskPage() {
   React.useEffect(() => {
     if (taskId) {
       setLoading(true);
-      getTaskById(taskId).then(taskData => {
-        if (taskData) {
-          setTask(taskData);
-          form.reset(taskData);
-        }
-        setLoading(false);
-      });
+      const taskData = getTaskById(taskId);
+      if (taskData) {
+        setTask(taskData);
+        form.reset(taskData);
+      }
+      setLoading(false);
     }
   }, [taskId, getTaskById, form]);
 
