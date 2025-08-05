@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useSettings } from "./use-settings"
+import type { UserInfo } from "./use-admin-stats";
 
 export type UserStats = {
   totalEarnings: number
@@ -100,12 +101,12 @@ export function useUserStats() {
   }, [loadAllUserData]);
   
 
-  const updateStats = useCallback((newStats: Partial<UserStats>) => {
-      if (!uid) return;
-      const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
+  const updateStats = useCallback((userId: string, newStats: Partial<UserStats>) => {
+      if (!userId) return;
+      const currentStats = getFromStorage(`userStats-${userId}`, defaultStats);
       const updatedStats = { ...currentStats, ...newStats };
-      setInStorage(`userStats-${uid}`, updatedStats);
-  }, [uid]);
+      setInStorage(`userStats-${userId}`, updatedStats);
+  }, []);
 
   const addEarning = useCallback(async (amount: number) => {
     if (!user || !user.uid) return;
@@ -114,37 +115,64 @@ export function useUserStats() {
     const newTotalEarnings = currentUserStats.totalEarnings + amount;
     const newAvailableBalance = currentUserStats.availableBalance + amount;
     
-    updateStats({ totalEarnings: newTotalEarnings, availableBalance: newAvailableBalance });
+    updateStats(user.uid, { totalEarnings: newTotalEarnings, availableBalance: newAvailableBalance });
     
     // Handle referral commission
-    const allUsers = getFromStorage('allUsersData', []);
+    const allUsers: UserInfo[] = getFromStorage('allUsersData', []);
     const currentUserInfo = allUsers.find(u => u.uid === user.uid);
     const referrerId = currentUserInfo?.referrerId;
 
     if (referrerId) {
-        const commission = amount * (settings.referralCommissionRateL1 / 100);
-        const referrerStats = getFromStorage(`userStats-${referrerId}`, defaultStats);
-        setInStorage(`userStats-${referrerId}`, {
-            ...referrerStats,
-            totalEarnings: referrerStats.totalEarnings + commission,
-            availableBalance: referrerStats.availableBalance + commission
-        });
-
-        const referrerReferrals = getFromStorage(`referrals-${referrerId}`, []);
-        const existingReferralIndex = referrerReferrals.findIndex(r => r.id === user.uid);
-        if (existingReferralIndex > -1) {
-            referrerReferrals[existingReferralIndex].earnings += commission;
-        } else {
-            referrerReferrals.push({
-                id: user.uid,
-                name: user.displayName || user.email || 'Anonymous',
-                earnings: commission
+        const referrerInfo = allUsers.find(u => u.uid === referrerId);
+        if (referrerInfo) {
+            const commissionL1 = amount * (settings.referralCommissionRateL1 / 100);
+            
+            // Add L1 commission
+            const referrerStats = getFromStorage(`userStats-${referrerId}`, defaultStats);
+            updateStats(referrerId, {
+                totalEarnings: referrerStats.totalEarnings + commissionL1,
+                availableBalance: referrerStats.availableBalance + commissionL1
             });
+
+            // Update referrer's referral list
+            const referrerReferrals: Referral[] = getFromStorage(`referrals-${referrerId}`, []);
+            const existingReferralIndex = referrerReferrals.findIndex(r => r.id === user.uid);
+            if (existingReferralIndex > -1) {
+                referrerReferrals[existingReferralIndex].earnings += commissionL1;
+            } else {
+                referrerReferrals.push({
+                    id: user.uid,
+                    name: user.displayName || user.email || 'Anonymous',
+                    earnings: commissionL1
+                });
+            }
+            setInStorage(`referrals-${referrerId}`, referrerReferrals);
+
+            // Handle L2 and L3 commissions
+            const l2ReferrerId = referrerInfo.referrerId;
+            if (l2ReferrerId) {
+                const commissionL2 = amount * (settings.referralCommissionRateL2 / 100);
+                 const l2ReferrerStats = getFromStorage(`userStats-${l2ReferrerId}`, defaultStats);
+                updateStats(l2ReferrerId, {
+                    totalEarnings: l2ReferrerStats.totalEarnings + commissionL2,
+                    availableBalance: l2ReferrerStats.availableBalance + commissionL2
+                });
+
+                 const l2ReferrerInfo = allUsers.find(u => u.uid === l2ReferrerId);
+                 const l3ReferrerId = l2ReferrerInfo?.referrerId;
+                 if (l3ReferrerId) {
+                    const commissionL3 = amount * (settings.referralCommissionRateL3 / 100);
+                    const l3ReferrerStats = getFromStorage(`userStats-${l3ReferrerId}`, defaultStats);
+                    updateStats(l3ReferrerId, {
+                        totalEarnings: l3ReferrerStats.totalEarnings + commissionL3,
+                        availableBalance: l3ReferrerStats.availableBalance + commissionL3
+                    });
+                 }
+            }
         }
-        setInStorage(`referrals-${referrerId}`, referrerReferrals);
     }
 
-  }, [user, settings.referralCommissionRateL1, updateStats]);
+  }, [user, settings, updateStats]);
   
   const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date' | 'id'>) => {
     if (!uid) return;
@@ -152,12 +180,13 @@ export function useUserStats() {
     const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
     const newTotalDeposit = currentStats.totalDeposit + deposit.amount;
     const newAvailableBalance = currentStats.availableBalance + deposit.amount;
-    updateStats({ totalDeposit: newTotalDeposit, availableBalance: newAvailableBalance });
+    updateStats(uid, { totalDeposit: newTotalDeposit, availableBalance: newAvailableBalance });
 
     const newRecord: DepositRecord = { 
         ...deposit, 
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
-        date: new Date().toISOString() 
+        date: new Date().toISOString(),
+        status: 'completed' // Mark as completed immediately
     };
     const currentHistory = getFromStorage(`depositHistory-${uid}`, []);
     setInStorage(`depositHistory-${uid}`, [newRecord, ...currentHistory]);
@@ -173,7 +202,7 @@ export function useUserStats() {
 
     const newTotalWithdraw = currentStats.totalWithdraw + withdrawal.amount;
     const newAvailableBalance = currentStats.availableBalance - withdrawal.amount;
-    updateStats({ totalWithdraw: newTotalWithdraw, availableBalance: newAvailableBalance });
+    updateStats(uid, { totalWithdraw: newTotalWithdraw, availableBalance: newAvailableBalance });
 
     const newRecord: WithdrawalRecord = { 
         ...withdrawal, 

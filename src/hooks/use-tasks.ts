@@ -33,7 +33,7 @@ export function useTasks(userId?: string) {
       if (storedTasks) {
         setTasks(JSON.parse(storedTasks));
       } else {
-        setTasks([]); // Start with an empty array if no tasks are in storage
+        setTasks([]);
       }
 
       if (userId) {
@@ -50,6 +50,7 @@ export function useTasks(userId?: string) {
 
     } catch (error) {
       console.error("Error fetching tasks from localStorage: ", error);
+      setTasks([]);
     }
   }, [userId]);
 
