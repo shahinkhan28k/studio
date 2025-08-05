@@ -19,7 +19,7 @@ export default function TasksAdminPage() {
   const { tasks, deleteTask } = useTasks()
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+    if (window.confirm("Are you sure you want to delete this task?")) {
       deleteTask(id)
     }
   }
