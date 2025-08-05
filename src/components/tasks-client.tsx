@@ -93,12 +93,12 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   }
 
   const displayedTasks = useMemo(() => {
-    const activeTasks = tasks.filter(task => task.status === 'Active');
+    const activeTasks = tasks.filter(task => task.status === 'Active' && !completedTaskIds.has(task.id));
     if (showFeaturedOnly) {
       return activeTasks.filter(task => task.isFeatured)
     }
     return activeTasks
-  }, [tasks, showFeaturedOnly])
+  }, [tasks, showFeaturedOnly, completedTaskIds])
   
   return (
     <>
