@@ -23,6 +23,8 @@ export function useNotices() {
       const storedNotices = localStorage.getItem(NOTICES_STORAGE_KEY);
       if (storedNotices) {
         setNotices(JSON.parse(storedNotices).sort((a: Notice, b: Notice) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      } else {
+        setNotices([]);
       }
     } catch (error) {
       console.error("Error fetching notices from localStorage: ", error);
@@ -30,10 +32,17 @@ export function useNotices() {
   }, []);
 
   useEffect(() => {
-    loadNotices();
-    window.addEventListener('storage', loadNotices);
+    // Clear existing notices on initial load
+    localStorage.removeItem(NOTICES_STORAGE_KEY);
+    setNotices([]);
+
+    const handleStorageChange = () => {
+        loadNotices();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-      window.removeEventListener('storage', loadNotices);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [loadNotices]);
   
