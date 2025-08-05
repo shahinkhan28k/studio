@@ -162,6 +162,15 @@ export default function WithdrawPage() {
       return
     }
 
+    if (data.amount < settings.minimumWithdrawalAmount) {
+      toast({
+        title: "Amount Too Low",
+        description: `The minimum withdrawal amount is ${formatCurrency(settings.minimumWithdrawalAmount, currency)}.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     if (data.amount > stats.availableBalance) {
       toast({
         title: "Insufficient Balance",
@@ -205,8 +214,8 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Your available balance is {formatCurrency(stats.availableBalance, currency)}. Enter
-            your account details and the amount you wish to withdraw.
+            Your available balance is {formatCurrency(stats.availableBalance, currency)}. 
+            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, currency)}.
           </CardDescription>
         </CardHeader>
         <CardContent>

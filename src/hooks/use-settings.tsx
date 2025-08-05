@@ -8,6 +8,7 @@ export type Settings = {
   referralCommissionRateL2: number;
   referralCommissionRateL3: number;
   withdrawalRequirement: number;
+  minimumWithdrawalAmount: number;
   agentNumber: string;
   bankName: string;
   bankAccountName: string;
@@ -23,6 +24,7 @@ const defaultSettings: Settings = {
   referralCommissionRateL2: 2,
   referralCommissionRateL3: 1,
   withdrawalRequirement: 20,
+  minimumWithdrawalAmount: 10,
   agentNumber: "01234567890",
   bankName: "Example Bank Ltd.",
   bankAccountName: "Onearn Platform",

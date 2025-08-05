@@ -49,6 +49,7 @@ const settingsSchema = z.object({
   referralCommissionRateL2: z.coerce.number().min(0).max(100),
   referralCommissionRateL3: z.coerce.number().min(0).max(100),
   withdrawalRequirement: z.coerce.number().int().min(0),
+  minimumWithdrawalAmount: z.coerce.number().min(0),
   agentNumber: z.string(),
   bankName: z.string(),
   bankAccountName: z.string(),
@@ -211,6 +212,22 @@ export default function SettingsPage() {
                                   </FormControl>
                                   <FormDescription>
                                     Number of referrals required before a user can withdraw.
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={settingsForm.control}
+                              name="minimumWithdrawalAmount"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Minimum Withdrawal Amount</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="e.g. 10" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    The minimum amount required for a withdrawal.
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
