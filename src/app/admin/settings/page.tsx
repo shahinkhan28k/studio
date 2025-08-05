@@ -108,9 +108,13 @@ export default function SettingsPage() {
     bannerForm.reset()
   }
 
-  const handleDeleteBanner = async (id: string) => {
-    if (confirm("Are you sure you want to delete this banner?")) {
+  const handleDeleteBanner = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this banner?")) {
       deleteBanner(id)
+      toast({
+        title: "Banner Deleted",
+        description: "The banner has been successfully deleted.",
+      })
     }
   }
 
