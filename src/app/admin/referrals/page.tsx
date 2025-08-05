@@ -18,12 +18,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 
 export default function ReferralsAdminPage() {
-  const { referralDetails } = useAdminStats()
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const { referralDetails, loading } = useAdminStats()
 
   return (
     <div className="container py-6">
@@ -53,7 +48,13 @@ export default function ReferralsAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isClient && referralDetails.length > 0 ? (
+            {loading ? (
+                <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                        Loading...
+                    </TableCell>
+                </TableRow>
+            ) : referralDetails.length > 0 ? (
               referralDetails.map((user) => (
               <TableRow key={user.uid}>
                 <TableCell>{user.displayName || "N/A"}</TableCell>
@@ -67,7 +68,7 @@ export default function ReferralsAdminPage() {
             ) : (
                 <TableRow>
                     <TableCell colSpan={4} className="text-center">
-                        {isClient ? "No referral data found." : "Loading..."}
+                        No referral data found.
                     </TableCell>
                 </TableRow>
             )}

@@ -61,7 +61,7 @@ export default function NoticesAdminPage() {
                 <TableRow key={notice.id}>
                   <TableCell>{notice.id}</TableCell>
                   <TableCell>{notice.title}</TableCell>
-                  <TableCell>{format(notice.createdAt.toDate(), "PP")}</TableCell>
+                  <TableCell>{notice.createdAt ? format(notice.createdAt.toDate(), "PP") : 'N/A'}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" className="mr-2" asChild>
                         <Link href={`/admin/notices/${notice.id}/edit`}>Edit</Link>
