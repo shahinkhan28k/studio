@@ -24,15 +24,17 @@ export function useBanners() {
       const storedBanners = localStorage.getItem(BANNERS_STORAGE_KEY);
       if (storedBanners) {
         setBanners(JSON.parse(storedBanners));
+      } else {
+        setBanners([]);
       }
     } catch (error) {
       console.error("Error fetching banners from localStorage: ", error);
+      setBanners([]);
     }
   }, []);
 
   useEffect(() => {
     loadBanners();
-    // Listen for storage changes to sync across tabs
     window.addEventListener('storage', loadBanners);
     return () => {
       window.removeEventListener('storage', loadBanners);
@@ -41,32 +43,35 @@ export function useBanners() {
   
   const addBanner = useCallback((bannerData: BannerFormValues) => {
     try {
+      const storedBanners = localStorage.getItem(BANNERS_STORAGE_KEY);
+      const currentBanners = storedBanners ? JSON.parse(storedBanners) : [];
       const newBanner: Banner = {
         ...bannerData,
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toISOString()
       };
-      const updatedBanners = [...banners, newBanner];
+      const updatedBanners = [...currentBanners, newBanner];
       setBanners(updatedBanners);
       localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(updatedBanners));
-      // Manually dispatch a storage event to notify other components/tabs
       window.dispatchEvent(new Event('storage'));
     } catch (error) {
       console.error("Error adding banner to localStorage: ", error);
     }
-  }, [banners]);
+  }, []);
 
   const deleteBanner = useCallback((bannerId: string) => {
     try {
-      const updatedBanners = banners.filter(banner => banner.id !== bannerId);
+      const storedBanners = localStorage.getItem(BANNERS_STORAGE_KEY);
+      const currentBanners = storedBanners ? JSON.parse(storedBanners) : [];
+      const updatedBanners = currentBanners.filter(banner => banner.id !== bannerId);
       setBanners(updatedBanners);
       localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(updatedBanners));
-      // Manually dispatch a storage event to notify other components/tabs
       window.dispatchEvent(new Event('storage'));
-    } catch (error) {
+    } catch (error)
+     {
       console.error("Error deleting banner from localStorage: ", error);
     }
-  }, [banners]);
+  }, []);
   
   return { banners, addBanner, deleteBanner, refreshBanners: loadBanners };
 }

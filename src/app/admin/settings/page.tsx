@@ -69,7 +69,7 @@ export type BannerFormValues = z.infer<typeof bannerFormSchema>
 export default function SettingsPage() {
   const { toast } = useToast()
   const { settings, setSettings } = useSettings()
-  const { banners, addBanner, deleteBanner } = useBanners()
+  const { banners, addBanner, deleteBanner, refreshBanners } = useBanners()
 
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -111,6 +111,7 @@ export default function SettingsPage() {
   const handleDeleteBanner = (id: string) => {
     if (window.confirm("Are you sure you want to delete this banner?")) {
       deleteBanner(id)
+      refreshBanners();
       toast({
         title: "Banner Deleted",
         description: "The banner has been successfully deleted.",
