@@ -34,7 +34,12 @@ export function useBanners() {
   }, []);
 
   useEffect(() => {
+    // Clear banners on initial load to ensure a clean slate as requested.
+    if (typeof window !== "undefined") {
+        localStorage.removeItem(BANNERS_STORAGE_KEY);
+    }
     loadBanners();
+    
     window.addEventListener('storage', loadBanners);
     return () => {
       window.removeEventListener('storage', loadBanners);
@@ -67,7 +72,8 @@ export function useBanners() {
       setBanners(updatedBanners);
       localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(updatedBanners));
       window.dispatchEvent(new Event('storage'));
-    } catch (error)
+    }
+     catch (error)
      {
       console.error("Error deleting banner from localStorage: ", error);
     }
