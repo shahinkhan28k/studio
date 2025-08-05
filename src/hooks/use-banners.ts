@@ -108,6 +108,7 @@ export function useBanners() {
     const currentBanners = getStoredData<Banner[]>(BANNERS_STORAGE_KEY, defaultBanners);
     const updatedBanners = currentBanners.filter(banner => banner.id !== bannerId);
     setStoredData(BANNERS_STORAGE_KEY, updatedBanners);
+    setBanners(updatedBanners); // Update the state after deleting
   }, []);
   
   return { banners, addBanner, deleteBanner };
