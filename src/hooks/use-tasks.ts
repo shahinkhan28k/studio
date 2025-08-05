@@ -2,19 +2,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  writeBatch,
-} from "firebase/firestore"
-import { db } from "@/lib/firebase"
 
 export interface TaskFormValues {
   title: string
@@ -30,103 +17,101 @@ export interface TaskFormValues {
 
 export type Task = TaskFormValues & {
   id: string;
+  createdAt: string;
 };
 
-const TASKS_COLLECTION = "tasks"
-const USER_COMPLETED_TASKS_SUBCOLLECTION = "completedTasks";
+const TASKS_STORAGE_KEY = "tasks"
+const USER_COMPLETED_TASKS_PREFIX = "completedTasks-";
 
 export function useTasks(userId?: string) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
+  const loadTasks = useCallback(() => {
     try {
-      const tasksQuery = query(collection(db, TASKS_COLLECTION));
-      const tasksSnapshot = await getDocs(tasksQuery);
-      const tasksData = tasksSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Task));
-      setTasks(tasksData);
+      const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
 
       if (userId) {
-        const completedTasksQuery = query(collection(db, `users/${userId}/${USER_COMPLETED_TASKS_SUBCOLLECTION}`));
-        const completedSnapshot = await getDocs(completedTasksQuery);
-        const completedIds = new Set(completedSnapshot.docs.map(doc => doc.id));
-        setCompletedTaskIds(completedIds);
+        const completedKey = `${USER_COMPLETED_TASKS_PREFIX}${userId}`;
+        const storedCompleted = localStorage.getItem(completedKey);
+        if (storedCompleted) {
+          setCompletedTaskIds(new Set(JSON.parse(storedCompleted)));
+        }
       }
 
     } catch (error) {
-      console.error("Error fetching tasks: ", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching tasks from localStorage: ", error);
     }
   }, [userId]);
 
   useEffect(() => {
     loadTasks();
+    const handleStorageChange = () => loadTasks();
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
   }, [loadTasks]);
 
-  const addTask = useCallback(async (taskData: TaskFormValues) => {
+  const addTask = useCallback((taskData: TaskFormValues) => {
     try {
-      await addDoc(collection(db, TASKS_COLLECTION), {
+      const currentTasks = tasks;
+      const newTask: Task = {
         ...taskData,
-        createdAt: serverTimestamp(),
-      });
-      await loadTasks();
+        id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
+        createdAt: new Date().toISOString(),
+      };
+      const updatedTasks = [...currentTasks, newTask];
+      setTasks(updatedTasks);
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error adding task: ", error);
+      console.error("Error adding task to localStorage: ", error);
     }
-  }, [loadTasks]);
+  }, [tasks]);
 
-  const updateTask = useCallback(async (taskId: string, updatedData: Partial<TaskFormValues>) => {
+  const updateTask = useCallback((taskId: string, updatedData: Partial<TaskFormValues>) => {
     try {
-      const taskRef = doc(db, TASKS_COLLECTION, taskId);
-      await updateDoc(taskRef, updatedData);
-      await loadTasks();
+        const updatedTasks = tasks.map(t => t.id === taskId ? {...t, ...updatedData} : t);
+        setTasks(updatedTasks);
+        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
+        window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error updating task: ", error);
+      console.error("Error updating task in localStorage: ", error);
     }
-  }, [loadTasks]);
+  }, [tasks]);
 
-  const deleteTask = useCallback(async (taskId: string) => {
+  const deleteTask = useCallback((taskId: string) => {
     try {
-      await deleteDoc(doc(db, TASKS_COLLECTION, taskId));
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      const updatedTasks = tasks.filter(task => task.id !== taskId);
+      setTasks(updatedTasks);
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error deleting task: ", error);
+      console.error("Error deleting task from localStorage: ", error);
     }
-  }, []);
+  }, [tasks]);
 
-  const completeTask = useCallback(async (taskId: string) => {
+  const completeTask = useCallback((taskId: string) => {
     if (!userId) {
         console.error("User ID is required to complete a task.");
         return;
     }
     try {
-        const completedTaskRef = doc(db, `users/${userId}/${USER_COMPLETED_TASKS_SUBCOLLECTION}`, taskId);
-        await setDoc(completedTaskRef, { completedAt: serverTimestamp() });
-        setCompletedTaskIds(prev => new Set(prev).add(taskId));
+        const newCompletedTaskIds = new Set(completedTaskIds).add(taskId);
+        setCompletedTaskIds(newCompletedTaskIds);
+        localStorage.setItem(`${USER_COMPLETED_TASKS_PREFIX}${userId}`, JSON.stringify(Array.from(newCompletedTaskIds)));
     } catch (error) {
-        console.error("Error completing task: ", error);
+        console.error("Error completing task in localStorage: ", error);
     }
-  }, [userId]);
+  }, [userId, completedTaskIds]);
   
-  const getTaskById = useCallback(async (taskId: string): Promise<Task | undefined> => {
-    try {
-      const taskRef = doc(db, TASKS_COLLECTION, taskId);
-      const docSnap = await getDoc(taskRef);
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Task;
-      }
-      return undefined;
-    } catch(error) {
-        console.error("Error fetching task by id", error);
-        return undefined;
-    }
-  }, []);
+  const getTaskById = useCallback((taskId: string): Task | undefined => {
+    return tasks.find(t => t.id === taskId);
+  }, [tasks]);
 
-  return { tasks, loading, addTask, updateTask, deleteTask, completeTask, getTaskById, completedTaskIds };
+  return { tasks, addTask, updateTask, deleteTask, completeTask, getTaskById, completedTaskIds };
 }

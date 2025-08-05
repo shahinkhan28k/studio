@@ -2,19 +2,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import {
-  collection,
-  getDocs,
-  query,
-  limit,
-  orderBy,
-  doc,
-  deleteDoc,
-  getDoc,
-  writeBatch,
-  where,
-} from "firebase/firestore"
-import { db } from "@/lib/firebase"
 import { UserStats, defaultStats } from "./use-user-stats"
 
 type AdminSummaryStats = {
@@ -49,47 +36,54 @@ const defaultAdminStats: AdminSummaryStats = {
   tasksCompleted: 0,
 }
 
+const getAllUsers = (): UserInfo[] => {
+    if (typeof window === "undefined") return [];
+    const allUsersStr = localStorage.getItem('allUsersData');
+    return allUsersStr ? JSON.parse(allUsersStr) : [];
+}
+
+const getUserStats = (uid: string): UserStats => {
+    if (typeof window === "undefined") return defaultStats;
+    const statsStr = localStorage.getItem(`userStats-${uid}`);
+    return statsStr ? JSON.parse(statsStr) : defaultStats;
+}
+
 export function useAdminStats() {
   const [stats, setStats] = useState<AdminSummaryStats>(defaultAdminStats)
   const [recentSignups, setRecentSignups] = useState<UserInfo[]>([])
   const [allUsersData, setAllUsersData] = useState<AllUsersData[]>([])
   const [referralDetails, setReferralDetails] = useState<ReferralDetail[]>([])
-  const [loading, setLoading] = useState(true)
 
-  const fetchAdminStats = useCallback(async () => {
-    setLoading(true)
+  const fetchAdminStats = useCallback(() => {
     try {
-      const usersQuery = query(collection(db, "users"))
-      const usersSnapshot = await getDocs(usersQuery)
-      const users = usersSnapshot.docs.map(
-        (doc) => ({...doc.data(), uid: doc.id} as UserInfo)
-      )
-
+      const users = getAllUsers();
+      
       let totalEarnings = 0
       let totalDeposits = 0
       
-      const allUsersDataPromises = users.map(async (user) => {
-        const statsDocRef = doc(db, "userStats", user.uid)
-        const statsSnap = await getDoc(statsDocRef)
-        const userStats = statsSnap.exists()
-          ? (statsSnap.data() as UserStats)
-          : defaultStats
-        
+      const resolvedAllUsersData = users.map(user => {
+        const userStats = getUserStats(user.uid);
         totalEarnings += userStats.totalEarnings
         totalDeposits += userStats.totalDeposit
-        
         return {
           ...user,
           stats: userStats,
         }
-      })
+      });
+      setAllUsersData(resolvedAllUsersData);
       
-      const resolvedAllUsersData = await Promise.all(allUsersDataPromises)
-      setAllUsersData(resolvedAllUsersData)
+      const tasksStr = localStorage.getItem('tasks');
+      const tasks = tasksStr ? JSON.parse(tasksStr) : [];
       
-      const tasksQuery = query(collection(db, "tasks"))
-      const tasksSnapshot = await getDocs(tasksQuery)
-      const tasksCompleted = tasksSnapshot.size;
+      let tasksCompleted = 0;
+      users.forEach(user => {
+        const completedStr = localStorage.getItem(`completedTasks-${user.uid}`);
+        if(completedStr) {
+            const completed = JSON.parse(completedStr);
+            tasksCompleted += completed.length;
+        }
+      });
+
 
       setStats({
         totalUsers: users.length,
@@ -98,38 +92,25 @@ export function useAdminStats() {
         tasksCompleted,
       })
 
-      const recentSignupsQuery = query(
-        collection(db, "users"),
-        orderBy("createdAt", "desc"),
-        limit(5)
-      )
-      const recentSignupsSnapshot = await getDocs(recentSignupsQuery)
-      setRecentSignups(
-        recentSignupsSnapshot.docs.map((doc) => doc.data() as UserInfo)
-      )
+      const sortedUsers = [...users].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setRecentSignups(sortedUsers.slice(0, 5));
       
-      const referralDetailsPromises = users.map(async (user) => {
+      const resolvedReferralDetails = users.map((user) => {
           const referrerId = user.referrerId || null;
           const referrer = referrerId ? users.find(u => u.uid === referrerId) : null;
-          
-          const referralsQuery = query(collection(db, "users"), where("referrerId", "==", user.uid));
-          const referralsSnapshot = await getDocs(referralsQuery);
+          const referralCount = users.filter(u => u.referrerId === user.uid).length;
 
           return {
               ...user,
               referrerName: referrer?.displayName || 'N/A',
-              referralCount: referralsSnapshot.size,
+              referralCount: referralCount,
           };
       });
 
-      const resolvedReferralDetails = await Promise.all(referralDetailsPromises);
       setReferralDetails(resolvedReferralDetails);
 
-
     } catch (error) {
-      console.error("Error fetching admin stats:", error)
-    } finally {
-      setLoading(false)
+      console.error("Error fetching admin stats from localStorage:", error)
     }
   }, [])
 
@@ -138,37 +119,23 @@ export function useAdminStats() {
   }, [fetchAdminStats])
 
   const deleteUser = useCallback(
-    async (uid: string) => {
+    (uid: string) => {
       if (!uid) return
-
-      const batch = writeBatch(db);
-      const userDocRef = doc(db, "users", uid);
-      const userStatsDocRef = doc(db, "userStats", uid);
-      const accountDetailsDocRef = doc(db, "accountDetails", uid);
-
-      batch.delete(userDocRef);
-      batch.delete(userStatsDocRef);
-      batch.delete(accountDetailsDocRef);
-
-      const depositHistoryQuery = query(collection(db, `userStats/${uid}/depositHistory`));
-      const withdrawalHistoryQuery = query(collection(db, `userStats/${uid}/withdrawalHistory`));
-      const referralsQuery = query(collection(db, `userStats/${uid}/referrals`));
-      const completedTasksQuery = query(collection(db, `userStats/${uid}/completedTasks`));
-
-      const [depositDocs, withdrawalDocs, referralDocs, completedTasksDocs] = await Promise.all([
-          getDocs(depositHistoryQuery),
-          getDocs(withdrawalHistoryQuery),
-          getDocs(referralsQuery),
-          getDocs(completedTasksQuery)
-      ]);
-
-      depositDocs.forEach(doc => batch.delete(doc.ref));
-      withdrawalDocs.forEach(doc => batch.delete(doc.ref));
-      referralDocs.forEach(doc => batch.delete(doc.ref));
-      completedTasksDocs.forEach(doc => batch.delete(doc.ref));
-
-      await batch.commit();
-
+      
+      // Delete user from allUsersData
+      const users = getAllUsers();
+      const updatedUsers = users.filter(u => u.uid !== uid);
+      localStorage.setItem('allUsersData', JSON.stringify(updatedUsers));
+      
+      // Delete user-specific data
+      localStorage.removeItem(`userStats-${uid}`);
+      localStorage.removeItem(`accountDetails-${uid}`);
+      localStorage.removeItem(`depositHistory-${uid}`);
+      localStorage.removeItem(`withdrawalHistory-${uid}`);
+      localStorage.removeItem(`referrals-${uid}`);
+      localStorage.removeItem(`completedTasks-${uid}`);
+      
+      // Refresh stats
       fetchAdminStats()
     },
     [fetchAdminStats]
@@ -180,7 +147,6 @@ export function useAdminStats() {
     allUsersData,
     deleteUser,
     referralDetails,
-    loading,
     refresh: fetchAdminStats,
   }
 }

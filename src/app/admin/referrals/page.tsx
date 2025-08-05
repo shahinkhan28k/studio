@@ -12,13 +12,11 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useAdminStats } from "@/hooks/use-admin-stats"
-import { formatCurrency } from "@/lib/utils"
 import React from "react"
-import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 
 export default function ReferralsAdminPage() {
-  const { referralDetails, loading } = useAdminStats()
+  const { referralDetails } = useAdminStats()
 
   return (
     <div className="container py-6">
@@ -48,13 +46,7 @@ export default function ReferralsAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
-                <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                        Loading...
-                    </TableCell>
-                </TableRow>
-            ) : referralDetails.length > 0 ? (
+            {referralDetails.length > 0 ? (
               referralDetails.map((user) => (
               <TableRow key={user.uid}>
                 <TableCell>{user.displayName || "N/A"}</TableCell>

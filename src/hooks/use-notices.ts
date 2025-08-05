@@ -2,19 +2,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp,
-} from "firebase/firestore"
-import { db } from "@/lib/firebase"
 
 export interface NoticeFormValues {
   title: string;
@@ -23,80 +10,75 @@ export interface NoticeFormValues {
 
 export type Notice = NoticeFormValues & {
   id: string;
-  createdAt: any;
+  createdAt: string;
 };
 
-const NOTICES_COLLECTION = "notices"
+const NOTICES_STORAGE_KEY = "notices"
 
 export function useNotices() {
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const loadNotices = useCallback(async () => {
-    setLoading(true);
+  const loadNotices = useCallback(() => {
     try {
-      const q = query(collection(db, NOTICES_COLLECTION), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const noticesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Notice));
-      setNotices(noticesData);
+      const storedNotices = localStorage.getItem(NOTICES_STORAGE_KEY);
+      if (storedNotices) {
+        setNotices(JSON.parse(storedNotices).sort((a: Notice, b: Notice) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      }
     } catch (error) {
-      console.error("Error fetching notices: ", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching notices from localStorage: ", error);
     }
   }, []);
 
   useEffect(() => {
     loadNotices();
+    window.addEventListener('storage', loadNotices);
+    return () => {
+      window.removeEventListener('storage', loadNotices);
+    };
   }, [loadNotices]);
   
-  const addNotice = useCallback(async (noticeData: NoticeFormValues) => {
+  const addNotice = useCallback((noticeData: NoticeFormValues) => {
     try {
-      await addDoc(collection(db, NOTICES_COLLECTION), {
+      const currentNotices = notices;
+      const newNotice: Notice = {
         ...noticeData,
-        createdAt: serverTimestamp()
-      });
-      await loadNotices();
+        id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
+        createdAt: new Date().toISOString(),
+      };
+      const updatedNotices = [...currentNotices, newNotice];
+      localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
+      setNotices(updatedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error adding notice: ", error);
+      console.error("Error adding notice to localStorage: ", error);
     }
-  }, [loadNotices]);
+  }, [notices]);
 
-  const updateNotice = useCallback(async (noticeId: string, noticeData: NoticeFormValues) => {
+  const updateNotice = useCallback((noticeId: string, noticeData: NoticeFormValues) => {
     try {
-      const noticeRef = doc(db, NOTICES_COLLECTION, noticeId);
-      await updateDoc(noticeRef, noticeData);
-      await loadNotices();
+      const updatedNotices = notices.map(n => n.id === noticeId ? { ...n, ...noticeData } : n);
+      localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
+      setNotices(updatedNotices.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error updating notice: ", error);
+      console.error("Error updating notice in localStorage: ", error);
     }
-  }, [loadNotices]);
+  }, [notices]);
 
-  const deleteNotice = useCallback(async (noticeId: string) => {
+  const deleteNotice = useCallback((noticeId: string) => {
     try {
-      await deleteDoc(doc(db, NOTICES_COLLECTION, noticeId));
-      setNotices(prevNotices => prevNotices.filter(notice => notice.id !== noticeId));
+      const updatedNotices = notices.filter(notice => notice.id !== noticeId);
+      localStorage.setItem(NOTICES_STORAGE_KEY, JSON.stringify(updatedNotices));
+      setNotices(updatedNotices);
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error deleting notice: ", error);
+      console.error("Error deleting notice from localStorage: ", error);
     }
-  }, []);
+  }, [notices]);
   
-  const getNoticeById = useCallback(async (noticeId: string): Promise<Notice | undefined> => {
-    try {
-      const noticeRef = doc(db, NOTICES_COLLECTION, noticeId);
-      const docSnap = await getDoc(noticeRef);
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Notice;
-      }
-      return undefined;
-    } catch (error) {
-      console.error("Error fetching notice by ID: ", error);
-      return undefined;
-    }
-  }, []);
+  const getNoticeById = useCallback((noticeId: string): Notice | undefined => {
+    return notices.find(n => n.id === noticeId);
+  }, [notices]);
 
-  return { notices, loading, addNotice, updateNotice, deleteNotice, getNoticeById, refreshNotices: loadNotices };
+  return { notices, addNotice, updateNotice, deleteNotice, getNoticeById, refreshNotices: loadNotices };
 }

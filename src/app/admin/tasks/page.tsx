@@ -16,7 +16,7 @@ import { useTasks } from "@/hooks/use-tasks"
 import { formatCurrency } from "@/lib/utils"
 
 export default function TasksAdminPage() {
-  const { tasks, deleteTask, loading } = useTasks()
+  const { tasks, deleteTask } = useTasks()
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this task?")) {
@@ -55,11 +55,7 @@ export default function TasksAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-             {loading ? (
-                <TableRow>
-                    <TableCell colSpan={6} className="text-center">Loading tasks...</TableCell>
-                </TableRow>
-            ) : tasks.length > 0 ? (
+             {tasks.length > 0 ? (
                 tasks.map((task) => (
                 <TableRow key={task.id}>
                     <TableCell>{task.id}</TableCell>

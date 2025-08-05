@@ -95,9 +95,9 @@ type DepositFormValues = z.infer<typeof depositFormSchema>
 
 export default function DepositPage() {
   const { toast } = useToast()
-  const { addDeposit, depositHistory, loading } = useUserStats()
+  const { addDeposit, depositHistory } = useUserStats()
   const { currency } = useAppContext();
-  const { settings, loading: settingsLoading } = useSettings();
+  const { settings } = useSettings();
 
 
   const form = useForm<DepositFormValues>({
@@ -121,7 +121,7 @@ export default function DepositPage() {
       method: data.method,
       status: 'pending'
     }
-    await addDeposit(depositData);
+    addDeposit(depositData);
     toast({
       title: "Deposit Submitted",
       description: "Your deposit has been submitted and will be processed shortly.",
@@ -141,10 +141,6 @@ export default function DepositPage() {
   const isBankTransfer = selectedMethod === "bank"
   const isUsdtTransfer = selectedMethod === "usdt"
   
-  if (loading || settingsLoading) {
-    return <div className="container py-6">Loading...</div>
-  }
-
   return (
     <div className="container py-6 space-y-8">
       <Button variant="ghost" asChild className="mb-4 -ml-4">
@@ -374,7 +370,7 @@ export default function DepositPage() {
                    {depositHistory.length > 0 ? (
                      depositHistory.map((deposit) => (
                         <TableRow key={deposit.id}>
-                            <TableCell>{format(deposit.date.toDate(), "PP")}</TableCell>
+                            <TableCell>{format(new Date(deposit.date), "PP")}</TableCell>
                             <TableCell>{formatCurrency(deposit.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{deposit.method}</TableCell>
                             <TableCell>

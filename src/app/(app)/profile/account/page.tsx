@@ -7,9 +7,6 @@ import { z } from "zod"
 import * as React from "react"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-import { updateProfile } from "firebase/auth"
-import { auth, db } from "@/lib/firebase"
-import { doc, setDoc, getDoc } from "firebase/firestore"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -93,7 +90,7 @@ type AccountFormValues = z.infer<typeof accountFormSchema>
 export default function AccountDetailsPage() {
   const { toast } = useToast()
   const { language } = useAppContext()
-  const { user, refreshUser, loading } = useAuth()
+  const { user, loading } = useAuth()
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(true);
 
@@ -118,20 +115,19 @@ export default function AccountDetailsPage() {
   const paymentMethod = form.watch("paymentMethod")
 
   React.useEffect(() => {
-    const fetchAccountDetails = async () => {
+    const fetchAccountDetails = () => {
       if (user) {
         setIsFetching(true);
-        const docRef = doc(db, "accountDetails", user.uid);
         try {
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data() as AccountFormValues;
-             form.reset({ ...defaultValues, ...data, name: user?.displayName ?? data.name ?? "" })
+          const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
+          if (savedDetails) {
+            const data = JSON.parse(savedDetails) as AccountFormValues;
+            form.reset({ ...defaultValues, ...data, name: user?.displayName ?? data.name ?? "" })
           } else {
              form.reset(defaultValues);
           }
         } catch (error) {
-           console.error("Error fetching account details:", error);
+           console.error("Error fetching account details from localStorage:", error);
            form.reset(defaultValues);
         } finally {
             setIsFetching(false);
@@ -144,7 +140,7 @@ export default function AccountDetailsPage() {
   }, [user, loading, form, defaultValues]);
 
   async function onSubmit(data: AccountFormValues) {
-     if (!auth.currentUser) {
+     if (!user) {
         toast({
             title: "Error",
             description: "You must be logged in to update your account.",
@@ -155,15 +151,7 @@ export default function AccountDetailsPage() {
     setIsSubmitting(true);
     
     try {
-        await updateProfile(auth.currentUser, {
-            displayName: data.name,
-        });
-
-        const docRef = doc(db, "accountDetails", auth.currentUser.uid);
-        await setDoc(docRef, data, { merge: true });
-
-        await refreshUser();
-
+        localStorage.setItem(`accountDetails-${user.uid}`, JSON.stringify(data));
         toast({
           title: "Account Updated",
           description: "Your account details have been successfully updated.",

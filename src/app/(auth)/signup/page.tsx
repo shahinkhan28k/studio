@@ -8,8 +8,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { auth, db } from "@/lib/firebase"
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import { auth } from "@/lib/firebase"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -78,16 +77,19 @@ export default function SignupPage() {
       await updateProfile(user, {
         displayName: data.name
       });
-
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
+      
+      const allUsersStr = localStorage.getItem('allUsersData');
+      const allUsers = allUsersStr ? JSON.parse(allUsersStr) : [];
+      const newUserInfo = {
         uid: user.uid,
         email: user.email,
         displayName: data.name,
         photoURL: user.photoURL,
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
         referrerId: referrerId || null,
-      });
+      };
+      allUsers.push(newUserInfo);
+      localStorage.setItem('allUsersData', JSON.stringify(allUsers));
       
       toast({
         title: "Account Created",

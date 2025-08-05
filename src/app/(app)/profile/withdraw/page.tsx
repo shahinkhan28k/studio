@@ -40,8 +40,6 @@ import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useSettings } from "@/hooks/use-settings"
-import { doc, getDoc } from "firebase/firestore"
-import { db } from "@/lib/firebase"
 import { useAuth } from "@/context/auth-context"
 
 const withdrawFormSchema = z
@@ -111,11 +109,9 @@ type WithdrawFormValues = z.infer<typeof withdrawFormSchema>
 export default function WithdrawPage() {
   const { toast } = useToast()
   const { user } = useAuth();
-  const { stats, addWithdrawal, withdrawalHistory, referrals, loading } = useUserStats()
+  const { stats, addWithdrawal, withdrawalHistory, referrals } = useUserStats()
   const { language, currency } = useAppContext()
-  const { settings, loading: settingsLoading } = useSettings();
-  const [isFetching, setIsFetching] = React.useState(true);
-
+  const { settings } = useSettings();
 
   const defaultValues = React.useMemo(() => ({
     amount: 0,
@@ -136,20 +132,16 @@ export default function WithdrawPage() {
   const paymentMethod = form.watch("method")
   
   React.useEffect(() => {
-    const fetchWithdrawalDetails = async () => {
+    const fetchWithdrawalDetails = () => {
       if (user) {
-        setIsFetching(true);
-        const docRef = doc(db, "accountDetails", user.uid);
         try {
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
+          const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
+          if (savedDetails) {
+            const data = JSON.parse(savedDetails);
             form.reset({ ...defaultValues, ...data });
           }
         } catch (error) {
            console.error("Error fetching account details for withdrawal:", error);
-        } finally {
-            setIsFetching(false);
         }
       }
     };
@@ -186,7 +178,7 @@ export default function WithdrawPage() {
     }
 
     try {
-        await addWithdrawal(withdrawalData);
+        addWithdrawal(withdrawalData);
         toast({
             title: "Withdrawal Request Submitted",
             description: "Your request has been submitted and will be processed shortly.",
@@ -200,11 +192,6 @@ export default function WithdrawPage() {
         })
     }
   }
-
-  if (loading || settingsLoading || isFetching) {
-    return <div className="container py-6">Loading...</div>
-  }
-
 
   return (
     <div className="container py-6 space-y-8">
@@ -398,7 +385,7 @@ export default function WithdrawPage() {
                    {withdrawalHistory.length > 0 ? (
                     withdrawalHistory.map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
-                            <TableCell>{format(withdrawal.date.toDate(), "PP")}</TableCell>
+                            <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
                             <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>

@@ -33,7 +33,7 @@ type TasksClientProps = {
 
 export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
   const { user } = useAuth();
-  const { tasks, loading, completedTaskIds, completeTask: markTaskAsComplete } = useTasks(user?.uid)
+  const { tasks, completedTaskIds, completeTask: markTaskAsComplete } = useTasks(user?.uid)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isAdOpen, setIsAdOpen] = useState(false)
   const [countdown, setCountdown] = useState(0)
@@ -100,10 +100,6 @@ export function TasksClient({ showFeaturedOnly = false }: TasksClientProps) {
     return activeTasks
   }, [tasks, showFeaturedOnly])
   
-  if (loading) {
-    return <div>Loading tasks...</div>
-  }
-
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

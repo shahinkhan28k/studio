@@ -17,13 +17,13 @@ import React from "react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function UsersPage() {
-  const { allUsersData, deleteUser, loading } = useAdminStats()
+  const { allUsersData, deleteUser } = useAdminStats()
   const { toast } = useToast()
   
   const handleDeleteUser = async (uid: string, name: string | null) => {
     if (confirm(`Are you sure you want to delete user: ${name || uid}? This action cannot be undone.`)) {
         try {
-            await deleteUser(uid);
+            deleteUser(uid);
             toast({
                 title: "User Deleted",
                 description: `User ${name || uid} has been permanently deleted.`
@@ -68,13 +68,7 @@ export default function UsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
-                 <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                       Loading...
-                    </TableCell>
-                </TableRow>
-            ) : allUsersData.length > 0 ? (
+            {allUsersData.length > 0 ? (
               allUsersData.map((user) => (
               <TableRow key={user.uid}>
                 <TableCell className="font-mono text-xs">{user.uid}</TableCell>

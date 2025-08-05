@@ -2,8 +2,6 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 export type Settings = {
   referralCommissionRateL1: number;
@@ -18,8 +16,7 @@ export type Settings = {
   usdtAddress: string;
 };
 
-const SETTINGS_DOC_ID = "platformSettings";
-const SETTINGS_COLLECTION = "configuration";
+const SETTINGS_STORAGE_KEY = "platformSettings";
 
 const defaultSettings: Settings = {
   referralCommissionRateL1: 5,
@@ -36,51 +33,47 @@ const defaultSettings: Settings = {
 
 interface SettingsContextType {
     settings: Settings;
-    setSettings: (settings: Settings) => Promise<void>;
-    loading: boolean;
+    setSettings: (settings: Settings) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const [settings, setSettingsState] = useState<Settings>(defaultSettings);
-    const [loading, setLoading] = useState(true);
 
-    const loadSettings = useCallback(async () => {
-        setLoading(true);
+    const loadSettings = useCallback(() => {
         try {
-            const settingsRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
-            const docSnap = await getDoc(settingsRef);
-            if (docSnap.exists()) {
-                setSettingsState({ ...defaultSettings, ...docSnap.data() } as Settings);
+            const storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
+            if (storedSettings) {
+                setSettingsState({ ...defaultSettings, ...JSON.parse(storedSettings) });
             } else {
-                // If settings don't exist, create them with default values
-                await setDoc(settingsRef, defaultSettings);
-                setSettingsState(defaultSettings);
+                localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(defaultSettings));
             }
         } catch (error) {
-            console.error("Error loading settings from Firestore: ", error);
+            console.error("Error loading settings from localStorage: ", error);
             setSettingsState(defaultSettings);
-        } finally {
-            setLoading(false);
         }
     }, []);
 
     useEffect(() => {
         loadSettings();
+        window.addEventListener('storage', loadSettings);
+        return () => {
+            window.removeEventListener('storage', loadSettings);
+        };
     }, [loadSettings]);
 
-    const setSettings = useCallback(async (newSettings: Settings) => {
+    const setSettings = useCallback((newSettings: Settings) => {
         try {
-            const settingsRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
-            await setDoc(settingsRef, newSettings);
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings));
             setSettingsState(newSettings);
+            window.dispatchEvent(new Event('storage'));
         } catch (error) {
-            console.error("Error saving settings to Firestore: ", error);
+            console.error("Error saving settings to localStorage: ", error);
         }
     }, []);
 
-    const value = { settings, setSettings, loading };
+    const value = { settings, setSettings };
 
     return (
         <SettingsContext.Provider value={value}>

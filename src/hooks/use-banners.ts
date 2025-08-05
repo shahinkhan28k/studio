@@ -2,17 +2,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import {
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from "firebase/firestore"
-import { db } from "@/lib/firebase"
 
 export interface BannerFormValues {
   src: string;
@@ -22,56 +11,62 @@ export interface BannerFormValues {
 
 export type Banner = BannerFormValues & {
   id: string;
-  createdAt: any;
+  createdAt: string;
 };
 
-const BANNERS_COLLECTION = "banners"
+const BANNERS_STORAGE_KEY = "banners"
 
 export function useBanners() {
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const loadBanners = useCallback(async () => {
-    setLoading(true);
+  const loadBanners = useCallback(() => {
     try {
-      const q = query(collection(db, BANNERS_COLLECTION), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const bannersData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Banner));
-      setBanners(bannersData);
+      const storedBanners = localStorage.getItem(BANNERS_STORAGE_KEY);
+      if (storedBanners) {
+        setBanners(JSON.parse(storedBanners));
+      }
     } catch (error) {
-      console.error("Error fetching banners: ", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching banners from localStorage: ", error);
     }
   }, []);
 
   useEffect(() => {
     loadBanners();
+    // Listen for storage changes to sync across tabs
+    window.addEventListener('storage', loadBanners);
+    return () => {
+      window.removeEventListener('storage', loadBanners);
+    };
   }, [loadBanners]);
   
-  const addBanner = useCallback(async (bannerData: BannerFormValues) => {
+  const addBanner = useCallback((bannerData: BannerFormValues) => {
     try {
-      await addDoc(collection(db, BANNERS_COLLECTION), {
+      const newBanner: Banner = {
         ...bannerData,
-        createdAt: serverTimestamp()
-      });
-      await loadBanners(); // Reload banners after adding
+        id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
+        createdAt: new Date().toISOString()
+      };
+      const updatedBanners = [...banners, newBanner];
+      setBanners(updatedBanners);
+      localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(updatedBanners));
+      // Manually dispatch a storage event to notify other components/tabs
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error adding banner: ", error);
+      console.error("Error adding banner to localStorage: ", error);
     }
-  }, [loadBanners]);
+  }, [banners]);
 
-  const deleteBanner = useCallback(async (bannerId: string) => {
+  const deleteBanner = useCallback((bannerId: string) => {
     try {
-      await deleteDoc(doc(db, BANNERS_COLLECTION, bannerId));
-      setBanners(prevBanners => prevBanners.filter(banner => banner.id !== bannerId));
+      const updatedBanners = banners.filter(banner => banner.id !== bannerId);
+      setBanners(updatedBanners);
+      localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(updatedBanners));
+      // Manually dispatch a storage event to notify other components/tabs
+      window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Error deleting banner: ", error);
+      console.error("Error deleting banner from localStorage: ", error);
     }
-  }, []);
+  }, [banners]);
   
-  return { banners, loading, addBanner, deleteBanner, refreshBanners: loadBanners };
+  return { banners, addBanner, deleteBanner, refreshBanners: loadBanners };
 }

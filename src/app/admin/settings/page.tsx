@@ -23,14 +23,14 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useSettings, Settings } from "@/hooks/use-settings"
+import { useSettings } from "@/hooks/use-settings"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useBanners } from "@/hooks/use-banners"
@@ -68,8 +68,8 @@ export type BannerFormValues = z.infer<typeof bannerFormSchema>
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  const { settings, setSettings, loading: settingsLoading } = useSettings()
-  const { banners, addBanner, deleteBanner, loading: bannersLoading } = useBanners()
+  const { settings, setSettings } = useSettings()
+  const { banners, addBanner, deleteBanner } = useBanners()
 
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -92,7 +92,7 @@ export default function SettingsPage() {
   }, [settings, settingsForm])
 
   async function onSettingsSubmit(data: z.infer<typeof settingsSchema>) {
-    await setSettings(data)
+    setSettings(data)
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   }
   
   async function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
-    await addBanner(data)
+    addBanner(data)
     toast({
       title: "Banner Added",
       description: "The new banner has been successfully added.",
@@ -110,14 +110,9 @@ export default function SettingsPage() {
 
   const handleDeleteBanner = async (id: string) => {
     if (confirm("Are you sure you want to delete this banner?")) {
-      await deleteBanner(id)
+      deleteBanner(id)
     }
   }
-
-  if (settingsLoading || bannersLoading) {
-    return <div className="container py-6">Loading settings...</div>
-  }
-
 
   return (
     <div className="container py-6">
