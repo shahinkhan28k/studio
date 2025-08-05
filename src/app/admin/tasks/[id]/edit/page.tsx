@@ -66,8 +66,7 @@ export default function EditTaskPage() {
   })
   
   React.useEffect(() => {
-    // We need to wait until allTasks are loaded from localStorage
-    if (allTasks.length > 0 && taskId) {
+    if (taskId && allTasks.length > 0) {
       setLoading(true);
       const taskData = getTaskById(taskId);
       if (taskData) {
@@ -75,13 +74,8 @@ export default function EditTaskPage() {
         form.reset(taskData);
       }
       setLoading(false);
-    } else if (taskId && allTasks.length === 0) {
-      // Still waiting for tasks to load, do nothing until they are loaded.
-      setLoading(true);
-    } else if (!taskId) {
-      setLoading(false);
     }
-  }, [taskId, getTaskById, form, allTasks]);
+  }, [taskId, allTasks, getTaskById, form]);
 
   async function onSubmit(data: TaskFormValues) {
     if (!taskId) return;
