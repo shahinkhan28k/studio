@@ -1,14 +1,138 @@
 "use client"
 
+import React from "react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+import { useInvestments, InvestmentPlan } from "@/hooks/use-investments"
+import { Wallet, Info, Zap } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+
+const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
+  const levelMap = {
+    Low: { dots: 1, color: "text-green-500", label: "নিম্ন ঝুঁকি" },
+    Medium: { dots: 2, color: "text-yellow-500", label: "মধ্যম ঝুঁকি" },
+    High: { dots: 3, color: "text-red-500", label: "উচ্চ ঝুঁকি" },
+  }
+  const { dots, color, label } = levelMap[level]
+
+  return (
+    <div className={`flex items-center text-xs ${color}`}>
+      <div className="flex gap-1 mr-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <span
+            key={i}
+            className={`h-2 w-2 rounded-full ${
+              i < dots ? `bg-${color.replace('text-','').slice(0,-4)}-500` : "bg-muted"
+            }`}
+          ></span>
+        ))}
+      </div>
+      {label}
+    </div>
+  )
+}
+
+const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
+  return (
+    <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2">
+      <CardHeader className="p-0 relative">
+        <div className="absolute top-4 right-4 z-10">
+          <Badge variant="secondary">{plan.badge}</Badge>
+        </div>
+        <div className="relative aspect-video">
+          <Image
+            src={plan.imageUrl}
+            alt={plan.title}
+            layout="fill"
+            objectFit="cover"
+            data-ai-hint="investment business"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        </div>
+        <div className="absolute bottom-0 p-4 text-white">
+          <CardTitle className="text-xl">{plan.title}</CardTitle>
+          <CardDescription className="text-white/90">
+            {plan.subtitle}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 space-y-4">
+        <div className="grid grid-cols-3 text-center text-sm">
+          <div>
+            <p className="text-muted-foreground">সময়কাল</p>
+            <p className="font-semibold">{plan.duration} মাস</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">লাভের হার</p>
+            <p className="font-semibold">{plan.profitRate}%</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">ন্যূনতম বিনিয়োগ</p>
+            <p className="font-semibold">৳{plan.minInvestment.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <span>অগ্রগতি</span>
+            <span>{plan.progress}%</span>
+          </div>
+          <Progress value={plan.progress} className="h-2" />
+        </div>
+        
+        <div className="flex items-center justify-between">
+           <InvestmentRisk level={plan.riskLevel} />
+           <Badge variant="outline" className="text-primary border-primary">
+                <Zap className="w-3 h-3 mr-1" />
+                {plan.tag}
+            </Badge>
+        </div>
+
+
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" className="w-full">
+            <Info className="w-4 h-4 mr-2" /> বিস্তারিত
+          </Button>
+          <Button className="w-full bg-accent hover:bg-accent/90">
+            <Wallet className="w-4 h-4 mr-2" /> বিনিয়োগ করুন
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function InvestmentPage() {
+  const { investmentPlans } = useInvestments()
+
   return (
     <div className="container py-6">
-      <div className="flex flex-col items-center justify-center h-96">
-        <h1 className="text-3xl font-bold tracking-tight">Investment</h1>
-        <p className="text-muted-foreground mt-2">
-          This page is under construction.
-        </p>
-      </div>
+       <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tight">বিনিয়োগ পরিকল্পনা</h1>
+            <p className="text-muted-foreground mt-2">
+                আপনার জন্য সেরা পরিকল্পনা নির্বাচন করুন এবং আপনার সম্পদ বৃদ্ধি করুন।
+            </p>
+        </div>
+
+      {investmentPlans.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {investmentPlans.map((plan) => (
+            <InvestmentCard key={plan.id} plan={plan} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">কোনো বিনিয়োগ পরিকল্পনা পাওয়া যায়নি।</p>
+        </div>
+      )}
     </div>
   )
 }

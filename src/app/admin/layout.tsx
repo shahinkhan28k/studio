@@ -15,7 +15,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
-import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
+import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, ArrowUpFromLine, TrendingUp } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import React from "react"
@@ -86,6 +86,12 @@ export default function AdminLayout({
                     <SidebarMenuButton href="/admin/tasks" tooltip="Tasks">
                         <ClipboardList />
                         <span>Tasks</span>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                    <SidebarMenuButton href="/admin/investments" tooltip="Investments">
+                        <TrendingUp />
+                        <span>Investments</span>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
