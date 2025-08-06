@@ -92,13 +92,19 @@ export default function SettingsPage() {
   React.useEffect(() => {
     if (settings) {
         settingsForm.reset({
-            ...settings,
+            referralLevels: settings.referralLevels.sort((a,b) => a.level - b.level) || [],
+            investmentReferralCommissionRate: settings.investmentReferralCommissionRate || 0,
+            withdrawalRequirement: settings.withdrawalRequirement || 0,
+            minimumWithdrawalAmount: settings.minimumWithdrawalAmount || 0,
+            depositSessionDuration: settings.depositSessionDuration || 5,
             agentNumbers: {
-                bkash: settings.agentNumbers.bkash.join(", "),
-                nagad: settings.agentNumbers.nagad.join(", "),
-                rocket: settings.agentNumbers.rocket.join(", "),
+                bkash: settings.agentNumbers.bkash.join(", ") || "",
+                nagad: settings.agentNumbers.nagad.join(", ") || "",
+                rocket: settings.agentNumbers.rocket.join(", ") || "",
             },
-            referralLevels: settings.referralLevels.sort((a,b) => a.level - b.level)
+            supportEmail: settings.supportEmail || "",
+            supportPhoneNumber: settings.supportPhoneNumber || "",
+            supportWhatsApp: settings.supportWhatsApp || ""
         });
     }
   }, [settings, settingsForm]);
@@ -417,5 +423,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
-    
