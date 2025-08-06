@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/table"
 import Image from "next/image"
 import { Textarea } from "@/components/ui/textarea"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 
 const referralLevelSchema = z.object({
   level: z.coerce.number(),
@@ -78,6 +79,12 @@ const bannerFormSchema = z.object({
   "data-ai-hint": z.string().min(1, "AI hint is required."),
 })
 
+const adminAuthSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+})
+
+
 export type BannerFormValues = z.infer<typeof bannerFormSchema>
 
 
@@ -85,11 +92,20 @@ export default function SettingsPage() {
   const { toast } = useToast()
   const { settings, setSettings } = useSettings()
   const { banners, addBanner, deleteBanner, refreshBanners } = useBanners()
+  const { admin, updateAdminCredentials } = useAdminAuth()
 
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: settings,
   })
+  
+  const adminAuthForm = useForm<z.infer<typeof adminAuthSchema>>({
+    resolver: zodResolver(adminAuthSchema),
+    defaultValues: {
+      email: admin?.email || "",
+      password: ""
+    },
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: settingsForm.control,
@@ -118,6 +134,15 @@ export default function SettingsPage() {
       settingsForm.reset(transformedDefaults as any);
     }
   }, [settings, settingsForm])
+  
+  useEffect(() => {
+    if (admin) {
+        adminAuthForm.reset({
+            email: admin.email,
+            password: ""
+        })
+    }
+  }, [admin, adminAuthForm]);
 
   async function onSettingsSubmit(data: z.infer<typeof settingsSchema>) {
     setSettings(data)
@@ -146,6 +171,15 @@ export default function SettingsPage() {
       })
     }
   }
+  
+  const onAdminAuthSubmit = (data: z.infer<typeof adminAuthSchema>) => {
+    updateAdminCredentials(data.email, data.password);
+    toast({
+      title: "Admin Credentials Updated",
+      description: "The admin login details have been updated.",
+    });
+    adminAuthForm.reset({ ...data, password: "" });
+  };
   
   const addNewLevel = () => {
     const nextLevel = fields.length + 1;
@@ -434,6 +468,53 @@ export default function SettingsPage() {
                   </Form>
                 </AccordionContent>
               </AccordionItem>
+              
+              {/* Admin Auth Settings */}
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="text-xl font-semibold">Admin Credentials</AccordionTrigger>
+                <AccordionContent className="space-y-6 pt-4">
+                  <Card>
+                    <CardHeader>
+                        <CardTitle>Update Admin Login</CardTitle>
+                        <CardDescription>Change the email and password used to log in to the admin panel.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...adminAuthForm}>
+                            <form onSubmit={adminAuthForm.handleSubmit(onAdminAuthSubmit)} className="space-y-4">
+                                <FormField
+                                    control={adminAuthForm.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Admin Email</FormLabel>
+                                            <FormControl>
+                                                <Input type="email" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={adminAuthForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>New Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Enter new password (min. 6 characters)" {...field} />
+                                            </FormControl>
+                                             <FormDescription>Leave blank to keep the current password.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit">Update Credentials</Button>
+                            </form>
+                        </Form>
+                    </CardContent>
+                  </Card>
+                </AccordionContent>
+              </AccordionItem>
 
               {/* Banner Settings */}
               <AccordionItem value="item-2">
@@ -538,5 +619,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
-    

@@ -7,12 +7,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, LogOut } from "lucide-react"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 export function AdminHeader() {
+    const { admin, logout } = useAdminAuth();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const handleLogout = () => {
+        logout();
+        toast({ title: "Logged Out", description: "You have been logged out from the admin panel." });
+        router.push("/admin/login");
+    }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-14 items-center">
@@ -27,36 +41,18 @@ export function AdminHeader() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{admin?.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href="/admin">Dashboard</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/admin/notices">Notices</Link>
-                </DropdownMenuItem>
                  <DropdownMenuItem asChild>
-                    <Link href="/admin/users">Users</Link>
-                </DropdownMenuItem>
-                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/admin/tasks">Tasks</Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/admin/investments">Investments</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/admin/referrals">Referrals</Link>
-                </DropdownMenuItem>
-                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/admin/transactions/deposits">Deposits</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/admin/transactions/withdrawals">Withdrawals</Link>
-                </DropdownMenuItem>
-                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
                     <Link href="/admin/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>

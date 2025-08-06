@@ -21,28 +21,25 @@ import { useRouter } from "next/navigation"
 import React from "react"
 import { AppProvider } from "@/context/app-context"
 import { AdminHeader } from "@/components/admin-header"
+import { AdminAuthProvider, useAdminAuth } from "@/hooks/use-admin-auth"
 
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-    const { user, loading } = useAuth()
+function AdminPagesLayout({ children }: { children: React.ReactNode }) {
+    const { user, loading } = useAuth() // For regular user session, if needed.
+    const { admin, loading: adminLoading } = useAdminAuth();
     const router = useRouter()
 
     React.useEffect(() => {
-        if (!loading && !user) {
-        router.push("/login")
+        if (!adminLoading && !admin) {
+             router.push("/admin/login")
         }
-    }, [user, loading, router])
+    }, [admin, adminLoading, router])
 
-    if (loading || !user) {
+    if (adminLoading || !admin) {
         return null; // Or a loading spinner
     }
 
   return (
-    <AppProvider>
         <SidebarProvider>
         <Sidebar side="left" collapsible="icon">
             <SidebarHeader>
@@ -141,6 +138,20 @@ export default function AdminLayout({
             <main>{children}</main>
         </SidebarInset>
         </SidebarProvider>
-    </AppProvider>
   )
+}
+
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+    return (
+        <AppProvider>
+            <AdminAuthProvider>
+                <AdminPagesLayout>{children}</AdminPagesLayout>
+            </AdminAuthProvider>
+        </AppProvider>
+    )
 }
