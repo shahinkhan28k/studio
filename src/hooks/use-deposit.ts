@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useUserStats } from './use-user-stats';
 import { useSettings } from './use-settings';
-import { convertToUSD } from '@/lib/utils';
 
 export interface DepositSession {
   id: string;
@@ -20,7 +19,7 @@ export type DepositRecord = {
   id: string;
   userId: string;
   date: string;
-  amount: number; // amount in USD
+  amount: number; // amount in BDT
   method: string;
   status: 'pending' | 'completed' | 'failed';
   transactionId?: string;
@@ -118,14 +117,12 @@ export function useDeposit() {
     }
 
     const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
-    
-    const amountInUSD = convertToUSD(session.amount, 'BDT');
-    
+        
     const newRecord: DepositRecord = {
         id: session.id,
         userId: session.userId,
         date: new Date().toISOString(),
-        amount: amountInUSD, // Store amount in USD
+        amount: session.amount, // Store amount in BDT
         method: session.method,
         status: 'pending',
         transactionId: transactionId,
@@ -174,7 +171,7 @@ export function useDeposits() {
 
         if (status === 'completed') {
             const userStatsKey = `userStats-${userId}`;
-            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0 });
+            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0, totalEarnings: 0, totalWithdraw: 0 });
             const newStats = {
                 ...currentStats,
                 totalDeposit: currentStats.totalDeposit + amount,

@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAppContext } from "@/context/app-context"
-import { formatCurrency, convertToUSD, convertFromUSD } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useSettings } from "@/hooks/use-settings"
@@ -111,6 +111,7 @@ export default function WithdrawPage() {
   const { user } = useAuth();
   const { stats, addWithdrawal, withdrawalHistory, referrals } = useUserStats()
   const { settings } = useSettings();
+  const { currency } = useAppContext();
 
   const defaultValues = React.useMemo(() => ({
     amount: 0,
@@ -162,19 +163,17 @@ export default function WithdrawPage() {
     }
 
     const amountInBDT = data.amount;
-    const minimumWithdrawalBDT = convertFromUSD(settings.minimumWithdrawalAmount, 'BDT');
 
-    if (amountInBDT < minimumWithdrawalBDT) {
+    if (amountInBDT < settings.minimumWithdrawalAmount) {
       toast({
         title: "Amount Too Low",
-        description: `The minimum withdrawal amount is ${formatCurrency(settings.minimumWithdrawalAmount, 'BDT')}.`,
+        description: `The minimum withdrawal amount is ${formatCurrency(settings.minimumWithdrawalAmount, currency)}.`,
         variant: "destructive",
       })
       return
     }
 
-    const amountInUSD = convertToUSD(amountInBDT, 'BDT');
-    if (amountInUSD > stats.availableBalance) {
+    if (amountInBDT > stats.availableBalance) {
       toast({
         title: "Insufficient Balance",
         description: "You do not have enough balance to make this withdrawal.",
@@ -184,7 +183,7 @@ export default function WithdrawPage() {
     }
 
     const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id'> = {
-      amount: amountInUSD, // Store in USD
+      amount: amountInBDT, // Store in BDT
       method: data.method,
       status: 'pending'
     }
@@ -217,8 +216,8 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Your available balance is {formatCurrency(stats.availableBalance, 'BDT')}. 
-            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, 'BDT')}.
+            Your available balance is {formatCurrency(stats.availableBalance, currency)}. 
+            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, currency)}.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -398,7 +397,7 @@ export default function WithdrawPage() {
                     withdrawalHistory.map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
                             <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
-                            <TableCell>{formatCurrency(withdrawal.amount, 'BDT')}</TableCell>
+                            <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>
                                 <Badge variant={withdrawal.status === 'completed' ? 'default' : 'secondary'}>

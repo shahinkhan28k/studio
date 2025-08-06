@@ -77,10 +77,11 @@ export function useAdminStats() {
       
       let tasksCompleted = 0;
       users.forEach(user => {
-        const completedStr = localStorage.getItem(`completedTasks-${user.uid}`);
+        const completedStr = localStorage.getItem(`allCompletedTasks`);
         if(completedStr) {
-            const completed = JSON.parse(completedStr);
-            tasksCompleted += completed.length;
+            const allCompleted = JSON.parse(completedStr);
+            const userCompleted = allCompleted[user.uid] || [];
+            tasksCompleted += userCompleted.length;
         }
       });
 

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 import { useAppContext } from "@/context/app-context"
 import { Locale } from "@/lib/i18n"
-import { Currency } from "@/context/app-context"
 import { Shield } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { auth } from "@/lib/firebase"
@@ -27,20 +26,13 @@ import { useToast } from "@/hooks/use-toast"
 
 
 export function AppHeader() {
-  const { language, setLanguage, currency, setCurrency } = useAppContext();
+  const { language, setLanguage } = useAppContext();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLanguageChange = (lang: Locale) => {
     setLanguage(lang);
-    const currencyMap: Record<Locale, Currency> = {
-      'en': 'USD',
-      'bn': 'BDT',
-      'es': 'EUR',
-      'hi': 'INR'
-    };
-    setCurrency(currencyMap[lang]);
   }
 
   const handleLogout = async () => {
@@ -83,10 +75,10 @@ export function AppHeader() {
                     <DropdownMenuLabel>{language.t('languageCurrency')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuRadioGroup value={language.locale} onValueChange={(value) => handleLanguageChange(value as Locale)}>
-                        <DropdownMenuRadioItem value="en">English (USD)</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="bn">বাংলা (BDT)</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="es">Español (EUR)</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="hi">हिन्दी (INR)</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="bn">বাংলা</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="es">Español</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="hi">हिन्दी</DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
             </DropdownMenu>

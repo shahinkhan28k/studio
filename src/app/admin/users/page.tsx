@@ -15,10 +15,12 @@ import { useAdminStats } from "@/hooks/use-admin-stats"
 import { formatCurrency } from "@/lib/utils"
 import React from "react"
 import { useToast } from "@/hooks/use-toast"
+import { useAppContext } from "@/context/app-context"
 
 export default function UsersPage() {
   const { allUsersData, deleteUser } = useAdminStats()
   const { toast } = useToast()
+  const { currency } = useAppContext();
   
   const handleDeleteUser = async (uid: string, name: string | null) => {
     if (confirm(`Are you sure you want to delete user: ${name || uid}? This action cannot be undone.`)) {
@@ -74,7 +76,7 @@ export default function UsersPage() {
                 <TableCell className="font-mono text-xs">{user.uid}</TableCell>
                 <TableCell>{user.displayName || "N/A"}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{formatCurrency(user.stats.availableBalance, 'USD')}</TableCell>
+                <TableCell>{formatCurrency(user.stats.availableBalance, currency)}</TableCell>
                 <TableCell>
                   <Button variant="outline" size="sm" className="mr-2" disabled>
                     Edit

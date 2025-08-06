@@ -129,7 +129,7 @@ export default function NewTaskPage() {
                 name="reward"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reward Amount ($)</FormLabel>
+                    <FormLabel>Reward Amount (BDT)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g. 5.00" {...field} />
                     </FormControl>

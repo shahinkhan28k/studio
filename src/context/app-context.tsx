@@ -4,13 +4,13 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { translations, Language, Locale } from '@/lib/i18n';
 
-export type Currency = 'USD' | 'BDT' | 'EUR' | 'INR';
+export type Currency = 'BDT'; // Only BDT is supported now
 
 interface AppContextType {
   language: Language;
   setLanguage: (locale: Locale) => void;
   currency: Currency;
-  setCurrency: (currency: Currency) => void;
+  setCurrency: (currency: Currency) => void; // Kept for type consistency, but won't be used to change.
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -21,13 +21,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('app-locale') as Locale | null;
-    const savedCurrency = localStorage.getItem('app-currency') as Currency | null;
     if (savedLocale) {
       setLocale(savedLocale);
     }
-     if (savedCurrency) {
-      setCurrency(savedCurrency);
-    }
+    // Currency is always BDT, no need to load from storage.
   }, []);
 
   const handleSetLanguage = (newLocale: Locale) => {
@@ -36,8 +33,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const handleSetCurrency = (newCurrency: Currency) => {
-    setCurrency(newCurrency);
-    localStorage.setItem('app-currency', newCurrency);
+    // This function is now a no-op as currency is fixed to BDT.
+    // Kept for type consistency if needed elsewhere.
+    setCurrency('BDT');
   }
 
   const value = {

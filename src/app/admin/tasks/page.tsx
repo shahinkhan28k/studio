@@ -14,9 +14,11 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useTasks } from "@/hooks/use-tasks"
 import { formatCurrency } from "@/lib/utils"
+import { useAppContext } from "@/context/app-context"
 
 export default function TasksAdminPage() {
   const { tasks, deleteTask } = useTasks()
+  const { currency } = useAppContext();
 
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
@@ -60,7 +62,7 @@ export default function TasksAdminPage() {
                 <TableRow key={task.id}>
                     <TableCell>{task.id}</TableCell>
                     <TableCell>{task.title}</TableCell>
-                    <TableCell>{formatCurrency(task.reward, 'USD')}</TableCell>
+                    <TableCell>{formatCurrency(task.reward, currency)}</TableCell>
                     <TableCell>
                     <Badge variant={task.isFeatured ? "default" : "outline"}>
                         {task.isFeatured ? "Yes" : "No"}

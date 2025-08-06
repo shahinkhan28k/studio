@@ -22,10 +22,12 @@ import { formatCurrency } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import React from "react"
+import { useAppContext } from "@/context/app-context"
 
 export default function AdminPage() {
   const { stats, recentSignups } = useAdminStats()
   const [isClient, setIsClient] = React.useState(false)
+  const { currency } = useAppContext();
 
   React.useEffect(() => {
     setIsClient(true)
@@ -81,7 +83,7 @@ export default function AdminPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, 'USD') : "..."}</div>
+            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : "..."}</div>
             <p className="text-xs text-muted-foreground">
               Total earnings across all users
             </p>
@@ -121,7 +123,7 @@ export default function AdminPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposits, 'USD') : "..."}</div>
+            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposits, currency) : "..."}</div>
             <p className="text-xs text-muted-foreground">
               Total deposits made by users
             </p>

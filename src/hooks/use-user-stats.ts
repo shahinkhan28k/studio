@@ -18,7 +18,7 @@ export type TransactionStatus = 'pending' | 'completed' | 'failed';
 export type DepositRecord = {
   id: string;
   date: string;
-  amount: number; // Stored in USD
+  amount: number; // Stored in BDT
   method: string;
   status: TransactionStatus;
   transactionId?: string;
@@ -27,7 +27,7 @@ export type DepositRecord = {
 export type WithdrawalRecord = {
     id: string;
     date: string;
-    amount: number; // Stored in USD
+    amount: number; // Stored in BDT
     method: string;
     status: TransactionStatus;
 }

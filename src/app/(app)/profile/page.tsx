@@ -27,7 +27,7 @@ const defaultStats: UserStats = {
 
 export default function ProfilePage() {
   const { stats } = useUserStats()
-  const { language } = useAppContext()
+  const { language, currency } = useAppContext()
   const { user } = useAuth();
   const [isClient, setIsClient] = React.useState(false)
 
@@ -72,7 +72,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalEarnings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, 'USD') : '...'}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -80,7 +80,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('availableBalance')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold text-primary">{isClient ? formatCurrency(stats.availableBalance, 'USD') : '...'}</p>
+                    <p className="text-2xl font-bold text-primary">{isClient ? formatCurrency(stats.availableBalance, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -88,7 +88,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalDeposit')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposit, 'USD') : '...'}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposit, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>
@@ -96,7 +96,7 @@ export default function ProfilePage() {
                     <CardTitle className="text-lg font-normal">{language.t('totalWithdraw')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalWithdraw, 'USD') : '...'}</p>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalWithdraw, currency) : '...'}</p>
                 </CardContent>
             </Card>
         </div>
