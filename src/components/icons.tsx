@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Loader,
   TrendingUp,
+  CalendarDays,
 } from "lucide-react"
 
 export const Icons = {
@@ -46,4 +47,5 @@ export const Icons = {
   HelpCircle,
   Spinner: Loader,
   Investment: TrendingUp,
+  DailyIncome: CalendarDays,
 }
