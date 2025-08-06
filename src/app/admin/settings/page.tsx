@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -50,12 +49,19 @@ const settingsSchema = z.object({
   referralCommissionRateL3: z.coerce.number().min(0).max(100),
   withdrawalRequirement: z.coerce.number().int().min(0),
   minimumWithdrawalAmount: z.coerce.number().min(0),
-  agentNumber: z.string(),
+  agentNumbers: z.object({
+    bkash: z.string(),
+    nagad: z.string(),
+    rocket: z.string(),
+  }),
   bankName: z.string(),
   bankAccountName: z.string(),
   bankAccountNumber: z.string(),
   bankBranch: z.string(),
   usdtAddress: z.string(),
+  supportEmail: z.string().email(),
+  supportPhoneNumber: z.string(),
+  supportWhatsApp: z.string(),
 })
 
 const bannerFormSchema = z.object({
@@ -217,7 +223,7 @@ export default function SettingsPage() {
                                 </FormItem>
                               )}
                             />
-                            <FormField
+                             <FormField
                               control={settingsForm.control}
                               name="minimumWithdrawalAmount"
                               render={({ field }) => (
@@ -240,15 +246,41 @@ export default function SettingsPage() {
                           <AccordionContent className="space-y-4 pt-4">
                             <Card>
                               <CardHeader><CardTitle>Mobile Money</CardTitle></CardHeader>
-                              <CardContent>
+                              <CardContent className="space-y-4">
                                 <FormField
                                     control={settingsForm.control}
-                                    name="agentNumber"
+                                    name="agentNumbers.bkash"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>Personal Number [Send Money]</FormLabel>
+                                        <FormLabel>bKash Number</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter number for bKash, Nagad etc." {...field} />
+                                            <Input placeholder="Enter number for bKash" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                <FormField
+                                    control={settingsForm.control}
+                                    name="agentNumbers.nagad"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Nagad Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter number for Nagad" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                <FormField
+                                    control={settingsForm.control}
+                                    name="agentNumbers.rocket"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Rocket Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter number for Rocket" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                         </FormItem>
@@ -332,6 +364,53 @@ export default function SettingsPage() {
                               </CardContent>
                             </Card>
                           </AccordionContent>
+                        </AccordionItem>
+                         <AccordionItem value="item-1-4">
+                            <AccordionTrigger className="text-lg font-semibold">Help &amp; Support Settings</AccordionTrigger>
+                            <AccordionContent className="space-y-4 pt-4">
+                                <FormField
+                                control={settingsForm.control}
+                                name="supportEmail"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Support Email</FormLabel>
+                                    <FormControl>
+                                        <Input type="email" placeholder="e.g. support@example.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                                <FormField
+                                control={settingsForm.control}
+                                name="supportPhoneNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Support Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="e.g. +1234567890" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                                <FormField
+                                control={settingsForm.control}
+                                name="supportWhatsApp"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Support WhatsApp Number</FormLabel>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="e.g. +1234567890" {...field} />
+                                    </FormControl>
+                                     <FormDescription>
+                                        Include country code.
+                                    </FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                            </AccordionContent>
                         </AccordionItem>
                       </Accordion>
                       

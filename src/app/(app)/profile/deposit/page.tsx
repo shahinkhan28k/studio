@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -142,11 +141,14 @@ export default function DepositPage() {
   const isUsdtTransfer = selectedMethod === "usdt"
   
   const getAgentNumber = () => {
+    if (!selectedMethod || !settings.agentNumbers) return '';
     switch(selectedMethod) {
         case 'bkash':
+            return settings.agentNumbers.bkash;
         case 'nagad':
+            return settings.agentNumbers.nagad;
         case 'rocket':
-            return settings.agentNumber;
+            return settings.agentNumbers.rocket;
         default:
             return '';
     }
@@ -211,7 +213,7 @@ export default function DepositPage() {
                     </Button>
                   </div>
                 </div>
-              ) : selectedMethod && selectedMethod !== "bank" ? (
+              ) : selectedMethod && selectedMethod !== "bank" && getAgentNumber() ? (
                 <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Personal Number [Send Money]:</span>

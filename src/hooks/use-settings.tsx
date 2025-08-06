@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
@@ -9,12 +8,19 @@ export type Settings = {
   referralCommissionRateL3: number;
   withdrawalRequirement: number;
   minimumWithdrawalAmount: number;
-  agentNumber: string;
+  agentNumbers: {
+    bkash: string;
+    nagad: string;
+    rocket: string;
+  };
   bankName: string;
   bankAccountName: string;
   bankAccountNumber: string;
   bankBranch: string;
   usdtAddress: string;
+  supportEmail: string;
+  supportPhoneNumber: string;
+  supportWhatsApp: string;
 };
 
 const SETTINGS_STORAGE_KEY = "platformSettings";
@@ -25,12 +31,19 @@ const defaultSettings: Settings = {
   referralCommissionRateL3: 1,
   withdrawalRequirement: 20,
   minimumWithdrawalAmount: 10,
-  agentNumber: "01234567890",
+  agentNumbers: {
+    bkash: "01234567890",
+    nagad: "01234567891",
+    rocket: "01234567892",
+  },
   bankName: "Example Bank Ltd.",
   bankAccountName: "Onearn Platform",
   bankAccountNumber: "1234567890123",
   bankBranch: "Dhaka",
   usdtAddress: "TX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r",
+  supportEmail: "support@example.com",
+  supportPhoneNumber: "+1234567890",
+  supportWhatsApp: "1234567890",
 };
 
 interface SettingsContextType {
