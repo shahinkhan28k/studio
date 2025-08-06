@@ -31,10 +31,11 @@ import { useAppContext } from "@/context/app-context"
 
 
 const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
+  const { language } = useAppContext();
   const levelMap = {
-    Low: { dots: 1, color: "text-green-500 bg-green-500", label: "নিম্ন ঝুঁকি" },
-    Medium: { dots: 2, color: "text-yellow-500 bg-yellow-500", label: "মধ্যম ঝুঁকি" },
-    High: { dots: 3, color: "text-red-500 bg-red-500", label: "উচ্চ ঝুঁকি" },
+    Low: { dots: 1, color: "text-green-500 bg-green-500", label: language.t('lowRisk') },
+    Medium: { dots: 2, color: "text-yellow-500 bg-yellow-500", label: language.t('mediumRisk') },
+    High: { dots: 3, color: "text-red-500 bg-red-500", label: language.t('highRisk') },
   }
   const { dots, color, label } = levelMap[level]
   const colorClass = color.split(' ')[0]
@@ -58,10 +59,11 @@ const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
 }
 
 const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInvest: (plan: InvestmentPlan) => void }) => {
+    const { language } = useAppContext();
     const getDurationText = (value: number, unit: 'Days' | 'Months' | 'Years') => {
-        if (unit === 'Days') return `${value} দিন`;
-        if (unit === 'Months') return `${value} মাস`;
-        if (unit === 'Years') return `${value} বছর`;
+        if (unit === 'Days') return `${value} ${language.t('days')}`;
+        if (unit === 'Months') return `${value} ${language.t('months')}`;
+        if (unit === 'Years') return `${value} ${language.t('years')}`;
         return `${value} ${unit}`;
     }
     const totalProfit = plan.minInvestment * (plan.profitRate / 100);
@@ -108,34 +110,34 @@ const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInvest: (p
       <CardContent className="p-4 flex flex-col flex-grow">
         <div className="grid grid-cols-3 text-center text-sm mb-4">
           <div>
-            <p className="text-muted-foreground">সময়কাল</p>
+            <p className="text-muted-foreground">{language.t('duration')}</p>
             <p className="font-semibold">{getDurationText(plan.durationValue, plan.durationUnit)}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">লাভের হার</p>
+            <p className="text-muted-foreground">{language.t('profitRate')}</p>
             <p className="font-semibold">{plan.profitRate}%</p>
           </div>
           <div>
-            <p className="text-muted-foreground">ন্যূনতম বিনিয়োগ</p>
+            <p className="text-muted-foreground">{language.t('minInvestment')}</p>
             <p className="font-semibold">{formatCurrency(plan.minInvestment, "BDT")}</p>
           </div>
         </div>
         
         <div className="bg-muted/50 p-3 rounded-lg space-y-3 text-sm mb-4">
             <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center"><BarChart className="w-4 h-4 mr-2" /> মোট লাভ</span>
+                <span className="text-muted-foreground flex items-center"><BarChart className="w-4 h-4 mr-2" /> {language.t('totalProfit')}</span>
                 <span className="font-bold text-primary">{formatCurrency(totalProfit, "BDT")}</span>
             </div>
              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center"><TrendingUp className="w-4 h-4 mr-2" /> মোট রিটার্ন</span>
+                <span className="text-muted-foreground flex items-center"><TrendingUp className="w-4 h-4 mr-2" /> {language.t('totalReturn')}</span>
                 <span className="font-bold text-green-600">{formatCurrency(totalReturn, "BDT")}</span>
             </div>
              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> দৈনিক আয়</span>
+                <span className="text-muted-foreground flex items-center"><CalendarDays className="w-4 h-4 mr-2" /> {language.t('dailyIncome')}</span>
                 <span className="font-bold text-secondary-foreground">{formatCurrency(dailyIncome, "BDT")}</span>
             </div>
             <div className="flex justify-between items-center">
-                <span className="text-muted-foreground flex items-center"><Users className="w-4 h-4 mr-2" /> বিনিয়োগকারী</span>
+                <span className="text-muted-foreground flex items-center"><Users className="w-4 h-4 mr-2" /> {language.t('investors')}</span>
                 <span className="font-semibold">{plan.totalInvestors} / {plan.maxInvestors}</span>
             </div>
         </div>
@@ -145,7 +147,7 @@ const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInvest: (p
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>অগ্রগতি</span>
+              <span>{language.t('progress')}</span>
               <span>{plan.progress}%</span>
             </div>
             <Progress value={plan.progress} className="h-2" />
@@ -162,10 +164,10 @@ const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInvest: (p
 
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="w-full">
-              <Info className="w-4 h-4 mr-2" /> বিস্তারিত
+              <Info className="w-4 h-4 mr-2" /> {language.t('details')}
             </Button>
             <Button className="w-full bg-accent hover:bg-accent/90" onClick={() => onInvest(plan)}>
-              <Wallet className="w-4 h-4 mr-2" /> বিনিয়োগ করুন
+              <Wallet className="w-4 h-4 mr-2" /> {language.t('investNow')}
             </Button>
           </div>
         </div>
@@ -191,12 +193,12 @@ export default function InvestmentPage() {
       try {
         investInPlan(selectedPlan)
         toast({
-          title: "বিনিয়োগ সফল হয়েছে",
-          description: `আপনি সফলভাবে ${selectedPlan.title} প্রকল্পে বিনিয়োগ করেছেন।`,
+          title: language.t('investmentSuccessTitle'),
+          description: language.t('investmentSuccessDescription').replace('{planTitle}', selectedPlan.title),
         })
       } catch (error) {
         toast({
-          title: "বিনিয়োগ ব্যর্থ হয়েছে",
+          title: language.t('investmentFailedTitle'),
           description: (error as Error).message,
           variant: "destructive",
         })
@@ -211,9 +213,9 @@ export default function InvestmentPage() {
     <>
     <div className="container py-6">
        <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tight">বিনিয়োগ পরিকল্পনা</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{language.t('investmentPlansTitle')}</h1>
             <p className="text-muted-foreground mt-2">
-                আপনার জন্য সেরা পরিকল্পনা নির্বাচন করুন এবং আপনার সম্পদ বৃদ্ধি করুন।
+                {language.t('investmentPlansDescription')}
             </p>
         </div>
 
@@ -225,7 +227,7 @@ export default function InvestmentPage() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">কোনো বিনিয়োগ পরিকল্পনা পাওয়া যায়নি।</p>
+          <p className="text-muted-foreground">{language.t('noInvestmentPlansFound')}</p>
         </div>
       )}
     </div>
@@ -233,14 +235,17 @@ export default function InvestmentPage() {
         <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                <AlertDialogTitle>বিনিয়োগ নিশ্চিত করুন</AlertDialogTitle>
+                <AlertDialogTitle>{language.t('confirmInvestmentTitle')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                    আপনি কি নিশ্চিতভাবে '{selectedPlan.title}' প্রকল্পে বিনিয়োগ করতে চান? আপনার অ্যাকাউন্ট থেকে {formatCurrency(selectedPlan.minInvestment, "BDT")} কেটে নেওয়া হবে।
+                    {language.t('confirmInvestmentDescription')
+                        .replace('{planTitle}', selectedPlan.title)
+                        .replace('{amount}', formatCurrency(selectedPlan.minInvestment, "BDT"))
+                    }
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setSelectedPlan(null)}>বাতিল করুন</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmInvestment}>নিশ্চিত করুন</AlertDialogAction>
+                <AlertDialogCancel onClick={() => setSelectedPlan(null)}>{language.t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmInvestment}>{language.t('confirm')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

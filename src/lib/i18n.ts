@@ -26,6 +26,18 @@ export type TranslationKey =
   | 'level3' | 'level3Description'
   | 'yourReferralsTitle' | 'yourReferralsDescription'
   | 'name' | 'level' | 'commissionEarned'
+  // Investment
+  | 'investmentPlansTitle' | 'investmentPlansDescription'
+  | 'lowRisk' | 'mediumRisk' | 'highRisk'
+  | 'days' | 'months' | 'years'
+  | 'duration' | 'profitRate' | 'minInvestment'
+  | 'totalProfit' | 'totalReturn' | 'dailyIncome'
+  | 'investors' | 'progress' | 'details' | 'investNow'
+  | 'noInvestmentPlansFound'
+  | 'investmentSuccessTitle' | 'investmentSuccessDescription'
+  | 'investmentFailedTitle'
+  | 'confirmInvestmentTitle' | 'confirmInvestmentDescription'
+  | 'cancel' | 'confirm'
   ;
 
 
@@ -86,6 +98,32 @@ const en: { [key in TranslationKey]: string } = {
   name: 'Name',
   level: 'Level',
   commissionEarned: 'Commission Earned',
+  investmentPlansTitle: 'Investment Plans',
+  investmentPlansDescription: 'Choose the best plan for you and grow your assets.',
+  lowRisk: 'Low Risk',
+  mediumRisk: 'Medium Risk',
+  highRisk: 'High Risk',
+  days: 'Days',
+  months: 'Months',
+  years: 'Years',
+  duration: 'Duration',
+  profitRate: 'Profit Rate',
+  minInvestment: 'Min. Investment',
+  totalProfit: 'Total Profit',
+  totalReturn: 'Total Return',
+  dailyIncome: 'Daily Income',
+  investors: 'Investors',
+  progress: 'Progress',
+  details: 'Details',
+  investNow: 'Invest Now',
+  noInvestmentPlansFound: 'No investment plans found.',
+  investmentSuccessTitle: 'Investment Successful',
+  investmentSuccessDescription: 'You have successfully invested in the {planTitle} project.',
+  investmentFailedTitle: 'Investment Failed',
+  confirmInvestmentTitle: 'Confirm Investment',
+  confirmInvestmentDescription: 'Are you sure you want to invest in the \'{planTitle}\' project? {amount} will be deducted from your account.',
+  cancel: 'Cancel',
+  confirm: 'Confirm',
 };
 
 const bn: { [key in TranslationKey]: string } = {
@@ -140,6 +178,32 @@ const bn: { [key in TranslationKey]: string } = {
   name: 'নাম',
   level: 'স্তর',
   commissionEarned: 'উপার্জিত কমিশন',
+  investmentPlansTitle: 'বিনিয়োগ পরিকল্পনা',
+  investmentPlansDescription: 'আপনার জন্য সেরা পরিকল্পনা নির্বাচন করুন এবং আপনার সম্পদ বৃদ্ধি করুন।',
+  lowRisk: 'নিম্ন ঝুঁকি',
+  mediumRisk: 'মধ্যম ঝুঁকি',
+  highRisk: 'উচ্চ ঝুঁকি',
+  days: 'দিন',
+  months: 'মাস',
+  years: 'বছর',
+  duration: 'সময়কাল',
+  profitRate: 'লাভের হার',
+  minInvestment: 'ন্যূনতম বিনিয়োগ',
+  totalProfit: 'মোট লাভ',
+  totalReturn: 'মোট রিটার্ন',
+  dailyIncome: 'দৈনিক আয়',
+  investors: 'বিনিয়োগকারী',
+  progress: 'অগ্রগতি',
+  details: 'বিস্তারিত',
+  investNow: 'বিনিয়োগ করুন',
+  noInvestmentPlansFound: 'কোনো বিনিয়োগ পরিকল্পনা পাওয়া যায়নি।',
+  investmentSuccessTitle: 'বিনিয়োগ সফল হয়েছে',
+  investmentSuccessDescription: 'আপনি সফলভাবে {planTitle} প্রকল্পে বিনিয়োগ করেছেন।',
+  investmentFailedTitle: 'বিনিয়োগ ব্যর্থ হয়েছে',
+  confirmInvestmentTitle: 'বিনিয়োগ নিশ্চিত করুন',
+  confirmInvestmentDescription: 'আপনি কি নিশ্চিতভাবে \'{planTitle}\' প্রকল্পে বিনিয়োগ করতে চান? আপনার অ্যাকাউন্ট থেকে {amount} কেটে নেওয়া হবে।',
+  cancel: 'বাতিল করুন',
+  confirm: 'নিশ্চিত করুন',
 };
 
 const es: { [key in TranslationKey]: string } = {
@@ -194,6 +258,32 @@ const es: { [key in TranslationKey]: string } = {
   name: 'Nombre',
   level: 'Nivel',
   commissionEarned: 'Comisión Ganada',
+  investmentPlansTitle: 'Planes de Inversión',
+  investmentPlansDescription: 'Elige el mejor plan para ti y haz crecer tus activos.',
+  lowRisk: 'Bajo Riesgo',
+  mediumRisk: 'Riesgo Medio',
+  highRisk: 'Alto Riesgo',
+  days: 'Días',
+  months: 'Meses',
+  years: 'Años',
+  duration: 'Duración',
+  profitRate: 'Tasa de Ganancia',
+  minInvestment: 'Inversión Mínima',
+  totalProfit: 'Ganancia Total',
+  totalReturn: 'Retorno Total',
+  dailyIncome: 'Ingreso Diario',
+  investors: 'Inversores',
+  progress: 'Progreso',
+  details: 'Detalles',
+  investNow: 'Invertir Ahora',
+  noInvestmentPlansFound: 'No se encontraron planes de inversión.',
+  investmentSuccessTitle: 'Inversión Exitosa',
+  investmentSuccessDescription: 'Has invertido con éxito en el proyecto {planTitle}.',
+  investmentFailedTitle: 'Inversión Fallida',
+  confirmInvestmentTitle: 'Confirmar Inversión',
+  confirmInvestmentDescription: '¿Estás seguro de que quieres invertir en el proyecto \'{planTitle}\'? Se deducirá {amount} de tu cuenta.',
+  cancel: 'Cancelar',
+  confirm: 'Confirmar',
 };
 
 const hi: { [key in TranslationKey]: string } = {
@@ -248,6 +338,32 @@ const hi: { [key in TranslationKey]: string } = {
   name: 'नाम',
   level: 'स्तर',
   commissionEarned: 'कमीशन अर्जित',
+  investmentPlansTitle: 'निवेश योजनाएं',
+  investmentPlansDescription: 'अपने लिए सबसे अच्छी योजना चुनें और अपनी संपत्ति बढ़ाएं।',
+  lowRisk: 'कम जोखिम',
+  mediumRisk: 'मध्यम जोखिम',
+  highRisk: 'उच्च जोखिम',
+  days: 'दिन',
+  months: 'महीने',
+  years: 'वर्ष',
+  duration: 'अवधि',
+  profitRate: 'लाभ दर',
+  minInvestment: 'न्यूनतम निवेश',
+  totalProfit: 'कुल लाभ',
+  totalReturn: 'कुल रिटर्न',
+  dailyIncome: 'दैनिक आय',
+  investors: 'निवेशक',
+  progress: 'प्रगति',
+  details: 'विवरण',
+  investNow: 'अभी निवेश करें',
+  noInvestmentPlansFound: 'कोई निवेश योजना नहीं मिली।',
+  investmentSuccessTitle: 'निवेश सफल',
+  investmentSuccessDescription: 'आपने {planTitle} परियोजना में सफलतापूर्वक निवेश किया है।',
+  investmentFailedTitle: 'निवेश विफल',
+  confirmInvestmentTitle: 'निवेश की पुष्टि करें',
+  confirmInvestmentDescription: 'क्या आप वाकई \'{planTitle}\' परियोजना में निवेश करना चाहते हैं? आपके खाते से {amount} काट लिया जाएगा।',
+  cancel: 'रद्द करें',
+  confirm: 'पुष्टि करें',
 };
 
 
