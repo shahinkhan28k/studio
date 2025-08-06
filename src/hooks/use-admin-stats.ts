@@ -55,6 +55,7 @@ export function useAdminStats() {
   const [referralDetails, setReferralDetails] = useState<ReferralDetail[]>([])
 
   const fetchAdminStats = useCallback(() => {
+    if (typeof window === "undefined") return;
     try {
       const users = getAllUsers();
       
@@ -117,6 +118,10 @@ export function useAdminStats() {
 
   useEffect(() => {
     fetchAdminStats()
+    window.addEventListener('storage', fetchAdminStats);
+    return () => {
+        window.removeEventListener('storage', fetchAdminStats);
+    };
   }, [fetchAdminStats])
 
   const deleteUser = useCallback(
@@ -136,10 +141,10 @@ export function useAdminStats() {
       localStorage.removeItem(`referrals-${uid}`);
       localStorage.removeItem(`completedTasks-${uid}`);
       
-      // Refresh stats
-      fetchAdminStats()
+      // Refresh stats by dispatching a storage event
+      window.dispatchEvent(new Event('storage'));
     },
-    [fetchAdminStats]
+    []
   )
 
   return {

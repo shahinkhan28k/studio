@@ -16,12 +16,19 @@ import { formatCurrency } from "@/lib/utils"
 import React from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useAppContext } from "@/context/app-context"
+import { UserStats, defaultStats } from "@/hooks/use-user-stats"
 
 export default function UsersPage() {
   const { allUsersData, deleteUser } = useAdminStats()
   const { toast } = useToast()
   const { currency } = useAppContext();
   
+  const getUserStats = (uid: string): UserStats => {
+    if (typeof window === "undefined") return defaultStats;
+    const statsStr = localStorage.getItem(`userStats-${uid}`);
+    return statsStr ? JSON.parse(statsStr) : defaultStats;
+  }
+
   const handleDeleteUser = async (uid: string, name: string | null) => {
     if (confirm(`Are you sure you want to delete user: ${name || uid}? This action cannot be undone.`)) {
         try {
@@ -71,26 +78,29 @@ export default function UsersPage() {
           </TableHeader>
           <TableBody>
             {allUsersData.length > 0 ? (
-              allUsersData.map((user) => (
-              <TableRow key={user.uid}>
-                <TableCell className="font-mono text-xs">{user.uid}</TableCell>
-                <TableCell>{user.displayName || "N/A"}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{formatCurrency(user.stats.availableBalance, currency)}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="mr-2" disabled>
-                    Edit
-                  </Button>
-                   <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={() => handleDeleteUser(user.uid, user.displayName)}
-                    >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+              allUsersData.map((user) => {
+                const userStats = getUserStats(user.uid);
+                return (
+                  <TableRow key={user.uid}>
+                    <TableCell className="font-mono text-xs">{user.uid}</TableCell>
+                    <TableCell>{user.displayName || "N/A"}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{formatCurrency(userStats.availableBalance, currency)}</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" className="mr-2" disabled>
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleDeleteUser(user.uid, user.displayName)}
+                        >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="text-center">
