@@ -3,10 +3,14 @@
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
 
+export type ReferralLevel = {
+  level: number;
+  requiredReferrals: number;
+  commissionRate: number;
+};
+
 export type Settings = {
-  referralCommissionRateL1: number;
-  referralCommissionRateL2: number;
-  referralCommissionRateL3: number;
+  referralLevels: ReferralLevel[];
   withdrawalRequirement: number;
   minimumWithdrawalAmount: number;
   depositSessionDuration: number; // in minutes
@@ -29,9 +33,11 @@ export type Settings = {
 const SETTINGS_STORAGE_KEY = "platformSettings";
 
 const defaultSettings: Settings = {
-  referralCommissionRateL1: 5,
-  referralCommissionRateL2: 2,
-  referralCommissionRateL3: 1,
+  referralLevels: [
+    { level: 1, requiredReferrals: 3, commissionRate: 5 },
+    { level: 2, requiredReferrals: 10, commissionRate: 7 },
+    { level: 3, requiredReferrals: 20, commissionRate: 10 },
+  ],
   withdrawalRequirement: 20,
   minimumWithdrawalAmount: 10,
   depositSessionDuration: 5,
@@ -64,9 +70,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         try {
             const storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
             if (storedSettings) {
-                setSettingsState({ ...defaultSettings, ...JSON.parse(storedSettings) });
+                const parsed = JSON.parse(storedSettings);
+                // Ensure referralLevels is always an array
+                if (!Array.isArray(parsed.referralLevels)) {
+                    parsed.referralLevels = defaultSettings.referralLevels;
+                }
+                setSettingsState({ ...defaultSettings, ...parsed });
             } else {
                 localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(defaultSettings));
+                setSettingsState(defaultSettings);
             }
         } catch (error) {
             console.error("Error loading settings from localStorage: ", error);

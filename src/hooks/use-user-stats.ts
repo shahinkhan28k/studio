@@ -175,8 +175,10 @@ export function useUserStats() {
       const currentStats = getFromStorage(`userStats-${userId}`, defaultStats);
       const updatedStats = { ...currentStats, ...newStats };
       setInStorage(`userStats-${userId}`, updatedStats);
-      setStats(updatedStats);
-  }, []);
+      if(userId === uid) {
+        setStats(updatedStats);
+      }
+  }, [uid]);
 
   const addEarning = useCallback(async (amount: number) => {
     if (!user || !user.uid) return;
@@ -193,59 +195,46 @@ export function useUserStats() {
     });
     
     // Handle referral commission
-    const allUsers: UserInfo[] = getFromStorage('allUsersData', []);
-    const currentUserInfo = allUsers.find(u => u.uid === user.uid);
-    const referrerId = currentUserInfo?.referrerId;
+    let allUsers: UserInfo[] = getFromStorage('allUsersData', []);
+    let currentUserInfo = allUsers.find(u => u.uid === user.uid);
+    let tempReferrerId = currentUserInfo?.referrerId;
+    
+    // Iterate up the referral chain
+    for (const level of settings.referralLevels.sort((a,b)=>a.level - b.level)) {
+        if (!tempReferrerId) break;
 
-    if (referrerId) {
-        const referrerInfo = allUsers.find(u => u.uid === referrerId);
-        if (referrerInfo) {
-            const commissionL1 = amount * (settings.referralCommissionRateL1 / 100);
-            
-            // Add L1 commission
-            const referrerStats = getFromStorage(`userStats-${referrerId}`, defaultStats);
-            updateStats(referrerId, {
-                totalEarnings: referrerStats.totalEarnings + commissionL1,
-                availableBalance: referrerStats.availableBalance + commissionL1
+        const referrerInfo = allUsers.find(u => u.uid === tempReferrerId);
+        if (!referrerInfo) break;
+        
+        const referrerReferrals: Referral[] = getFromStorage(`referrals-${referrerInfo.uid}`, []);
+        const referrerLevel = settings.referralLevels
+            .filter(l => referrerReferrals.length >= l.requiredReferrals)
+            .sort((a,b) => b.level-a.level)[0];
+        
+        if (referrerLevel && referrerLevel.level === level.level) {
+             const commission = amount * (referrerLevel.commissionRate / 100);
+             const referrerStats = getFromStorage(`userStats-${referrerInfo.uid}`, defaultStats);
+             updateStats(referrerInfo.uid, {
+                totalEarnings: referrerStats.totalEarnings + commission,
+                availableBalance: referrerStats.availableBalance + commission
             });
-
-            // Update referrer's referral list
-            const referrerReferrals: Referral[] = getFromStorage(`referrals-${referrerId}`, []);
-            const existingReferralIndex = referrerReferrals.findIndex(r => r.id === user.uid);
-            if (existingReferralIndex > -1) {
-                referrerReferrals[existingReferralIndex].earnings += commissionL1;
+            
+             const existingReferralIndex = referrerReferrals.findIndex(r => r.id === user.uid);
+             if (existingReferralIndex > -1) {
+                referrerReferrals[existingReferralIndex].earnings += commission;
             } else {
-                referrerReferrals.push({
+                 referrerReferrals.push({
                     id: user.uid,
                     name: user.displayName || user.email || 'Anonymous',
-                    earnings: commissionL1
+                    earnings: commission
                 });
             }
-            setInStorage(`referrals-${referrerId}`, referrerReferrals);
-
-            // Handle L2 and L3 commissions
-            const l2ReferrerId = referrerInfo.referrerId;
-            if (l2ReferrerId) {
-                const commissionL2 = amount * (settings.referralCommissionRateL2 / 100);
-                 const l2ReferrerStats = getFromStorage(`userStats-${l2ReferrerId}`, defaultStats);
-                updateStats(l2ReferrerId, {
-                    totalEarnings: l2ReferrerStats.totalEarnings + commissionL2,
-                    availableBalance: l2ReferrerStats.availableBalance + commissionL2
-                });
-
-                 const l2ReferrerInfo = allUsers.find(u => u.uid === l2ReferrerId);
-                 const l3ReferrerId = l2ReferrerInfo?.referrerId;
-                 if (l3ReferrerId) {
-                    const commissionL3 = amount * (settings.referralCommissionRateL3 / 100);
-                    const l3ReferrerStats = getFromStorage(`userStats-${l3ReferrerId}`, defaultStats);
-                    updateStats(l3ReferrerId, {
-                        totalEarnings: l3ReferrerStats.totalEarnings + commissionL3,
-                        availableBalance: l3ReferrerStats.availableBalance + commissionL3
-                    });
-                 }
-            }
+             setInStorage(`referrals-${referrerInfo.uid}`, referrerReferrals);
         }
+        
+        tempReferrerId = referrerInfo.referrerId;
     }
+
 
   }, [user, settings, updateStats]);
   
@@ -269,7 +258,9 @@ export function useUserStats() {
     const allWithdrawals = getFromStorage<WithdrawalRecord[]>(`allWithdrawals`, []);
     setInStorage(`allWithdrawals`, [newRecord, ...allWithdrawals]);
 
-  }, [uid, updateStats]);
+  }, [uid]);
 
   return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, updateStats, refresh: loadAllUserData };
 }
+
+    

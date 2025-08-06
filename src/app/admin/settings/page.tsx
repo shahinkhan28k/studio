@@ -2,7 +2,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useSettings } from "@/hooks/use-settings"
+import { useSettings, ReferralLevel } from "@/hooks/use-settings"
 import {
   Accordion,
   AccordionContent,
@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/accordion"
 import { useEffect } from "react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, PlusCircle, Trash2 } from "lucide-react"
 import { useBanners } from "@/hooks/use-banners"
 import {
   Table,
@@ -45,10 +45,14 @@ import {
 import Image from "next/image"
 import { Textarea } from "@/components/ui/textarea"
 
+const referralLevelSchema = z.object({
+  level: z.coerce.number(),
+  requiredReferrals: z.coerce.number().min(0),
+  commissionRate: z.coerce.number().min(0).max(100),
+});
+
 const settingsSchema = z.object({
-  referralCommissionRateL1: z.coerce.number().min(0).max(100),
-  referralCommissionRateL2: z.coerce.number().min(0).max(100),
-  referralCommissionRateL3: z.coerce.number().min(0).max(100),
+  referralLevels: z.array(referralLevelSchema),
   withdrawalRequirement: z.coerce.number().int().min(0),
   minimumWithdrawalAmount: z.coerce.number().min(0),
   depositSessionDuration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
@@ -85,6 +89,11 @@ export default function SettingsPage() {
     resolver: zodResolver(settingsSchema),
     defaultValues: settings,
   })
+
+  const { fields, append, remove } = useFieldArray({
+    control: settingsForm.control,
+    name: "referralLevels",
+  });
   
   const bannerForm = useForm<z.infer<typeof bannerFormSchema>>({
     resolver: zodResolver(bannerFormSchema),
@@ -136,6 +145,15 @@ export default function SettingsPage() {
       })
     }
   }
+  
+  const addNewLevel = () => {
+    const nextLevel = fields.length + 1;
+    append({
+        level: nextLevel,
+        requiredReferrals: 0,
+        commissionRate: 0,
+    });
+  }
 
   return (
     <div className="container py-6">
@@ -163,57 +181,82 @@ export default function SettingsPage() {
                     <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
                       <Accordion type="multiple" defaultValue={["item-1-1"]} className="w-full">
                         <AccordionItem value="item-1-1">
-                          <AccordionTrigger className="text-lg font-semibold">Referral Settings</AccordionTrigger>
-                          <AccordionContent className="space-y-4 pt-4">
-                            <FormField
-                              control={settingsForm.control}
-                              name="referralCommissionRateL1"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Level 1 Commission Rate (%)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" placeholder="e.g. 5" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Commission percentage for direct referrals.
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={settingsForm.control}
-                              name="referralCommissionRateL2"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Level 2 Commission Rate (%)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" placeholder="e.g. 2" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Commission percentage for second-level referrals.
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={settingsForm.control}
-                              name="referralCommissionRateL3"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Level 3 Commission Rate (%)</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" placeholder="e.g. 1" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Commission percentage for third-level referrals.
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </AccordionContent>
+                           <AccordionTrigger className="text-lg font-semibold">Referral Settings</AccordionTrigger>
+                           <AccordionContent className="space-y-4 pt-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Referral Levels</CardTitle>
+                                    <CardDescription>Define the requirements and commission for each referral level.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-md relative">
+                                            <FormField
+                                                control={settingsForm.control}
+                                                name={`referralLevels.${index}.level`}
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Level</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" {...field} disabled />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={settingsForm.control}
+                                                name={`referralLevels.${index}.requiredReferrals`}
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Required Referrals</FormLabel>
+                                                    <FormControl>
+                                                    <Input type="number" placeholder="e.g. 3" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={settingsForm.control}
+                                                name={`referralLevels.${index}.commissionRate`}
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Commission Rate (%)</FormLabel>
+                                                    <FormControl>
+                                                    <Input type="number" placeholder="e.g. 5" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-2 right-2 h-6 w-6"
+                                                onClick={() => remove(index)}
+                                                >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-4"
+                                        onClick={addNewLevel}
+                                        disabled={fields.length >= 10}
+                                    >
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Add Level
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-1-2">
                           <AccordionTrigger className="text-lg font-semibold">Withdrawal Settings</AccordionTrigger>

@@ -20,6 +20,8 @@ import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import React from "react"
 import { useUserStats } from "@/hooks/use-user-stats"
+import { useSettings } from "@/hooks/use-settings"
+import { Copy } from "lucide-react"
 
 export default function ReferPage() {
   const { language, currency } = useAppContext()
@@ -27,6 +29,7 @@ export default function ReferPage() {
   const { toast } = useToast()
   const [referralLink, setReferralLink] = React.useState("")
   const { referrals } = useUserStats();
+  const { settings } = useSettings();
 
   React.useEffect(() => {
     if (user) {
@@ -35,13 +38,26 @@ export default function ReferPage() {
     }
   }, [user])
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(referralLink)
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
     toast({
       title: "Copied!",
-      description: "Referral link copied to clipboard.",
+      description: "Copied to clipboard.",
     })
   }
+  
+  const currentLevel = React.useMemo(() => {
+    const totalReferrals = referrals.length;
+    let currentLvl = 0;
+    for (const level of settings.referralLevels) {
+        if (totalReferrals >= level.requiredReferrals) {
+            currentLvl = level.level;
+        } else {
+            break;
+        }
+    }
+    return currentLvl;
+  }, [referrals.length, settings.referralLevels]);
 
   return (
     <div className="container py-6">
@@ -60,12 +76,24 @@ export default function ReferPage() {
               {language.t('yourReferralLinkDescription')}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input type="text" value={referralLink} readOnly />
-              <Button type="button" size="icon" variant="outline" onClick={copyToClipboard} disabled={!referralLink}>
-                <Icons.Copy className="h-4 w-4" />
-              </Button>
+          <CardContent className="space-y-4">
+             <div className="space-y-2">
+                <label className="text-sm font-medium">Your Referral Link</label>
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input type="text" value={referralLink} readOnly />
+                  <Button type="button" size="icon" variant="outline" onClick={() => copyToClipboard(referralLink)} disabled={!referralLink}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+            </div>
+             <div className="space-y-2">
+                <label className="text-sm font-medium">Your Referral ID</label>
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input type="text" value={user?.uid || ""} readOnly />
+                  <Button type="button" size="icon" variant="outline" onClick={() => copyToClipboard(user?.uid || "")} disabled={!user?.uid}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
             </div>
           </CardContent>
         </Card>
@@ -73,20 +101,31 @@ export default function ReferPage() {
         <Card>
           <CardHeader>
             <CardTitle>{language.t('commissionStructureTitle')}</CardTitle>
+            <CardDescription>Your current level is <Badge variant="secondary">Level {currentLevel}</Badge></CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
-            <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">{language.t('level1')}</h3>
-              <p className="text-muted-foreground">{language.t('level1Description')}</p>
-            </div>
-            <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">{language.t('level2')}</h3>
-              <p className="text-muted-foreground">{language.t('level2Description')}</p>
-            </div>
-            <div className="p-4 border rounded-lg bg-background">
-              <h3 className="font-bold text-lg text-primary">{language.t('level3')}</h3>
-              <p className="text-muted-foreground">{language.t('level3Description')}</p>
-            </div>
+          <CardContent>
+             <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Required Referrals</TableHead>
+                  <TableHead className="text-right">Commission Rate</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {settings.referralLevels.map((level) => (
+                    <TableRow key={level.level} className={level.level === currentLevel ? "bg-primary/10" : ""}>
+                        <TableCell>
+                            <Badge variant={level.level === currentLevel ? "default" : "outline"}>
+                                Level {level.level}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>{level.requiredReferrals}</TableCell>
+                        <TableCell className="text-right">{level.commissionRate}%</TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
@@ -130,3 +169,5 @@ export default function ReferPage() {
     </div>
   )
 }
+
+    
