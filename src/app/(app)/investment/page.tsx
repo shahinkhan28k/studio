@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useInvestments, InvestmentPlan } from "@/hooks/use-investments"
-import { Wallet, Info, Zap, Users, BarChart } from "lucide-react"
+import { Wallet, Info, Zap, Users, BarChart, TrendingUp } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
@@ -50,6 +50,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
         return `${value} ${unit}`;
     }
     const totalProfit = plan.minInvestment * (plan.profitRate / 100);
+    const totalReturn = plan.minInvestment + totalProfit;
 
   return (
     <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2 flex flex-col">
@@ -94,6 +95,10 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
             <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center"><BarChart className="w-4 h-4 mr-2" /> মোট লাভ</span>
                 <span className="font-bold text-primary">{formatCurrency(totalProfit, "BDT")}</span>
+            </div>
+             <div className="flex justify-between items-center">
+                <span className="text-muted-foreground flex items-center"><TrendingUp className="w-4 h-4 mr-2" /> মোট রিটার্ন</span>
+                <span className="font-bold text-green-600">{formatCurrency(totalReturn, "BDT")}</span>
             </div>
             <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center"><Users className="w-4 h-4 mr-2" /> বিনিয়োগকারী</span>
