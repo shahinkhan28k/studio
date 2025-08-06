@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -6,7 +7,7 @@ import { z } from "zod"
 import * as React from "react"
 import { format } from "date-fns"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, Copy, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,97 +36,107 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Copy } from "lucide-react"
 import { DepositRecord, useUserStats } from "@/hooks/use-user-stats"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import { useSettings } from "@/hooks/use-settings"
+import { useDeposit, DepositSession } from "@/hooks/use-deposit"
 
-const depositFormSchema = z
-  .object({
+const depositRequestSchema = z.object({
     method: z.string({ required_error: "Please select a deposit method." }),
     amount: z.coerce
       .number({ required_error: "Please enter an amount." })
       .positive({ message: "Amount must be positive." }),
-    transactionId: z
-      .string()
-      .min(1, { message: "Transaction ID is required." }),
-    bankName: z.string().optional(),
-    accountHolderName: z.string().optional(),
-    accountNumber: z.string().optional(),
-    swiftCode: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.method === "bank") {
-      if (!data.bankName) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["bankName"],
-          message: "Bank name is required.",
-        })
-      }
-      if (!data.accountHolderName) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["accountHolderName"],
-          message: "Account holder name is required.",
-        })
-      }
-      if (!data.accountNumber) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["accountNumber"],
-          message: "Account number is required.",
-        })
-      }
-      if (!data.swiftCode) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["swiftCode"],
-          message: "SWIFT code is required.",
-        })
-      }
-    }
-  })
+})
 
-type DepositFormValues = z.infer<typeof depositFormSchema>
+const depositSubmitSchema = z.object({
+    transactionId: z.string().min(1, { message: "Transaction ID is required." }),
+});
+
+type DepositRequestValues = z.infer<typeof depositRequestSchema>
+type DepositSubmitValues = z.infer<typeof depositSubmitSchema>
 
 export default function DepositPage() {
   const { toast } = useToast()
-  const { addDeposit, depositHistory } = useUserStats()
+  const { depositHistory } = useUserStats()
   const { currency } = useAppContext();
   const { settings } = useSettings();
+  const { 
+    session, 
+    startDepositSession, 
+    submitDeposit: completeDeposit,
+    clearDepositSession 
+  } = useDeposit();
+  
+  const [countdown, setCountdown] = React.useState<string>("00:00");
 
-
-  const form = useForm<DepositFormValues>({
-    resolver: zodResolver(depositFormSchema),
+  const requestForm = useForm<DepositRequestValues>({
+    resolver: zodResolver(depositRequestSchema),
     defaultValues: {
       amount: 0,
-      transactionId: "",
-      method: "",
-      bankName: "",
-      accountHolderName: "",
-      accountNumber: "",
-      swiftCode: "",
+      method: "bkash",
     },
-  })
+  });
 
-  const selectedMethod = form.watch("method")
+  const submitForm = useForm<DepositSubmitValues>({
+      resolver: zodResolver(depositSubmitSchema),
+      defaultValues: {
+          transactionId: ""
+      }
+  });
+  
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (session) {
+      timer = setInterval(() => {
+        const now = new Date().getTime();
+        const expiry = new Date(session.expiresAt).getTime();
+        const distance = expiry - now;
 
-  async function onSubmit(data: DepositFormValues) {
-    const depositData: Omit<DepositRecord, 'date' | 'id'> = {
-      amount: data.amount,
-      method: data.method,
-      status: 'pending'
+        if (distance < 0) {
+          clearInterval(timer);
+          setCountdown("00:00");
+          toast({
+            title: "Session Expired",
+            description: "Your deposit session has expired. Please try again.",
+            variant: "destructive"
+          });
+          clearDepositSession();
+          return;
+        }
+
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setCountdown(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }, 1000);
     }
-    addDeposit(depositData);
-    toast({
-      title: "Deposit Submitted",
-      description: "Your deposit has been submitted and will be processed shortly.",
-    })
-    form.reset();
+    return () => clearInterval(timer);
+  }, [session, toast, clearDepositSession]);
+
+
+  async function handleRequestDeposit(data: DepositRequestValues) {
+    startDepositSession(data.amount, data.method);
+  }
+
+  async function handleSubmitDeposit(data: DepositSubmitValues) {
+    if(!session) return;
+    try {
+        completeDeposit(data.transactionId);
+        toast({
+          title: "Deposit Submitted",
+          description: "Your deposit has been submitted and will be processed shortly.",
+        });
+        submitForm.reset();
+    } catch(e) {
+        const error = e as Error;
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+    }
   }
 
   const copyToClipboard = (textToCopy: string) => {
@@ -136,105 +147,77 @@ export default function DepositPage() {
         })
     }
   }
-
-  const isBankTransfer = selectedMethod === "bank"
-  const isUsdtTransfer = selectedMethod === "usdt"
   
-  const getAgentNumber = () => {
-    if (!selectedMethod || !settings.agentNumbers) return '';
-    switch(selectedMethod) {
-        case 'bkash':
-            return settings.agentNumbers.bkash;
-        case 'nagad':
-            return settings.agentNumbers.nagad;
-        case 'rocket':
-            return settings.agentNumbers.rocket;
-        default:
-            return '';
-    }
+  const getAgentNumber = (method: string) => {
+    if (!method || !settings.agentNumbers) return '';
+    const numbers = settings.agentNumbers[method as keyof typeof settings.agentNumbers];
+    if (!numbers || numbers.length === 0) return '';
+    // This is a simple rotation logic, can be improved.
+    return numbers[Math.floor(Date.now() / (settings.depositSessionDuration * 60 * 1000)) % numbers.length];
   }
+  
+  const selectedMethodForDisplay = session ? session.method : requestForm.watch('method');
+  const agentNumber = getAgentNumber(selectedMethodForDisplay);
+  
+  const renderDepositState = () => {
+      if (session) {
+          return (
+            <>
+                <Alert className="mb-6 border-primary">
+                    <Clock className="h-4 w-4" />
+                    <AlertTitle className="font-bold text-lg">Session Active: {countdown}</AlertTitle>
+                    <AlertDescription>
+                        Please send exactly <span className="font-bold text-primary">{formatCurrency(session.amount, currency)}</span> to the number below within the time limit.
+                    </AlertDescription>
+                </Alert>
 
-  return (
-    <div className="container py-6 space-y-8">
-      <Button variant="ghost" asChild className="mb-4 -ml-4">
-        <Link href="/profile">
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Back
-        </Link>
-      </Button>
-      <Card>
-        <CardHeader>
-          <CardTitle>Make a Deposit</CardTitle>
-          <CardDescription>
-            Choose your deposit method and enter the details below.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert className="mb-8">
-            <AlertTitle className="font-bold">Send Money First</AlertTitle>
-            <AlertDescription>
-              <p className="text-muted-foreground">
-                Please send the desired amount to the following {isBankTransfer ? 'bank account' : isUsdtTransfer ? 'USDT address' : 'number'}
-                before filling out this form.
-              </p>
-              {selectedMethod === "bank" ? (
-                <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm text-muted-foreground">Bank Name:</span>
-                     <span className="font-semibold text-primary">{settings.bankName}</span>
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm text-muted-foreground">Account Name:</span>
-                     <span className="font-semibold text-primary">{settings.bankAccountName}</span>
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm text-muted-foreground">Account Number:</span>
-                     <span className="font-semibold text-primary">{settings.bankAccountNumber}</span>
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm text-muted-foreground">Branch:</span>
-                     <span className="font-semibold text-primary">{settings.bankBranch}</span>
-                   </div>
-                    <div className="flex items-center justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.bankAccountNumber)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                </div>
-              ) : selectedMethod === 'usdt' ? (
-                 <div className="mt-2 flex flex-col space-y-2 rounded-md bg-muted p-3">
-                  <span className="text-sm text-muted-foreground">USDT Address (BEP20):</span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-primary break-all">
-                      {settings.usdtAddress}
-                    </span>
-                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(settings.usdtAddress)}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                <div className="mb-8 space-y-4">
+                  <p className="text-muted-foreground">
+                    Please send the desired amount to the following {session.method} number before filling out the form below.
+                  </p>
+                  <div className="mt-2 space-y-2 rounded-md bg-muted p-4 text-center">
+                      <div className="text-sm text-muted-foreground uppercase tracking-wider">{session.method} Personal Number [Send Money]</div>
+                      <div className="flex items-center justify-center gap-4">
+                        <span className="text-2xl font-bold text-primary tracking-widest">
+                        {agentNumber}
+                        </span>
+                        <Button variant="ghost" size="icon" onClick={() => copyToClipboard(agentNumber)}>
+                            <Copy className="h-5 w-5" />
+                        </Button>
+                      </div>
                   </div>
                 </div>
-              ) : selectedMethod && selectedMethod !== "bank" && getAgentNumber() ? (
-                <div className="mt-2 space-y-2 rounded-md bg-muted p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Personal Number [Send Money]:</span>
-                    <span className="text-lg font-semibold text-primary">
-                      {getAgentNumber()}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-end">
-                    <Button variant="ghost" size="icon" onClick={() => copyToClipboard(getAgentNumber())}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : null }
-            </AlertDescription>
-          </Alert>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Form {...submitForm}>
+                    <form onSubmit={submitForm.handleSubmit(handleSubmitDeposit)} className="space-y-6">
+                        <FormField
+                        control={submitForm.control}
+                        name="transactionId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Transaction ID (TrxID)</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Enter the TrxID from your payment message" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <div className="flex gap-4">
+                            <Button type="submit" className="w-full">Submit Deposit</Button>
+                            <Button variant="outline" className="w-full" onClick={clearDepositSession}>Cancel</Button>
+                        </div>
+                    </form>
+                </Form>
+            </>
+          )
+      }
+
+      return (
+        <Form {...requestForm}>
+            <form onSubmit={requestForm.handleSubmit(handleRequestDeposit)} className="space-y-8">
               <FormField
-                control={form.control}
+                control={requestForm.control}
                 name="method"
                 render={({ field }) => (
                   <FormItem>
@@ -252,8 +235,6 @@ export default function DepositPage() {
                         <SelectItem value="bkash">bKash</SelectItem>
                         <SelectItem value="nagad">Nagad</SelectItem>
                         <SelectItem value="rocket">Rocket</SelectItem>
-                        <SelectItem value="bank">Bank Transfer</SelectItem>
-                        <SelectItem value="usdt">Binance (USDT)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -261,11 +242,11 @@ export default function DepositPage() {
                 )}
               />
               <FormField
-                control={form.control}
+                control={requestForm.control}
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount ({currency})</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -277,89 +258,30 @@ export default function DepositPage() {
                   </FormItem>
                 )}
               />
-
-              {selectedMethod === "bank" && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="bankName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bank Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter bank name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accountHolderName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Holder Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter account holder name"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accountNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter account number"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="swiftCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SWIFT Code</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter SWIFT code" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              <FormField
-                control={form.control}
-                name="transactionId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transaction ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter transaction ID" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Please enter the transaction ID from your payment.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Submit Deposit</Button>
+              <Button type="submit" className="w-full">Start Deposit</Button>
             </form>
           </Form>
+      )
+  }
+
+
+  return (
+    <div className="container py-6 space-y-8">
+      <Button variant="ghost" asChild className="mb-4 -ml-4">
+        <Link href="/profile">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back
+        </Link>
+      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Make a Deposit</CardTitle>
+          <CardDescription>
+            {session ? 'Complete your payment session.' : 'Start a new deposit session.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            {renderDepositState()}
         </CardContent>
       </Card>
       <Card>
@@ -405,3 +327,5 @@ export default function DepositPage() {
     </div>
   )
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
@@ -8,10 +9,12 @@ export type Settings = {
   referralCommissionRateL3: number;
   withdrawalRequirement: number;
   minimumWithdrawalAmount: number;
+  depositSessionDuration: number; // in minutes
   agentNumbers: {
-    bkash: string;
-    nagad: string;
-    rocket: string;
+    [key: string]: string[];
+    bkash: string[];
+    nagad: string[];
+    rocket: string[];
   };
   bankName: string;
   bankAccountName: string;
@@ -31,10 +34,11 @@ const defaultSettings: Settings = {
   referralCommissionRateL3: 1,
   withdrawalRequirement: 20,
   minimumWithdrawalAmount: 10,
+  depositSessionDuration: 5,
   agentNumbers: {
-    bkash: "01234567890",
-    nagad: "01234567891",
-    rocket: "01234567892",
+    bkash: ["01234567890"],
+    nagad: ["01234567891"],
+    rocket: ["01234567892"],
   },
   bankName: "Example Bank Ltd.",
   bankAccountName: "Onearn Platform",
@@ -105,3 +109,5 @@ export function useSettings() {
   }
   return context;
 }
+
+    

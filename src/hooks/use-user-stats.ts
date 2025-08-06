@@ -21,6 +21,7 @@ export type DepositRecord = {
   amount: number;
   method: string;
   status: TransactionStatus;
+  transactionId?: string;
 }
 
 export type WithdrawalRecord = {
@@ -177,6 +178,8 @@ export function useUserStats() {
   const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date' | 'id'>) => {
     if (!uid) return;
     
+    // For now, auto-approve and add to balance.
+    // In a real app, this would be `pending` until an admin approves it.
     const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
     const newTotalDeposit = currentStats.totalDeposit + deposit.amount;
     const newAvailableBalance = currentStats.availableBalance + deposit.amount;
@@ -186,9 +189,9 @@ export function useUserStats() {
         ...deposit, 
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
         date: new Date().toISOString(),
-        status: 'completed' // Mark as completed immediately
+        status: 'completed' // Mark as completed immediately for simplicity
     };
-    const currentHistory = getFromStorage(`depositHistory-${uid}`, []);
+    const currentHistory = getFromStorage<DepositRecord[]>(`depositHistory-${uid}`, []);
     setInStorage(`depositHistory-${uid}`, [newRecord, ...currentHistory]);
   }, [uid, updateStats]);
   
@@ -216,3 +219,5 @@ export function useUserStats() {
 
   return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addDeposit, addWithdrawal, refresh: loadAllUserData };
 }
+
+    

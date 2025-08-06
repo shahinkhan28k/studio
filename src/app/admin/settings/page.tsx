@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -42,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Image from "next/image"
+import { Textarea } from "@/components/ui/textarea"
 
 const settingsSchema = z.object({
   referralCommissionRateL1: z.coerce.number().min(0).max(100),
@@ -49,10 +51,11 @@ const settingsSchema = z.object({
   referralCommissionRateL3: z.coerce.number().min(0).max(100),
   withdrawalRequirement: z.coerce.number().int().min(0),
   minimumWithdrawalAmount: z.coerce.number().min(0),
+  depositSessionDuration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
   agentNumbers: z.object({
-    bkash: z.string(),
-    nagad: z.string(),
-    rocket: z.string(),
+    bkash: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
+    nagad: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
+    rocket: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
   }),
   bankName: z.string(),
   bankAccountName: z.string(),
@@ -94,7 +97,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings) {
-      settingsForm.reset(settings)
+       const transformedDefaults = {
+        ...settings,
+        agentNumbers: {
+            bkash: (settings.agentNumbers.bkash || []).join(', '),
+            nagad: (settings.agentNumbers.nagad || []).join(', '),
+            rocket: (settings.agentNumbers.rocket || []).join(', '),
+        }
+       }
+      settingsForm.reset(transformedDefaults as any);
     }
   }, [settings, settingsForm])
 
@@ -150,7 +161,7 @@ export default function SettingsPage() {
                  <AccordionContent className="pt-4">
                   <Form {...settingsForm}>
                     <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
-                      <Accordion type="multiple" defaultValue={["item-1-1", "item-1-2", "item-1-3"]} className="w-full">
+                      <Accordion type="multiple" defaultValue={["item-1-1"]} className="w-full">
                         <AccordionItem value="item-1-1">
                           <AccordionTrigger className="text-lg font-semibold">Referral Settings</AccordionTrigger>
                           <AccordionContent className="space-y-4 pt-4">
@@ -244,6 +255,22 @@ export default function SettingsPage() {
                         <AccordionItem value="item-1-3">
                           <AccordionTrigger className="text-lg font-semibold">Deposit Settings</AccordionTrigger>
                           <AccordionContent className="space-y-4 pt-4">
+                             <FormField
+                              control={settingsForm.control}
+                              name="depositSessionDuration"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Deposit Session Duration (Minutes)</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="e.g. 5" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    How long a user has to complete a deposit after starting.
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                             <Card>
                               <CardHeader><CardTitle>Mobile Money</CardTitle></CardHeader>
                               <CardContent className="space-y-4">
@@ -252,10 +279,11 @@ export default function SettingsPage() {
                                     name="agentNumbers.bkash"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>bKash Number</FormLabel>
+                                        <FormLabel>bKash Numbers</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter number for bKash" {...field} />
+                                            <Textarea placeholder="Enter numbers, separated by commas" {...field} />
                                         </FormControl>
+                                        <FormDescription>For number rotation, add multiple numbers separated by a comma.</FormDescription>
                                         <FormMessage />
                                         </FormItem>
                                     )}
@@ -265,10 +293,11 @@ export default function SettingsPage() {
                                     name="agentNumbers.nagad"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>Nagad Number</FormLabel>
+                                        <FormLabel>Nagad Numbers</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter number for Nagad" {...field} />
+                                            <Textarea placeholder="Enter numbers, separated by commas" {...field} />
                                         </FormControl>
+                                        <FormDescription>For number rotation, add multiple numbers separated by a comma.</FormDescription>
                                         <FormMessage />
                                         </FormItem>
                                     )}
@@ -278,85 +307,11 @@ export default function SettingsPage() {
                                     name="agentNumbers.rocket"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>Rocket Number</FormLabel>
+                                        <FormLabel>Rocket Numbers</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter number for Rocket" {...field} />
+                                             <Textarea placeholder="Enter numbers, separated by commas" {...field} />
                                         </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                              </CardContent>
-                            </Card>
-                            <Card>
-                              <CardHeader><CardTitle>Bank Account</CardTitle></CardHeader>
-                              <CardContent className="space-y-4">
-                                <FormField
-                                    control={settingsForm.control}
-                                    name="bankName"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Bank Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. Example Bank Ltd." {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                                    <FormField
-                                    control={settingsForm.control}
-                                    name="bankAccountName"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Account Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. Onearn Platform" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                                    <FormField
-                                    control={settingsForm.control}
-                                    name="bankAccountNumber"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Account Number</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. 1234567890123" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                                    <FormField
-                                    control={settingsForm.control}
-                                    name="bankBranch"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Branch Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. Dhaka" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                              </CardContent>
-                            </Card>
-                            <Card>
-                              <CardHeader><CardTitle>USDT (BEP-20)</CardTitle></CardHeader>
-                              <CardContent>
-                                <FormField
-                                    control={settingsForm.control}
-                                    name="usdtAddress"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>USDT Wallet Address</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Enter BEP-20 USDT address" {...field} />
-                                        </FormControl>
+                                        <FormDescription>For number rotation, add multiple numbers separated by a comma.</FormDescription>
                                         <FormMessage />
                                         </FormItem>
                                     )}
@@ -523,3 +478,5 @@ export default function SettingsPage() {
     </div>
   )
 }
+
+    
