@@ -7,7 +7,7 @@ export type TranslationKey =
   // Profile
   | 'profile' | 'settings' | 'logOut' | 'languageCurrency'
   | 'deposit' | 'withdraw' | 'collaboration' | 'accountDetails'
-  | 'personalInformation' | 'helpSupport'
+  | 'personalInformation' | 'helpSupport' | 'myInvestments'
   | 'totalEarnings' | 'availableBalance' | 'totalDeposit' | 'totalWithdraw' | 'todaysEarnings'
   // Home
   | 'successfulWithdrawal' | 'justWithdrew'
@@ -50,6 +50,7 @@ const en: { [key in TranslationKey]: string } = {
   accountDetails: 'Account Details',
   personalInformation: 'Personal Information',
   helpSupport: 'Help & Support',
+  myInvestments: 'My Investments',
   totalEarnings: 'Total Earnings',
   availableBalance: 'Available Balance',
   totalDeposit: 'Total Deposit',
@@ -102,6 +103,7 @@ const bn: { [key in TranslationKey]: string } = {
   accountDetails: 'অ্যাকাউন্ট বিবরণী',
   personalInformation: 'ব্যক্তিগত তথ্য',
   helpSupport: 'সহায়তা ও সমর্থন',
+  myInvestments: 'আমার বিনিয়োগ',
   totalEarnings: 'মোট আয়',
   availableBalance: 'বর্তমান ব্যালেন্স',
   totalDeposit: 'মোট জমা',
@@ -154,6 +156,7 @@ const es: { [key in TranslationKey]: string } = {
   accountDetails: 'Detalles de la Cuenta',
   personalInformation: 'Información Personal',
   helpSupport: 'Ayuda y Soporte',
+  myInvestments: 'Mis Inversiones',
   totalEarnings: 'Ganancias Totales',
   availableBalance: 'Saldo Disponible',
   totalDeposit: 'Depósito Total',
@@ -206,6 +209,7 @@ const hi: { [key in TranslationKey]: string } = {
   accountDetails: 'खाता विवरण',
   personalInformation: 'व्यक्तिगत जानकारी',
   helpSupport: 'सहायता और समर्थन',
+  myInvestments: 'मेरे निवेश',
   totalEarnings: 'कुल कमाई',
   availableBalance: 'उपलब्ध शेष',
   totalDeposit: 'कुल जमा',

@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const profileMenuItems = [
     { title: language.t('deposit'), href: "/profile/deposit", icon: Icons.Deposit },
     { title: language.t('withdraw'), href: "/profile/withdraw", icon: Icons.Withdraw },
+    { title: language.t('myInvestments'), href: "/profile/my-investments", icon: Icons.Briefcase },
     { title: language.t('collaboration'), href: "/refer", icon: Icons.Refer },
     { title: language.t('accountDetails'), href: "/profile/account", icon: Icons.Profile },
     {

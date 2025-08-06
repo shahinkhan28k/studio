@@ -16,6 +16,7 @@ import {
   Loader,
   TrendingUp,
   CalendarDays,
+  Briefcase,
 } from "lucide-react"
 
 export const Icons = {
@@ -48,4 +49,5 @@ export const Icons = {
   Spinner: Loader,
   Investment: TrendingUp,
   DailyIncome: CalendarDays,
+  Briefcase,
 }
