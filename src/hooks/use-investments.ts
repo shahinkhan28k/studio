@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useUserStats } from "./use-user-stats"
+import { useSettings } from "./use-settings"
+import type { UserInfo } from "./use-admin-stats"
 
 export interface InvestmentPlanFormValues {
   title: string
@@ -65,7 +67,8 @@ const setInStorage = <T,>(key: string, value: T) => {
 
 export function useInvestments() {
   const { user } = useAuth();
-  const { stats, updateStats } = useUserStats();
+  const { stats, updateStats, addEarning } = useUserStats();
+  const { settings } = useSettings();
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([]);
   const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
 
@@ -152,6 +155,17 @@ export function useInvestments() {
     const newTotalInvestment = stats.totalInvestment + plan.minInvestment;
     updateStats(user.uid, { availableBalance: newBalance, totalInvestment: newTotalInvestment });
     
+    // Handle investment referral commission
+    const allUsers: UserInfo[] = getFromStorage('allUsersData', []);
+    const currentUserInfo = allUsers.find(u => u.uid === user.uid);
+    if(currentUserInfo?.referrerId) {
+        const commissionAmount = plan.minInvestment * (settings.investmentReferralCommissionRate / 100);
+        if(commissionAmount > 0) {
+            addEarning(commissionAmount, currentUserInfo.referrerId);
+        }
+    }
+
+
     // Update total investors for the plan
     const updatedPlanData = { totalInvestors: plan.totalInvestors + 1 };
     updateInvestmentPlan(plan.id, updatedPlanData);
@@ -160,7 +174,9 @@ export function useInvestments() {
     const allUserInvestments = getFromStorage<UserInvestment[]>(USER_INVESTMENTS_STORAGE_KEY, []);
     setInStorage(USER_INVESTMENTS_STORAGE_KEY, [...allUserInvestments, newInvestment]);
     
-  }, [user, stats, updateStats, updateInvestmentPlan]);
+  }, [user, stats, updateStats, updateInvestmentPlan, settings.investmentReferralCommissionRate, addEarning]);
 
   return { investmentPlans, addInvestmentPlan, updateInvestmentPlan, deleteInvestmentPlan, getInvestmentPlanById, investInPlan, userInvestments };
 }
+
+    

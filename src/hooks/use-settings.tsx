@@ -11,6 +11,7 @@ export type ReferralLevel = {
 
 export type Settings = {
   referralLevels: ReferralLevel[];
+  investmentReferralCommissionRate: number;
   withdrawalRequirement: number;
   minimumWithdrawalAmount: number;
   depositSessionDuration: number; // in minutes
@@ -38,6 +39,7 @@ const defaultSettings: Settings = {
     { level: 2, requiredReferrals: 10, commissionRate: 7 },
     { level: 3, requiredReferrals: 20, commissionRate: 10 },
   ],
+  investmentReferralCommissionRate: 5,
   withdrawalRequirement: 20,
   minimumWithdrawalAmount: 10,
   depositSessionDuration: 5,

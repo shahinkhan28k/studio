@@ -180,15 +180,16 @@ export function useUserStats() {
       }
   }, [uid]);
 
-  const addEarning = useCallback(async (amount: number) => {
-    if (!user || !user.uid) return;
+  const addEarning = useCallback(async (baseAmount: number, earningUserId?: string) => {
+    const targetUserId = earningUserId || (user?.uid);
+    if (!targetUserId) return;
 
-    const currentUserStats = getFromStorage(`userStats-${user.uid}`, defaultStats);
-    const newTotalEarnings = currentUserStats.totalEarnings + amount;
-    const newAvailableBalance = currentUserStats.availableBalance + amount;
-    const newTodaysEarnings = currentUserStats.todaysEarnings + amount;
+    const currentUserStats = getFromStorage(`userStats-${targetUserId}`, defaultStats);
+    const newTotalEarnings = currentUserStats.totalEarnings + baseAmount;
+    const newAvailableBalance = currentUserStats.availableBalance + baseAmount;
+    const newTodaysEarnings = currentUserStats.todaysEarnings + baseAmount;
     
-    updateStats(user.uid, { 
+    updateStats(targetUserId, { 
         totalEarnings: newTotalEarnings, 
         availableBalance: newAvailableBalance,
         todaysEarnings: newTodaysEarnings
@@ -196,10 +197,10 @@ export function useUserStats() {
     
     // Handle referral commission
     let allUsers: UserInfo[] = getFromStorage('allUsersData', []);
-    let currentUserInfo = allUsers.find(u => u.uid === user.uid);
-    let tempReferrerId = currentUserInfo?.referrerId;
+    let earningUserInfo = allUsers.find(u => u.uid === targetUserId);
+    let tempReferrerId = earningUserInfo?.referrerId;
     
-    // Iterate up the referral chain
+    // Iterate up the referral chain for MLM commission from tasks/investment commissions
     for (const level of settings.referralLevels.sort((a,b)=>a.level - b.level)) {
         if (!tempReferrerId) break;
 
@@ -212,22 +213,23 @@ export function useUserStats() {
             .sort((a,b) => b.level-a.level)[0];
         
         if (referrerLevel && referrerLevel.level === level.level) {
-             const commission = amount * (referrerLevel.commissionRate / 100);
+             const commission = baseAmount * (referrerLevel.commissionRate / 100);
              const referrerStats = getFromStorage(`userStats-${referrerInfo.uid}`, defaultStats);
              updateStats(referrerInfo.uid, {
                 totalEarnings: referrerStats.totalEarnings + commission,
                 availableBalance: referrerStats.availableBalance + commission
             });
             
-             const existingReferralIndex = referrerReferrals.findIndex(r => r.id === user.uid);
+             const existingReferralIndex = referrerReferrals.findIndex(r => r.id === targetUserId);
              if (existingReferralIndex > -1) {
                 referrerReferrals[existingReferralIndex].earnings += commission;
             } else {
-                 referrerReferrals.push({
-                    id: user.uid,
-                    name: user.displayName || user.email || 'Anonymous',
+                 const newReferral: Referral = {
+                    id: targetUserId,
+                    name: earningUserInfo?.displayName || earningUserInfo?.email || 'Anonymous',
                     earnings: commission
-                });
+                };
+                 referrerReferrals.push(newReferral);
             }
              setInStorage(`referrals-${referrerInfo.uid}`, referrerReferrals);
         }

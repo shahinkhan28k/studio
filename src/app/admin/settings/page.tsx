@@ -53,6 +53,7 @@ const referralLevelSchema = z.object({
 
 const settingsSchema = z.object({
   referralLevels: z.array(referralLevelSchema),
+  investmentReferralCommissionRate: z.coerce.number().min(0).max(100),
   withdrawalRequirement: z.coerce.number().int().min(0),
   minimumWithdrawalAmount: z.coerce.number().min(0),
   depositSessionDuration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
@@ -183,10 +184,26 @@ export default function SettingsPage() {
                         <AccordionItem value="item-1-1">
                            <AccordionTrigger className="text-lg font-semibold">Referral Settings</AccordionTrigger>
                            <AccordionContent className="space-y-4 pt-4">
+                            <FormField
+                                control={settingsForm.control}
+                                name="investmentReferralCommissionRate"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Investment Referral Commission Rate (%)</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" placeholder="e.g. 5" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                    The commission percentage a user gets when their direct referral invests.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Referral Levels</CardTitle>
-                                    <CardDescription>Define the requirements and commission for each referral level.</CardDescription>
+                                    <CardTitle>Task Referral Levels</CardTitle>
+                                    <CardDescription>Define the requirements and commission for each referral level based on task earnings.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-4">
@@ -223,7 +240,7 @@ export default function SettingsPage() {
                                                 name={`referralLevels.${index}.commissionRate`}
                                                 render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Commission Rate (%)</FormLabel>
+                                                    <FormLabel>Task Commission Rate (%)</FormLabel>
                                                     <FormControl>
                                                     <Input type="number" placeholder="e.g. 5" {...field} />
                                                     </FormControl>
