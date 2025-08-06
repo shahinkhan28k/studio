@@ -22,6 +22,7 @@ const defaultStats: UserStats = {
   totalEarnings: 0,
   totalDeposit: 0,
   totalWithdraw: 0,
+  totalInvestment: 0,
   availableBalance: 0,
   todaysEarnings: 0,
 }
@@ -91,6 +92,14 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : '...'}</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">{language.t('totalInvestment')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalInvestment, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>

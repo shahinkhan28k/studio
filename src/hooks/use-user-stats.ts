@@ -11,6 +11,7 @@ export type UserStats = {
   totalEarnings: number
   totalDeposit: number
   totalWithdraw: number
+  totalInvestment: number;
   availableBalance: number
   todaysEarnings: number
 }
@@ -46,6 +47,7 @@ export const defaultStats: UserStats = {
   totalEarnings: 0,
   totalDeposit: 0,
   totalWithdraw: 0,
+  totalInvestment: 0,
   availableBalance: 0,
   todaysEarnings: 0,
 }
@@ -130,7 +132,7 @@ export function useUserStats() {
     };
     
     calculateDailyEarnings(uid);
-    setStats(getFromStorage(`userStats-${uid}`, defaultStats));
+
     const allDeposits = getFromStorage<DepositRecord[]>(`allDeposits`, []);
     setDepositHistory(allDeposits.filter(d => d.userId === uid));
 
@@ -138,6 +140,17 @@ export function useUserStats() {
     setWithdrawalHistory(allWithdrawals.filter(w => w.userId === uid));
 
     setReferrals(getFromStorage(`referrals-${uid}`, []));
+    
+    // Calculate total investment and update stats
+    const allUserInvestments = getFromStorage<UserInvestment[]>('userInvestments', []);
+    const userInvestments = allUserInvestments.filter(inv => inv.userId === uid);
+    const totalInvestment = userInvestments.reduce((sum, inv) => sum + inv.initialInvestment, 0);
+
+    const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
+    const updatedStats = { ...currentStats, totalInvestment };
+    setInStorage(`userStats-${uid}`, updatedStats);
+    setStats(updatedStats);
+
 
   }, [uid]);
 
