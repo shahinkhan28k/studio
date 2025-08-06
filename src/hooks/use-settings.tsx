@@ -21,11 +21,6 @@ export type Settings = {
     nagad: string[];
     rocket: string[];
   };
-  bankName: string;
-  bankAccountName: string;
-  bankAccountNumber: string;
-  bankBranch: string;
-  usdtAddress: string;
   supportEmail: string;
   supportPhoneNumber: string;
   supportWhatsApp: string;
@@ -55,11 +50,6 @@ const defaultSettings: Settings = {
     nagad: ["01234567891"],
     rocket: ["01234567892"],
   },
-  bankName: "Example Bank Ltd.",
-  bankAccountName: "Onearn Platform",
-  bankAccountNumber: "1234567890123",
-  bankBranch: "Dhaka",
-  usdtAddress: "TX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r",
   supportEmail: "support@example.com",
   supportPhoneNumber: "+1234567890",
   supportWhatsApp: "1234567890",
@@ -105,8 +95,17 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     const setSettings = useCallback((newSettings: Settings) => {
         try {
-            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings));
-            setSettingsState(newSettings);
+            const settingsToSave = {
+                ...newSettings,
+                // Ensure agentNumbers are arrays, even if empty from the form
+                agentNumbers: {
+                    bkash: Array.isArray(newSettings.agentNumbers.bkash) ? newSettings.agentNumbers.bkash : [],
+                    nagad: Array.isArray(newSettings.agentNumbers.nagad) ? newSettings.agentNumbers.nagad : [],
+                    rocket: Array.isArray(newSettings.agentNumbers.rocket) ? newSettings.agentNumbers.rocket : [],
+                }
+            };
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settingsToSave));
+            setSettingsState(settingsToSave);
             window.dispatchEvent(new Event('storage'));
         } catch (error) {
             console.error("Error saving settings to localStorage: ", error);
@@ -130,5 +129,3 @@ export function useSettings() {
   }
   return context;
 }
-
-    
