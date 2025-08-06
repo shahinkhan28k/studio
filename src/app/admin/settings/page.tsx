@@ -51,7 +51,7 @@ const bannerFormSchema = z.object({
   "data-ai-hint": z.string().min(1, "AI hint is required."),
   title: z.string().min(1, "Title is required."),
   description: z.string().min(1, "Description is required."),
-  link: z.string().min(1, "Link is required."),
+  link: z.string().optional(),
 })
 
 const settingsFormSchema = z.object({
@@ -126,9 +126,9 @@ export default function SettingsPage() {
             minimumWithdrawalAmount: settings.minimumWithdrawalAmount || 0,
             depositSessionDuration: settings.depositSessionDuration || 5,
             agentNumbers: {
-                bkash: settings.agentNumbers.bkash.join(", ") || "",
-                nagad: settings.agentNumbers.nagad.join(", ") || "",
-                rocket: settings.agentNumbers.rocket.join(", ") || "",
+                bkash: (settings.agentNumbers.bkash || []).join(", "),
+                nagad: (settings.agentNumbers.nagad || []).join(", "),
+                rocket: (settings.agentNumbers.rocket || []).join(", "),
             },
             supportEmail: settings.supportEmail || "",
             supportPhoneNumber: settings.supportPhoneNumber || "",
@@ -189,13 +189,13 @@ export default function SettingsPage() {
                 <p className="text-muted-foreground">Manage your website's configuration.</p>
             </div>
         </div>
-      </div>
       
        <Form {...settingsForm}>
           <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
-            <Accordion type="multiple" collapsible className="w-full space-y-8">
+            <Accordion type="multiple" collapsible className="w-full space-y-4">
                 
-                <Card as={AccordionItem} value="general-settings">
+                <Card>
+                  <AccordionItem value="general-settings" className="border-b-0">
                     <AccordionTrigger className="p-6">
                          <CardHeader className="p-0 text-left">
                             <CardTitle>General Settings</CardTitle>
@@ -262,9 +262,11 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                     </AccordionContent>
+                  </AccordionItem>
                 </Card>
 
-                <Card as={AccordionItem} value="agent-numbers">
+                <Card>
+                  <AccordionItem value="agent-numbers" className="border-b-0">
                     <AccordionTrigger className="p-6">
                         <CardHeader className="p-0 text-left">
                             <CardTitle>Agent Deposit Numbers</CardTitle>
@@ -272,7 +274,7 @@ export default function SettingsPage() {
                         </CardHeader>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-4 pt-0">
                             <FormField control={settingsForm.control} name="agentNumbers.bkash" render={({field}) => (
                                 <FormItem><FormLabel>bKash Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
@@ -284,9 +286,11 @@ export default function SettingsPage() {
                             )}/>
                         </CardContent>
                     </AccordionContent>
+                  </AccordionItem>
                 </Card>
 
-                <Card as={AccordionItem} value="support-contact">
+                <Card>
+                  <AccordionItem value="support-contact" className="border-b-0">
                     <AccordionTrigger className="p-6">
                         <CardHeader className="p-0 text-left">
                             <CardTitle>Support Contact</CardTitle>
@@ -294,7 +298,7 @@ export default function SettingsPage() {
                         </CardHeader>
                     </AccordionTrigger>
                     <AccordionContent>
-                         <CardContent className="grid md:grid-cols-3 gap-4">
+                         <CardContent className="grid md:grid-cols-3 gap-4 pt-0">
                             <FormField control={settingsForm.control} name="supportEmail" render={({field}) => (
                                 <FormItem><FormLabel>Support Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
@@ -306,19 +310,19 @@ export default function SettingsPage() {
                             )}/>
                         </CardContent>
                     </AccordionContent>
+                  </AccordionItem>
                 </Card>
 
-                <Card as={AccordionItem} value="referral-levels">
+                <Card>
+                  <AccordionItem value="referral-levels" className="border-b-0">
                     <AccordionTrigger className="p-6">
-                        <div className="flex justify-between items-center w-full">
-                            <CardHeader className="p-0 text-left">
-                                <CardTitle>Referral Commission Levels</CardTitle>
-                                <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
-                            </CardHeader>
-                        </div>
+                        <CardHeader className="p-0 text-left">
+                            <CardTitle>Referral Commission Levels</CardTitle>
+                            <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
+                        </CardHeader>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <CardContent>
+                        <CardContent className="pt-0">
                              <Button type="button" variant="outline" size="sm" onClick={addNewLevel} className="mb-4">
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Level
@@ -367,14 +371,16 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                     </AccordionContent>
+                  </AccordionItem>
                 </Card>
             </Accordion>
              <Button type="submit">Save All Settings</Button>
         </form>
     </Form>
 
-    <Accordion type="multiple" collapsible className="w-full space-y-8 mt-8">
-        <Card as={AccordionItem} value="banner-settings">
+    <Accordion type="multiple" collapsible className="w-full space-y-4 mt-8">
+        <Card>
+          <AccordionItem value="banner-settings" className="border-b-0">
             <AccordionTrigger className="p-6">
                 <CardHeader className="p-0 text-left">
                     <CardTitle>Homepage Banner Settings</CardTitle>
@@ -432,7 +438,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>Link URL</FormLabel>
                             <FormControl>
-                                <Input placeholder="/investment" {...field} />
+                                <Input placeholder="/investment" {...field} value={field.value ?? ""} />
                             </FormControl>
                              <FormDescription>Where the banner button should link to.</FormDescription>
                             <FormMessage />
@@ -511,6 +517,7 @@ export default function SettingsPage() {
                     </Card>
                 </CardContent>
             </AccordionContent>
+          </AccordionItem>
         </Card>
     </Accordion>
 
