@@ -16,29 +16,12 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, ArrowUpFromLine, TrendingUp } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
-import { useRouter } from "next/navigation"
 import React from "react"
 import { AppProvider } from "@/context/app-context"
 import { AdminHeader } from "@/components/admin-header"
-import { AdminAuthProvider, useAdminAuth } from "@/hooks/use-admin-auth"
 
 
 function AdminPagesLayout({ children }: { children: React.ReactNode }) {
-    const { user, loading } = useAuth() // For regular user session, if needed.
-    const { admin, loading: adminLoading } = useAdminAuth();
-    const router = useRouter()
-
-    React.useEffect(() => {
-        if (!adminLoading && !admin) {
-             router.push("/admin/login")
-        }
-    }, [admin, adminLoading, router])
-
-    if (adminLoading || !admin) {
-        return null; // Or a loading spinner
-    }
-
   return (
         <SidebarProvider>
         <Sidebar side="left" collapsible="icon">
@@ -149,9 +132,7 @@ export default function AdminLayout({
 }) {
     return (
         <AppProvider>
-            <AdminAuthProvider>
-                <AdminPagesLayout>{children}</AdminPagesLayout>
-            </AdminAuthProvider>
+            <AdminPagesLayout>{children}</AdminPagesLayout>
         </AppProvider>
     )
 }
