@@ -17,6 +17,7 @@ export type TransactionStatus = 'pending' | 'completed' | 'failed';
 
 export type DepositRecord = {
   id: string;
+  userId: string;
   date: string;
   amount: number; // Stored in BDT
   method: string;
@@ -26,6 +27,7 @@ export type DepositRecord = {
 
 export type WithdrawalRecord = {
     id: string;
+    userId: string;
     date: string;
     amount: number; // Stored in BDT
     method: string;
@@ -87,10 +89,12 @@ export function useUserStats() {
     };
     
     setStats(getFromStorage(`userStats-${uid}`, defaultStats));
-    const allDeposits = getFromStorage<any[]>(`allDeposits`, []);
+    const allDeposits = getFromStorage<DepositRecord[]>(`allDeposits`, []);
     setDepositHistory(allDeposits.filter(d => d.userId === uid));
 
-    setWithdrawalHistory(getFromStorage(`withdrawalHistory-${uid}`, []));
+    const allWithdrawals = getFromStorage<WithdrawalRecord[]>(`allWithdrawals`, []);
+    setWithdrawalHistory(allWithdrawals.filter(w => w.userId === uid));
+
     setReferrals(getFromStorage(`referrals-${uid}`, []));
 
   }, [uid]);
@@ -178,7 +182,7 @@ export function useUserStats() {
   }, [user, settings, updateStats]);
   
   
-  const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id'>) => {
+  const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'>) => {
     if (!uid) return;
 
     const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
@@ -186,17 +190,16 @@ export function useUserStats() {
         throw new Error("Insufficient Balance");
     }
 
-    const newTotalWithdraw = currentStats.totalWithdraw + withdrawal.amount;
-    const newAvailableBalance = currentStats.availableBalance - withdrawal.amount;
-    updateStats(uid, { totalWithdraw: newTotalWithdraw, availableBalance: newAvailableBalance });
-
+    // No balance change on request, only on approval by admin
     const newRecord: WithdrawalRecord = { 
         ...withdrawal, 
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
-        date: new Date().toISOString() 
+        date: new Date().toISOString(),
+        userId: uid
     };
-    const currentHistory = getFromStorage(`withdrawalHistory-${uid}`, []);
-    setInStorage(`withdrawalHistory-${uid}`, [newRecord, ...currentHistory]);
+    
+    const allWithdrawals = getFromStorage<WithdrawalRecord[]>(`allWithdrawals`, []);
+    setInStorage(`allWithdrawals`, [newRecord, ...allWithdrawals]);
 
   }, [uid, updateStats]);
 

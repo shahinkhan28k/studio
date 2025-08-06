@@ -182,7 +182,7 @@ export default function WithdrawPage() {
       return
     }
 
-    const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id'> = {
+    const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'> = {
       amount: amountInBDT, // Store in BDT
       method: data.method,
       status: 'pending'
@@ -400,7 +400,7 @@ export default function WithdrawPage() {
                             <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>
-                                <Badge variant={withdrawal.status === 'completed' ? 'default' : 'secondary'}>
+                                <Badge variant={withdrawal.status === 'completed' ? 'default' : withdrawal.status === 'pending' ? 'secondary' : 'destructive'}>
                                     {withdrawal.status}
                                 </Badge>
                             </TableCell>

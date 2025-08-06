@@ -11,16 +11,32 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-import { useDeposits } from "@/hooks/use-deposit"
+import { useDeposits, DepositRecord } from "@/hooks/use-deposit"
 import React from "react"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
+import { useAdminStats, UserInfo } from "@/hooks/use-admin-stats"
+
+type DepositWithUser = DepositRecord & { userName: string | null }
 
 export default function DepositsAdminPage() {
   const { deposits, updateDepositStatus } = useDeposits()
+  const { allUsersData } = useAdminStats()
   const { toast } = useToast()
+  const [depositsWithUsers, setDepositsWithUsers] = React.useState<DepositWithUser[]>([])
+
+  React.useEffect(() => {
+    if (deposits.length > 0 && allUsersData.length > 0) {
+      const usersMap = new Map<string, UserInfo>(allUsersData.map(u => [u.uid, u]))
+      const enrichedDeposits = deposits.map(deposit => ({
+        ...deposit,
+        userName: usersMap.get(deposit.userId)?.displayName ?? 'Unknown User'
+      }))
+      setDepositsWithUsers(enrichedDeposits)
+    }
+  }, [deposits, allUsersData])
 
   const handleUpdateStatus = (id: string, userId: string, amount: number, status: 'completed' | 'failed') => {
     try {
@@ -60,7 +76,7 @@ export default function DepositsAdminPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>User ID</TableHead>
+              <TableHead>User</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Trx ID</TableHead>
@@ -69,11 +85,11 @@ export default function DepositsAdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {deposits.length > 0 ? (
-              deposits.map((deposit) => (
+            {depositsWithUsers.length > 0 ? (
+              depositsWithUsers.map((deposit) => (
               <TableRow key={deposit.id}>
                 <TableCell>{format(new Date(deposit.date), "PP p")}</TableCell>
-                <TableCell className="font-mono text-xs">{deposit.userId}</TableCell>
+                <TableCell>{deposit.userName} ({deposit.userId.substring(0,5)}...)</TableCell>
                 <TableCell>{formatCurrency(deposit.amount, 'BDT')}</TableCell>
                 <TableCell className="capitalize">{deposit.method}</TableCell>
                 <TableCell>{deposit.transactionId || "N/A"}</TableCell>
