@@ -46,11 +46,11 @@ import {
 
 
 const bannerFormSchema = z.object({
-  src: z.string().url("Please enter a valid URL."),
-  alt: z.string().min(1, "Alt text is required."),
-  "data-ai-hint": z.string().min(1, "AI hint is required."),
-  title: z.string().min(1, "Title is required."),
-  description: z.string().min(1, "Description is required."),
+  src: z.string().url("Please enter a valid URL.").or(z.literal('')).optional(),
+  alt: z.string().optional(),
+  "data-ai-hint": z.string().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
   link: z.string().optional(),
 })
 
@@ -197,7 +197,7 @@ export default function SettingsPage() {
                 
                 <Card>
                   <AccordionItem value="general-settings" className="border-b-0">
-                    <AccordionTrigger className="p-6">
+                    <AccordionTrigger className="p-6 w-full">
                          <CardHeader className="p-0 text-left">
                             <CardTitle>General Settings</CardTitle>
                             <CardDescription>Manage general platform settings.</CardDescription>
@@ -268,7 +268,7 @@ export default function SettingsPage() {
 
                 <Card>
                   <AccordionItem value="agent-numbers" className="border-b-0">
-                    <AccordionTrigger className="p-6">
+                    <AccordionTrigger className="p-6 w-full">
                         <CardHeader className="p-0 text-left">
                             <CardTitle>Agent Deposit Numbers</CardTitle>
                             <CardDescription>Enter numbers separated by commas.</CardDescription>
@@ -292,7 +292,7 @@ export default function SettingsPage() {
 
                 <Card>
                   <AccordionItem value="support-contact" className="border-b-0">
-                    <AccordionTrigger className="p-6">
+                    <AccordionTrigger className="p-6 w-full">
                         <CardHeader className="p-0 text-left">
                             <CardTitle>Support Contact</CardTitle>
                             <CardDescription>Update customer support contact information.</CardDescription>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
 
                 <Card>
                   <AccordionItem value="referral-levels" className="border-b-0">
-                    <AccordionTrigger className="p-6">
+                    <AccordionTrigger className="p-6 w-full">
                         <CardHeader className="p-0 text-left">
                             <CardTitle>Referral Commission Levels</CardTitle>
                             <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
     <Accordion type="multiple" className="w-full space-y-4 mt-8">
         <Card>
           <AccordionItem value="banner-settings" className="border-b-0">
-            <AccordionTrigger className="p-6">
+            <AccordionTrigger className="p-6 w-full">
                 <CardHeader className="p-0 text-left">
                     <CardTitle>Homepage Banner Settings</CardTitle>
                     <CardDescription>Manage the promotional banners on the homepage carousel.</CardDescription>
@@ -525,5 +525,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
-    

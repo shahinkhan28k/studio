@@ -4,12 +4,12 @@
 import { useState, useEffect, useCallback } from "react"
 
 export interface BannerFormValues {
-  src: string;
-  alt: string;
-  'data-ai-hint': string;
-  title: string;
-  description: string;
-  link: string;
+  src?: string;
+  alt?: string;
+  'data-ai-hint'?: string;
+  title?: string;
+  description?: string;
+  link?: string;
 }
 
 export type Banner = BannerFormValues & {
