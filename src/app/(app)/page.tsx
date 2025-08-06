@@ -23,14 +23,63 @@ import { TasksClient } from "@/components/tasks-client"
 import { useAppContext } from "@/context/app-context"
 import { useNotices } from "@/hooks/use-notices"
 import { useBanners } from "@/hooks/use-banners"
+import { useInvestments, InvestmentPlan } from "@/hooks/use-investments"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { formatCurrency } from "@/lib/utils"
+import { InvestmentCard } from "@/components/investment-card"
 
 
 export default function HomePage() {
   const { language } = useAppContext()
   const { notices } = useNotices()
   const { banners } = useBanners()
+  const { investmentPlans, investInPlan } = useInvestments()
+  const { toast } = useToast()
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false)
+  const [selectedPlan, setSelectedPlan] = React.useState<InvestmentPlan | null>(null)
+
+  const featuredInvestments = React.useMemo(() => {
+    return investmentPlans.filter(plan => plan.isFeatured)
+  }, [investmentPlans])
+
+  const handleInvestClick = (plan: InvestmentPlan) => {
+    setSelectedPlan(plan)
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmInvestment = () => {
+    if (selectedPlan) {
+      try {
+        investInPlan(selectedPlan)
+        toast({
+          title: language.t('investmentSuccessTitle'),
+          description: language.t('investmentSuccessDescription').replace('{planTitle}', selectedPlan.title),
+        })
+      } catch (error) {
+        toast({
+          title: language.t('investmentFailedTitle'),
+          description: (error as Error).message,
+          variant: "destructive",
+        })
+      }
+    }
+    setShowConfirmDialog(false)
+    setSelectedPlan(null)
+  }
 
   return (
+    <>
     <div className="container py-6">
       <div className="flex flex-col gap-8">
         <Carousel
@@ -69,6 +118,24 @@ export default function HomePage() {
           <CarouselNext className="hidden md:flex right-4" />
         </Carousel>
 
+        {featuredInvestments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{language.t('featuredInvestmentsTitle')}</CardTitle>
+              <CardDescription>
+                {language.t('featuredInvestmentsDescription')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredInvestments.map((plan) => (
+                  <InvestmentCard key={plan.id} plan={plan} onInvest={handleInvestClick} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>{language.t('featuredTasksTitle')}</CardTitle>
@@ -105,5 +172,25 @@ export default function HomePage() {
         </Card>
       </div>
     </div>
+     {selectedPlan && (
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>{language.t('confirmInvestmentTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                    {language.t('confirmInvestmentDescription')
+                        .replace('{planTitle}', selectedPlan.title)
+                        .replace('{amount}', formatCurrency(selectedPlan.minInvestment, "BDT"))
+                    }
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedPlan(null)}>{language.t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmInvestment}>{language.t('confirm')}</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )}
+    </>
   )
 }

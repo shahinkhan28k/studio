@@ -51,6 +51,7 @@ export default function InvestmentsAdminPage() {
               <TableHead>Profit Rate (%)</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Investors</TableHead>
+              <TableHead>Featured</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -66,6 +67,11 @@ export default function InvestmentsAdminPage() {
                     {plan.totalInvestors} / {plan.maxInvestors}
                   </TableCell>
                   <TableCell>
+                    <Badge variant={plan.isFeatured ? "default" : "outline"}>
+                        {plan.isFeatured ? "Yes" : "No"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     <Button variant="outline" size="sm" className="mr-2" asChild>
                         <Link href={`/admin/investments/${plan.id}/edit`}>Edit</Link>
                     </Button>
@@ -75,7 +81,7 @@ export default function InvestmentsAdminPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">No investment plans found.</TableCell>
+                <TableCell colSpan={7} className="text-center">No investment plans found.</TableCell>
               </TableRow>
             )}
           </TableBody>

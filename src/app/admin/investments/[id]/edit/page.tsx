@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useInvestments, InvestmentPlanFormValues, InvestmentPlan } from "@/hooks/use-investments"
+import { Switch } from "@/components/ui/switch"
 
 const investmentPlanSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -47,6 +48,7 @@ const investmentPlanSchema = z.object({
   tag: z.string().min(1, "Tag is required, e.g., 'Popular'"),
   maxInvestors: z.coerce.number().int().positive("Maximum investors must be a positive number.").default(100),
   totalInvestors: z.coerce.number().int().min(0).default(0),
+  isFeatured: z.boolean().default(false),
 });
 
 export default function EditInvestmentPlanPage() {
@@ -315,6 +317,26 @@ export default function EditInvestmentPlanPage() {
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="isFeatured"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 col-span-1 md:col-span-2">
+                        <div className="space-y-0.5">
+                        <FormLabel className="text-base">Featured Investment</FormLabel>
+                        <FormDescription>
+                            Featured investments appear on the homepage.
+                        </FormDescription>
+                        </div>
+                        <FormControl>
+                        <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                        </FormControl>
+                    </FormItem>
+                    )}
                 />
                </div>
 

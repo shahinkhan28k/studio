@@ -19,6 +19,7 @@ export interface InvestmentPlanFormValues {
   tag: string
   maxInvestors: number;
   totalInvestors: number;
+  isFeatured: boolean;
 }
 
 export type InvestmentPlan = InvestmentPlanFormValues & {
@@ -148,7 +149,8 @@ export function useInvestments() {
     
     // Update user stats
     const newBalance = stats.availableBalance - plan.minInvestment;
-    updateStats(user.uid, { availableBalance: newBalance });
+    const newTotalInvestment = stats.totalInvestment + plan.minInvestment;
+    updateStats(user.uid, { availableBalance: newBalance, totalInvestment: newTotalInvestment });
     
     // Update total investors for the plan
     const updatedPlanData = { totalInvestors: plan.totalInvestors + 1 };

@@ -12,6 +12,7 @@ export type TranslationKey =
   // Home
   | 'successfulWithdrawal' | 'justWithdrew'
   | 'featuredTasksTitle' | 'featuredTasksDescription'
+  | 'featuredInvestmentsTitle' | 'featuredInvestmentsDescription'
   | 'noticeBoardTitle'
   // Tasks
   | 'availableTasksTitle' | 'availableTasksDescription'
@@ -73,6 +74,8 @@ const en: { [key in TranslationKey]: string } = {
   justWithdrew: 'just withdrew',
   featuredTasksTitle: 'Profitable Tasks',
   featuredTasksDescription: 'Complete these tasks to earn more.',
+  featuredInvestmentsTitle: 'Featured Investments',
+  featuredInvestmentsDescription: 'Explore our top investment opportunities.',
   noticeBoardTitle: 'Notice Board',
   availableTasksTitle: 'Available Tasks',
   availableTasksDescription: 'Complete tasks to earn rewards. Your earnings will be added to your profile balance.',
@@ -153,6 +156,8 @@ const bn: { [key in TranslationKey]: string } = {
   justWithdrew: 'এইমাত্র উত্তোলন করেছেন',
   featuredTasksTitle: 'লাভজনক কাজগুলো',
   featuredTasksDescription: 'এই কাজগুলো সম্পূর্ণ করে আরও বেশি উপার্জন করুন।',
+  featuredInvestmentsTitle: 'বিশেষ বিনিয়োগ',
+  featuredInvestmentsDescription: 'আমাদের সেরা বিনিয়োগের সুযোগগুলো ঘুরে দেখুন।',
   noticeBoardTitle: 'নোটিশ বোর্ড',
   availableTasksTitle: 'কার্যকলাপ',
   availableTasksDescription: 'পুরস্কার অর্জনের জন্য কাজগুলো সম্পন্ন করুন। আপনার উপার্জন আপনার প্রোফাইল ব্যালেন্সে যোগ করা হবে।',
@@ -233,6 +238,8 @@ const es: { [key in TranslationKey]: string } = {
   justWithdrew: 'acaba de retirar',
   featuredTasksTitle: 'Tareas Rentables',
   featuredTasksDescription: 'Completa estas tareas para ganar más.',
+  featuredInvestmentsTitle: 'Inversiones Destacadas',
+  featuredInvestmentsDescription: 'Explora nuestras principales oportunidades de inversión.',
   noticeBoardTitle: 'Tablón de Anuncios',
   availableTasksTitle: 'Tareas Disponibles',
   availableTasksDescription: 'Completa tareas para ganar recompensas. Tus ganancias se añadirán al saldo de tu perfil.',
@@ -313,6 +320,8 @@ const hi: { [key in TranslationKey]: string } = {
   justWithdrew: 'ने अभी निकाला',
   featuredTasksTitle: 'लाभदायक कार्य',
   featuredTasksDescription: 'अधिक कमाने के लिए इन कार्यों को पूरा करें।',
+  featuredInvestmentsTitle: 'विशेष निवेश',
+  featuredInvestmentsDescription: 'हमारे शीर्ष निवेश अवसरों का अन्वेषण करें।',
   noticeBoardTitle: 'सूचना पट्ट',
   availableTasksTitle: 'उपलब्ध कार्य',
   availableTasksDescription: 'पुरस्कार अर्जित करने के लिए कार्यों को पूरा करें। आपकी कमाई आपके प्रोफ़ाइल शेष में जोड़ दी जाएगी।',
