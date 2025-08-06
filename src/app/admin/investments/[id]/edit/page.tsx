@@ -49,6 +49,7 @@ const investmentPlanSchema = z.object({
   maxInvestors: z.coerce.number().int().positive("Maximum investors must be a positive number.").default(100),
   totalInvestors: z.coerce.number().int().min(0).default(0),
   isFeatured: z.boolean().default(false),
+  purchaseLimit: z.coerce.number().int().min(0, "Purchase limit cannot be negative.").default(1),
 });
 
 export default function EditInvestmentPlanPage() {
@@ -314,6 +315,20 @@ export default function EditInvestmentPlanPage() {
                         <Input type="number" placeholder="e.g., 25" {...field} />
                       </FormControl>
                        <FormDescription>Current number of investors (for display).</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="purchaseLimit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Purchase Limit</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 1" {...field} />
+                      </FormControl>
+                      <FormDescription>How many times a single user can buy this plan. 0 for unlimited.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

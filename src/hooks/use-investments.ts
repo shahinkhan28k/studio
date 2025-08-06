@@ -22,6 +22,7 @@ export interface InvestmentPlanFormValues {
   maxInvestors: number;
   totalInvestors: number;
   isFeatured: boolean;
+  purchaseLimit: number;
 }
 
 export type InvestmentPlan = InvestmentPlanFormValues & {
@@ -123,6 +124,14 @@ export function useInvestments() {
     if (stats.availableBalance < plan.minInvestment) {
       throw new Error("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
     }
+    
+    const allUserInvestments = getFromStorage<UserInvestment[]>(USER_INVESTMENTS_STORAGE_KEY, []);
+    const userPurchasesOfThisPlan = allUserInvestments.filter(inv => inv.userId === user.uid && inv.planId === plan.id);
+    
+    if (plan.purchaseLimit > 0 && userPurchasesOfThisPlan.length >= plan.purchaseLimit) {
+        throw new Error(`আপনি এই প্ল্যানটি সর্বোচ্চ ${plan.purchaseLimit} বার কিনতে পারবেন।`);
+    }
+
 
     const totalReturn = plan.minInvestment + (plan.minInvestment * (plan.profitRate / 100));
     const getDurationInDays = (value: number, unit: "Days" | "Months" | "Years") => {
@@ -171,12 +180,9 @@ export function useInvestments() {
     updateInvestmentPlan(plan.id, updatedPlanData);
     
     // Save new investment
-    const allUserInvestments = getFromStorage<UserInvestment[]>(USER_INVESTMENTS_STORAGE_KEY, []);
     setInStorage(USER_INVESTMENTS_STORAGE_KEY, [...allUserInvestments, newInvestment]);
     
   }, [user, stats, updateStats, updateInvestmentPlan, settings.investmentReferralCommissionRate, addEarning]);
 
   return { investmentPlans, addInvestmentPlan, updateInvestmentPlan, deleteInvestmentPlan, getInvestmentPlanById, investInPlan, userInvestments };
 }
-
-    
