@@ -71,6 +71,8 @@ export const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInv
     }
     const durationInDays = getDurationInDays(plan.durationValue, plan.durationUnit);
     const dailyIncome = durationInDays > 0 ? totalReturn / durationInDays : 0;
+    const progress = plan.maxInvestors > 0 ? (plan.totalInvestors / plan.maxInvestors) * 100 : 0;
+
 
   return (
     <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2 flex flex-col">
@@ -136,9 +138,9 @@ export const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInv
           <div>
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
               <span>{language.t('progress')}</span>
-              <span>{plan.progress}%</span>
+              <span>{Math.round(progress)}%</span>
             </div>
-            <Progress value={plan.progress} className="h-2" />
+            <Progress value={progress} className="h-2" />
           </div>
           
           <div className="flex items-center justify-between">
