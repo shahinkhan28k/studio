@@ -113,42 +113,47 @@ export default function WithdrawPage() {
   const { settings } = useSettings();
   const { currency } = useAppContext();
 
-  const defaultValues = React.useMemo(() => ({
-    amount: 0,
-    method: "",
-    walletNumber: "",
-    bankName: "",
-    accountHolderName: "",
-    bankAccountNumber: "",
-    swiftCode: "",
-    usdtAddress: "",
-  }), []);
-
   const form = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawFormSchema),
-    defaultValues: defaultValues,
+    defaultValues: {
+      amount: 0,
+      method: "",
+      walletNumber: "",
+      bankName: "",
+      accountHolderName: "",
+      bankAccountNumber: "",
+      swiftCode: "",
+      usdtAddress: "",
+    },
   })
   
   const paymentMethod = form.watch("method")
   
   React.useEffect(() => {
-    const fetchWithdrawalDetails = () => {
-      if (user) {
+    if (user) {
         try {
-          const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
-          if (savedDetails) {
-            const data = JSON.parse(savedDetails);
-            form.reset({ ...defaultValues, ...data, amount: 0 });
-          }
+            const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
+            const defaultValues = {
+                amount: 0,
+                method: "",
+                walletNumber: "",
+                bankName: "",
+                accountHolderName: "",
+                bankAccountNumber: "",
+                swiftCode: "",
+                usdtAddress: "",
+            };
+            if (savedDetails) {
+                const data = JSON.parse(savedDetails);
+                form.reset({ ...defaultValues, ...data, amount: 0 });
+            } else {
+                form.reset(defaultValues);
+            }
         } catch (error) {
            console.error("Error fetching account details for withdrawal:", error);
         }
-      }
-    };
-    if (user) {
-        fetchWithdrawalDetails();
     }
-  }, [user, form, defaultValues]);
+  }, [user, form]);
   
 
   async function onSubmit(data: WithdrawFormValues) {

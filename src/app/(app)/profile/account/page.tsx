@@ -94,50 +94,55 @@ export default function AccountDetailsPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(true);
 
-  const defaultValues: AccountFormValues = React.useMemo(() => ({
-    name: user?.displayName ?? "",
-    email: user?.email ?? "",
-    mobileNumber: user?.phoneNumber ?? "",
-    walletNumber: "",
-    address: "",
-    paymentMethod: "bkash",
-    bankName: "",
-    accountHolderName: "",
-    bankAccountNumber: "",
-    swiftCode: "",
-  }), [user]);
-
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues: defaultValues,
+    defaultValues: {
+        name: "",
+        email: "",
+        mobileNumber: "",
+        walletNumber: "",
+        address: "",
+        paymentMethod: "bkash",
+        bankName: "",
+        accountHolderName: "",
+        bankAccountNumber: "",
+        swiftCode: "",
+    }
   })
 
   const paymentMethod = form.watch("paymentMethod")
 
   React.useEffect(() => {
-    const fetchAccountDetails = () => {
-      if (user) {
-        setIsFetching(true);
-        try {
-          const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
-          if (savedDetails) {
-            const data = JSON.parse(savedDetails) as AccountFormValues;
-            form.reset({ ...defaultValues, ...data, name: user?.displayName ?? data.name ?? "" })
-          } else {
-             form.reset(defaultValues);
-          }
-        } catch (error) {
-           console.error("Error fetching account details from localStorage:", error);
+    if (user && !loading) {
+      setIsFetching(true);
+      try {
+        const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
+        const defaultValues = {
+            name: user.displayName ?? "",
+            email: user.email ?? "",
+            mobileNumber: user.phoneNumber ?? "",
+            walletNumber: "",
+            address: "",
+            paymentMethod: "bkash",
+            bankName: "",
+            accountHolderName: "",
+            bankAccountNumber: "",
+            swiftCode: "",
+        };
+
+        if (savedDetails) {
+          const data = JSON.parse(savedDetails) as AccountFormValues;
+          form.reset({ ...defaultValues, ...data, name: user.displayName ?? data.name ?? "" })
+        } else {
            form.reset(defaultValues);
-        } finally {
-            setIsFetching(false);
         }
+      } catch (error) {
+         console.error("Error fetching account details from localStorage:", error);
+      } finally {
+          setIsFetching(false);
       }
-    };
-    if (!loading) {
-       fetchAccountDetails();
     }
-  }, [user, loading, form, defaultValues]);
+  }, [user, loading, form]);
 
   async function onSubmit(data: AccountFormValues) {
      if (!user) {
