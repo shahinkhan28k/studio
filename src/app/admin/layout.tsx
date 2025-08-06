@@ -19,6 +19,7 @@ import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, A
 import React from "react"
 import { AppProvider } from "@/context/app-context"
 import { AdminHeader } from "@/components/admin-header"
+import { AdminAuthProvider } from "@/hooks/use-admin-auth"
 
 
 function AdminPagesLayout({ children }: { children: React.ReactNode }) {
@@ -132,7 +133,9 @@ export default function AdminLayout({
 }) {
     return (
         <AppProvider>
-            <AdminPagesLayout>{children}</AdminPagesLayout>
+            <AdminAuthProvider>
+                <AdminPagesLayout>{children}</AdminPagesLayout>
+            </AdminAuthProvider>
         </AppProvider>
     )
 }
