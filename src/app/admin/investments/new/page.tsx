@@ -44,6 +44,8 @@ const investmentPlanSchema = z.object({
   progress: z.coerce.number().min(0).max(100, "Progress must be between 0 and 100.").default(0),
   riskLevel: z.enum(["Low", "Medium", "High"]),
   tag: z.string().min(1, "Tag is required, e.g., 'Popular'"),
+  maxInvestors: z.coerce.number().int().positive("Maximum investors must be a positive number.").default(100),
+  totalInvestors: z.coerce.number().int().min(0).default(0),
 });
 
 export default function NewInvestmentPlanPage() {
@@ -65,6 +67,8 @@ export default function NewInvestmentPlanPage() {
       progress: 0,
       riskLevel: "Medium",
       tag: "Popular",
+      maxInvestors: 100,
+      totalInvestors: 0,
     },
   })
 
@@ -261,6 +265,34 @@ export default function NewInvestmentPlanPage() {
                         <Input type="number" placeholder="e.g., 10" {...field} />
                       </FormControl>
                        <FormDescription>Initial funding progress to show. Default is 0.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxInvestors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Investors</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 100" {...field} />
+                      </FormControl>
+                       <FormDescription>Max number of people who can invest.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="totalInvestors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Investors</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 25" {...field} />
+                      </FormControl>
+                       <FormDescription>Current number of investors (for display).</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

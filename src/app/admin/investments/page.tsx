@@ -50,7 +50,7 @@ export default function InvestmentsAdminPage() {
               <TableHead>Min. Investment</TableHead>
               <TableHead>Profit Rate (%)</TableHead>
               <TableHead>Duration</TableHead>
-              <TableHead>Risk Level</TableHead>
+              <TableHead>Investors</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -63,9 +63,7 @@ export default function InvestmentsAdminPage() {
                   <TableCell>{plan.profitRate}%</TableCell>
                   <TableCell>{plan.durationValue} {plan.durationUnit}</TableCell>
                   <TableCell>
-                    <Badge variant={plan.riskLevel === 'Low' ? 'default' : plan.riskLevel === 'Medium' ? 'secondary' : 'destructive'}>
-                        {plan.riskLevel}
-                    </Badge>
+                    {plan.totalInvestors} / {plan.maxInvestors}
                   </TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" className="mr-2" asChild>

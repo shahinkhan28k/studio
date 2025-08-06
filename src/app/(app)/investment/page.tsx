@@ -12,9 +12,10 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useInvestments, InvestmentPlan } from "@/hooks/use-investments"
-import { Wallet, Info, Zap } from "lucide-react"
+import { Wallet, Info, Zap, Users, BarChart } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { formatCurrency } from "@/lib/utils"
 
 const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
   const levelMap = {
@@ -25,13 +26,13 @@ const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
   const { dots, color, label } = levelMap[level]
 
   return (
-    <div className={`flex items-center text-xs ${levelMap[level].color.split(' ')[0]}`}>
+    <div className={`flex items-center text-xs ${color.split(' ')[0]}`}>
       <div className="flex gap-1 mr-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <span
             key={i}
             className={`h-2 w-2 rounded-full ${
-              i < dots ? levelMap[level].color.split(' ')[1] : "bg-muted"
+              i < dots ? color.split(' ')[1] : "bg-muted"
             }`}
           ></span>
         ))}
@@ -48,9 +49,10 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
         if (unit === 'Years') return `${value} বছর`;
         return `${value} ${unit}`;
     }
+    const totalProfit = plan.minInvestment * (plan.profitRate / 100);
 
   return (
-    <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2">
+    <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2 flex flex-col">
       <CardHeader className="p-0 relative">
         <div className="absolute top-4 right-4 z-10">
           <Badge variant="secondary">{plan.badge}</Badge>
@@ -72,7 +74,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-4 space-y-4 flex-grow flex flex-col">
         <div className="grid grid-cols-3 text-center text-sm">
           <div>
             <p className="text-muted-foreground">সময়কাল</p>
@@ -84,9 +86,22 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           </div>
           <div>
             <p className="text-muted-foreground">ন্যূনতম বিনিয়োগ</p>
-            <p className="font-semibold">৳{plan.minInvestment.toLocaleString()}</p>
+            <p className="font-semibold">{formatCurrency(plan.minInvestment, "BDT")}</p>
           </div>
         </div>
+        
+        <div className="bg-muted/50 p-3 rounded-lg space-y-3 text-sm">
+            <div className="flex justify-between items-center">
+                <span className="text-muted-foreground flex items-center"><BarChart className="w-4 h-4 mr-2" /> মোট লাভ</span>
+                <span className="font-bold text-primary">{formatCurrency(totalProfit, "BDT")}</span>
+            </div>
+            <div className="flex justify-between items-center">
+                <span className="text-muted-foreground flex items-center"><Users className="w-4 h-4 mr-2" /> বিনিয়োগকারী</span>
+                <span className="font-semibold">{plan.totalInvestors} / {plan.maxInvestors}</span>
+            </div>
+        </div>
+
+        <div className="flex-grow" />
 
         <div>
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -96,7 +111,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           <Progress value={plan.progress} className="h-2" />
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
            <InvestmentRisk level={plan.riskLevel} />
            <Badge variant="outline" className="text-primary border-primary">
                 <Zap className="w-3 h-3 mr-1" />

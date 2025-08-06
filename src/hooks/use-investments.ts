@@ -15,6 +15,8 @@ export interface InvestmentPlanFormValues {
   progress: number
   riskLevel: "Low" | "Medium" | "High"
   tag: string
+  maxInvestors: number;
+  totalInvestors: number;
 }
 
 export type InvestmentPlan = InvestmentPlanFormValues & {
