@@ -72,6 +72,15 @@ const settingsSchema = z.object({
   supportWhatsApp: z.string(),
 })
 
+// This type is for the form, where agent numbers are represented as a single string.
+type SettingsFormValues = Omit<z.infer<typeof settingsSchema>, 'agentNumbers'> & {
+  agentNumbers: {
+    bkash: string;
+    nagad: string;
+    rocket: string;
+  }
+}
+
 const bannerFormSchema = z.object({
   src: z.string().url({ message: "Please enter a valid URL." }),
   alt: z.string().min(1, "Alt text is required."),
@@ -86,9 +95,16 @@ export default function SettingsPage() {
   const { settings, setSettings } = useSettings()
   const { banners, addBanner, deleteBanner, refreshBanners } = useBanners()
 
-  const settingsForm = useForm<z.infer<typeof settingsSchema>>({
+  const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: settings,
+    defaultValues: {
+      ...settings,
+       agentNumbers: {
+            bkash: (settings.agentNumbers.bkash || []).join(', '),
+            nagad: (settings.agentNumbers.nagad || []).join(', '),
+            rocket: (settings.agentNumbers.rocket || []).join(', '),
+        }
+    },
   })
 
   const { fields, append, remove } = useFieldArray({
@@ -107,15 +123,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings) {
-       const transformedDefaults = {
+       const transformedDefaults: SettingsFormValues = {
         ...settings,
         agentNumbers: {
             bkash: (settings.agentNumbers.bkash || []).join(', '),
             nagad: (settings.agentNumbers.nagad || []).join(', '),
             rocket: (settings.agentNumbers.rocket || []).join(', '),
         }
-       }
-      settingsForm.reset(transformedDefaults as any);
+       };
+      settingsForm.reset(transformedDefaults);
     }
   }, [settings, settingsForm])
 
