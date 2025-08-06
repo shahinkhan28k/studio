@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useSettings, ReferralLevel } from "@/hooks/use-settings"
+import { useSettings, ReferralLevel, Settings } from "@/hooks/use-settings"
 import {
   Accordion,
   AccordionContent,
@@ -73,7 +73,8 @@ const settingsSchema = z.object({
 })
 
 // This type is for the form, where agent numbers are represented as a single string.
-type SettingsFormValues = Omit<z.infer<typeof settingsSchema>, 'agentNumbers'> & {
+type SettingsFormValues = Omit<z.infer<typeof settingsSchema>, 'agentNumbers' | 'referralLevels'> & {
+  referralLevels: ReferralLevel[];
   agentNumbers: {
     bkash: string;
     nagad: string;
@@ -98,12 +99,24 @@ export default function SettingsPage() {
   const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      ...settings,
-       agentNumbers: {
-            bkash: (settings.agentNumbers.bkash || []).join(', '),
-            nagad: (settings.agentNumbers.nagad || []).join(', '),
-            rocket: (settings.agentNumbers.rocket || []).join(', '),
-        }
+      referralLevels: [],
+      investmentReferralCommissionRate: 0,
+      withdrawalRequirement: 0,
+      minimumWithdrawalAmount: 0,
+      depositSessionDuration: 5,
+      agentNumbers: {
+        bkash: '',
+        nagad: '',
+        rocket: '',
+      },
+      bankName: '',
+      bankAccountName: '',
+      bankAccountNumber: '',
+      bankBranch: '',
+      usdtAddress: '',
+      supportEmail: '',
+      supportPhoneNumber: '',
+      supportWhatsApp: '',
     },
   })
 
@@ -126,24 +139,32 @@ export default function SettingsPage() {
        const transformedDefaults: SettingsFormValues = {
         ...settings,
         agentNumbers: {
-            bkash: (settings.agentNumbers.bkash || []).join(', '),
-            nagad: (settings.agentNumbers.nagad || []).join(', '),
-            rocket: (settings.agentNumbers.rocket || []).join(', '),
+            bkash: (settings.agentNumbers?.bkash || []).join(', '),
+            nagad: (settings.agentNumbers?.nagad || []).join(', '),
+            rocket: (settings.agentNumbers?.rocket || []).join(', '),
         }
        };
       settingsForm.reset(transformedDefaults);
     }
   }, [settings, settingsForm])
 
-  async function onSettingsSubmit(data: z.infer<typeof settingsSchema>) {
-    setSettings(data)
+  function onSettingsSubmit(data: SettingsFormValues) {
+    const dataToSave: Settings = {
+      ...data,
+       agentNumbers: {
+        bkash: data.agentNumbers.bkash.split(',').map(s => s.trim()).filter(Boolean),
+        nagad: data.agentNumbers.nagad.split(',').map(s => s.trim()).filter(Boolean),
+        rocket: data.agentNumbers.rocket.split(',').map(s => s.trim()).filter(Boolean),
+      }
+    };
+    setSettings(dataToSave)
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
-    })
+    });
   }
   
-  async function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
+  function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
     addBanner(data)
     toast({
       title: "Banner Added",
@@ -161,7 +182,7 @@ export default function SettingsPage() {
         description: "The banner has been successfully deleted.",
       })
     }
-  }
+  };
   
   const addNewLevel = () => {
     const nextLevel = fields.length + 1;
@@ -170,7 +191,7 @@ export default function SettingsPage() {
         requiredReferrals: 0,
         commissionRate: 0,
     });
-  }
+  };
 
   return (
     <div className="container py-6">
