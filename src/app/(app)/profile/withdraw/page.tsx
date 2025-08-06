@@ -183,9 +183,17 @@ export default function WithdrawPage() {
     }
 
     const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'> = {
-      amount: amountInBDT, // Store in BDT
+      amount: amountInBDT,
       method: data.method,
-      status: 'pending'
+      status: 'pending',
+      details: {
+        walletNumber: data.walletNumber,
+        bankName: data.bankName,
+        accountHolderName: data.accountHolderName,
+        bankAccountNumber: data.bankAccountNumber,
+        swiftCode: data.swiftCode,
+        usdtAddress: data.usdtAddress,
+      }
     }
 
     try {

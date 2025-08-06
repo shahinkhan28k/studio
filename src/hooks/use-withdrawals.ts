@@ -81,9 +81,8 @@ export function useWithdrawals() {
             };
             setInStorage(userStatsKey, newStats);
         } else if (status === 'failed') {
-            // No need to adjust totalWithdraw, but restore balance if it was deducted on request.
-            // Based on current addWithdrawal, balance is not deducted on request. So nothing to do here.
-            // If logic changes to deduct on request, we would add the amount back to availableBalance here.
+            // Balance is not deducted on request, so no need to refund.
+            // If logic changes to deduct on request, we would add the amount back here.
         }
     }, []);
 

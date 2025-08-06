@@ -35,6 +35,14 @@ export type WithdrawalRecord = {
     amount: number; // Stored in BDT
     method: string;
     status: TransactionStatus;
+    details?: {
+      walletNumber?: string | null;
+      bankName?: string | null;
+      accountHolderName?: string | null;
+      bankAccountNumber?: string | null;
+      swiftCode?: string | null;
+      usdtAddress?: string | null;
+    }
 }
 
 export type Referral = {

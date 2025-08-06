@@ -38,6 +38,29 @@ export default function WithdrawalsAdminPage() {
     }
   }
 
+  const renderDetails = (withdrawal: WithdrawalRecordWithUser) => {
+    if (!withdrawal.details) return "N/A";
+    
+    switch(withdrawal.method) {
+        case 'bkash':
+        case 'nagad':
+        case 'rocket':
+            return withdrawal.details.walletNumber || "N/A";
+        case 'usdt':
+            return withdrawal.details.usdtAddress || "N/A";
+        case 'bank':
+            return (
+                <div className="text-xs">
+                    <p><strong>Bank:</strong> {withdrawal.details.bankName}</p>
+                    <p><strong>Name:</strong> {withdrawal.details.accountHolderName}</p>
+                    <p><strong>Acct:</strong> {withdrawal.details.bankAccountNumber}</p>
+                </div>
+            )
+        default:
+            return "N/A";
+    }
+  }
+
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
@@ -63,6 +86,7 @@ export default function WithdrawalsAdminPage() {
               <TableHead>User</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Method</TableHead>
+              <TableHead>Wallet/Account Details</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -75,6 +99,7 @@ export default function WithdrawalsAdminPage() {
                   <TableCell>{withdrawal.userName} ({withdrawal.userId.substring(0,5)}...)</TableCell>
                   <TableCell>{formatCurrency(withdrawal.amount, 'BDT')}</TableCell>
                   <TableCell className="capitalize">{withdrawal.method}</TableCell>
+                  <TableCell>{renderDetails(withdrawal)}</TableCell>
                   <TableCell>
                     <Badge variant={withdrawal.status === 'completed' ? 'default' : withdrawal.status === 'pending' ? 'secondary' : 'destructive'}>
                         {withdrawal.status}
@@ -92,7 +117,7 @@ export default function WithdrawalsAdminPage() {
               ))
             ) : (
               <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={7} className="text-center">
                       No withdrawal data found.
                   </TableCell>
               </TableRow>
