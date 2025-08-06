@@ -13,7 +13,8 @@ import {
   ArrowUpFromLine,
   Languages,
   HelpCircle,
-  Loader
+  Loader,
+  TrendingUp,
 } from "lucide-react"
 
 export const Icons = {
@@ -44,4 +45,5 @@ export const Icons = {
   Languages,
   HelpCircle,
   Spinner: Loader,
+  Investment: TrendingUp,
 }

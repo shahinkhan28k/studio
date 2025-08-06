@@ -3,7 +3,7 @@ export type Locale = 'en' | 'bn' | 'es' | 'hi';
 
 export type TranslationKey = 
   // Nav
-  | 'home' | 'tasks' | 'refer' | 'account'
+  | 'home' | 'tasks' | 'refer' | 'account' | 'investment'
   // Profile
   | 'profile' | 'settings' | 'logOut' | 'languageCurrency'
   | 'deposit' | 'withdraw' | 'collaboration' | 'accountDetails'
@@ -39,6 +39,7 @@ const en: { [key in TranslationKey]: string } = {
   tasks: 'Tasks',
   refer: 'Refer',
   account: 'Account',
+  investment: 'Investment',
   profile: 'Profile',
   settings: 'Settings',
   logOut: 'Log Out',
@@ -89,6 +90,7 @@ const bn: { [key in TranslationKey]: string } = {
   tasks: 'কাজ',
   refer: 'রেফার',
   account: 'অ্যাকাউন্ট',
+  investment: 'বিনিয়োগ',
   profile: 'প্রোফাইল',
   settings: 'সেটিংস',
   logOut: 'লগ আউট',
@@ -139,6 +141,7 @@ const es: { [key in TranslationKey]: string } = {
   tasks: 'Tareas',
   refer: 'Referir',
   account: 'Cuenta',
+  investment: 'Inversión',
   profile: 'Perfil',
   settings: 'Configuración',
   logOut: 'Cerrar Sesión',
@@ -189,6 +192,7 @@ const hi: { [key in TranslationKey]: string } = {
   tasks: 'कार्य',
   refer: 'रेफर करें',
   account: 'खाता',
+  investment: 'निवेश',
   profile: 'प्रोफ़ाइल',
   settings: 'सेटिंग्स',
   logOut: 'लॉग आउट',
