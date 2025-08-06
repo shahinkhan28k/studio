@@ -38,7 +38,8 @@ const investmentPlanSchema = z.object({
   subtitle: z.string().min(1, "Subtitle is required."),
   badge: z.string().min(1, "Badge text is required."),
   imageUrl: z.string().url("Please enter a valid image URL."),
-  duration: z.coerce.number().int().positive("Duration must be a positive number of months."),
+  durationValue: z.coerce.number().int().positive("Duration must be a positive number."),
+  durationUnit: z.enum(["Days", "Months", "Years"]),
   minInvestment: z.coerce.number().positive("Minimum investment must be a positive number."),
   profitRate: z.coerce.number().positive("Profit rate must be a positive number."),
   progress: z.coerce.number().min(0).max(100, "Progress must be between 0 and 100.").default(0),
@@ -210,19 +211,42 @@ export default function EditInvestmentPlanPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration (Months)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g., 24" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex gap-2 items-end">
+                    <FormField
+                    control={form.control}
+                    name="durationValue"
+                    render={({ field }) => (
+                        <FormItem className="flex-grow">
+                        <FormLabel>Duration</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 12" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="durationUnit"
+                    render={({ field }) => (
+                        <FormItem>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Days">Days</SelectItem>
+                            <SelectItem value="Months">Months</SelectItem>
+                            <SelectItem value="Years">Years</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
               </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

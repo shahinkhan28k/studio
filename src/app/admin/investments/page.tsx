@@ -49,7 +49,7 @@ export default function InvestmentsAdminPage() {
               <TableHead>Title</TableHead>
               <TableHead>Min. Investment</TableHead>
               <TableHead>Profit Rate (%)</TableHead>
-              <TableHead>Duration (Months)</TableHead>
+              <TableHead>Duration</TableHead>
               <TableHead>Risk Level</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -61,7 +61,7 @@ export default function InvestmentsAdminPage() {
                   <TableCell>{plan.title}</TableCell>
                   <TableCell>{formatCurrency(plan.minInvestment, "BDT")}</TableCell>
                   <TableCell>{plan.profitRate}%</TableCell>
-                  <TableCell>{plan.duration} months</TableCell>
+                  <TableCell>{plan.durationValue} {plan.durationUnit}</TableCell>
                   <TableCell>
                     <Badge variant={plan.riskLevel === 'Low' ? 'default' : plan.riskLevel === 'Medium' ? 'secondary' : 'destructive'}>
                         {plan.riskLevel}

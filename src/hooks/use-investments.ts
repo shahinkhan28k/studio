@@ -8,7 +8,8 @@ export interface InvestmentPlanFormValues {
   subtitle: string
   badge: string
   imageUrl: string
-  duration: number
+  durationValue: number
+  durationUnit: 'Days' | 'Months' | 'Years'
   minInvestment: number
   profitRate: number
   progress: number

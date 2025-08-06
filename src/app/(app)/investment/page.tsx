@@ -42,6 +42,13 @@ const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
 }
 
 const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
+    const getDurationText = (value: number, unit: 'Days' | 'Months' | 'Years') => {
+        if (unit === 'Days') return `${value} দিন`;
+        if (unit === 'Months') return `${value} মাস`;
+        if (unit === 'Years') return `${value} বছর`;
+        return `${value} ${unit}`;
+    }
+
   return (
     <Card className="overflow-hidden shadow-lg transition-transform duration-300 hover:-translate-y-2">
       <CardHeader className="p-0 relative">
@@ -69,7 +76,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
         <div className="grid grid-cols-3 text-center text-sm">
           <div>
             <p className="text-muted-foreground">সময়কাল</p>
-            <p className="font-semibold">{plan.duration} মাস</p>
+            <p className="font-semibold">{getDurationText(plan.durationValue, plan.durationUnit)}</p>
           </div>
           <div>
             <p className="text-muted-foreground">লাভের হার</p>
