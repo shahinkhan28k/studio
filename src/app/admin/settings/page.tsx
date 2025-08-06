@@ -48,8 +48,8 @@ const settingsFormSchema = z.object({
   referralLevels: z.array(
     z.object({
       level: z.coerce.number().min(1),
-      requiredReferrals: z.coerce.number().min(0),
-      commissionRate: z.coerce.number().min(0),
+      requiredReferrals: z.coerce.number().min(0, "Required referrals must be 0 or more."),
+      commissionRate: z.coerce.number().min(0, "Commission rate must be 0 or more."),
     })
   ),
   investmentReferralCommissionRate: z.coerce.number().min(0),
@@ -82,14 +82,6 @@ export default function SettingsPage() {
 
   const settingsForm = useForm<z.infer<typeof settingsFormSchema>>({
     resolver: zodResolver(settingsFormSchema),
-    defaultValues: {
-      ...settings,
-      agentNumbers: {
-        bkash: settings.agentNumbers.bkash.join(", "),
-        nagad: settings.agentNumbers.nagad.join(", "),
-        rocket: settings.agentNumbers.rocket.join(", "),
-      },
-    },
   })
 
   const { fields, append, remove } = useFieldArray({
@@ -105,7 +97,8 @@ export default function SettingsPage() {
                 bkash: settings.agentNumbers.bkash.join(", "),
                 nagad: settings.agentNumbers.nagad.join(", "),
                 rocket: settings.agentNumbers.rocket.join(", "),
-            }
+            },
+            referralLevels: settings.referralLevels.sort((a,b) => a.level - b.level)
         });
     }
   }, [settings, settingsForm]);
@@ -140,7 +133,12 @@ export default function SettingsPage() {
   }
   
   const addNewLevel = () => {
-    append({ level: fields.length + 1, requiredReferrals: 0, commissionRate: 0 });
+    const newLevelNumber = fields.length + 1;
+    if (newLevelNumber > 10) {
+        toast({ title: "Level Limit", description: "You can only have up to 10 referral levels.", variant: "destructive" });
+        return;
+    }
+    append({ level: newLevelNumber, requiredReferrals: 0, commissionRate: 0 });
   }
 
   return (
@@ -259,7 +257,7 @@ export default function SettingsPage() {
                 <CardTitle>General Settings</CardTitle>
                 <CardDescription>Manage general platform settings.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <FormField
                     control={settingsForm.control}
@@ -358,7 +356,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle>Referral Commission Levels</CardTitle>
-                    <CardDescription>Set up the MLM commission structure for referrals.</CardDescription>
+                    <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={addNewLevel}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -377,6 +375,7 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Level</FormLabel>
                             <FormControl><Input type="number" {...field} disabled /></FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -387,6 +386,7 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Required Referrals</FormLabel>
                             <FormControl><Input type="number" {...field} /></FormControl>
+                             <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -397,6 +397,7 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Commission Rate (%)</FormLabel>
                             <FormControl><Input type="number" {...field} /></FormControl>
+                             <FormMessage />
                           </FormItem>
                         )}
                       />

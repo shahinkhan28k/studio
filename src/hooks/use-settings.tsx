@@ -38,6 +38,13 @@ const defaultSettings: Settings = {
     { level: 1, requiredReferrals: 3, commissionRate: 5 },
     { level: 2, requiredReferrals: 10, commissionRate: 7 },
     { level: 3, requiredReferrals: 20, commissionRate: 10 },
+    { level: 4, requiredReferrals: 30, commissionRate: 11 },
+    { level: 5, requiredReferrals: 40, commissionRate: 12 },
+    { level: 6, requiredReferrals: 50, commissionRate: 13 },
+    { level: 7, requiredReferrals: 60, commissionRate: 14 },
+    { level: 8, requiredReferrals: 70, commissionRate: 15 },
+    { level: 9, requiredReferrals: 80, commissionRate: 16 },
+    { level: 10, requiredReferrals: 90, commissionRate: 17 },
   ],
   investmentReferralCommissionRate: 5,
   withdrawalRequirement: 20,
@@ -123,5 +130,3 @@ export function useSettings() {
   }
   return context;
 }
-
-    

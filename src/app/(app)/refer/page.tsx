@@ -49,7 +49,9 @@ export default function ReferPage() {
   const currentLevel = React.useMemo(() => {
     const totalReferrals = referrals.length;
     let currentLvl = 0;
-    for (const level of settings.referralLevels) {
+    // Ensure levels are sorted by required referrals ascending
+    const sortedLevels = [...settings.referralLevels].sort((a, b) => a.requiredReferrals - b.requiredReferrals);
+    for (const level of sortedLevels) {
         if (totalReferrals >= level.requiredReferrals) {
             currentLvl = level.level;
         } else {
@@ -113,7 +115,7 @@ export default function ReferPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {settings.referralLevels.map((level) => (
+                {[...settings.referralLevels].sort((a, b) => a.level - b.level).map((level) => (
                     <TableRow key={level.level} className={level.level === currentLevel ? "bg-primary/10" : ""}>
                         <TableCell>
                             <Badge variant={level.level === currentLevel ? "default" : "outline"}>
@@ -169,5 +171,3 @@ export default function ReferPage() {
     </div>
   )
 }
-
-    
