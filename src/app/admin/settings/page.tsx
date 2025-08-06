@@ -131,7 +131,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings) {
-       const transformedDefaults = {
+       const transformedDefaults: SettingsFormValues = {
         ...settings,
         agentNumbers: {
             bkash: (settings.agentNumbers?.bkash || []).join(', '),
