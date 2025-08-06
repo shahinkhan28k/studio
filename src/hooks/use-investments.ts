@@ -186,3 +186,5 @@ export function useInvestments() {
 
   return { investmentPlans, addInvestmentPlan, updateInvestmentPlan, deleteInvestmentPlan, getInvestmentPlanById, investInPlan, userInvestments };
 }
+
+    

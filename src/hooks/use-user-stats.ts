@@ -200,41 +200,19 @@ export function useUserStats() {
     let earningUserInfo = allUsers.find(u => u.uid === targetUserId);
     let tempReferrerId = earningUserInfo?.referrerId;
     
-    // Iterate up the referral chain for MLM commission from tasks/investment commissions
-    for (const level of settings.referralLevels.sort((a,b)=>a.level - b.level)) {
-        if (!tempReferrerId) break;
-
-        const referrerInfo = allUsers.find(u => u.uid === tempReferrerId);
-        if (!referrerInfo) break;
-        
-        const referrerReferrals: Referral[] = getFromStorage(`referrals-${referrerInfo.uid}`, []);
-        const referrerLevel = settings.referralLevels
-            .filter(l => referrerReferrals.length >= l.requiredReferrals)
-            .sort((a,b) => b.level-a.level)[0];
-        
-        if (referrerLevel && referrerLevel.level === level.level) {
-             const commission = baseAmount * (referrerLevel.commissionRate / 100);
-             const referrerStats = getFromStorage(`userStats-${referrerInfo.uid}`, defaultStats);
-             updateStats(referrerInfo.uid, {
-                totalEarnings: referrerStats.totalEarnings + commission,
-                availableBalance: referrerStats.availableBalance + commission
-            });
+    // This is for commissions from other users (tasks or investment)
+    if (earningUserId) {
+        let parentReferrerId = earningUserInfo?.referrerId;
+        if (parentReferrerId) {
+            const referrerStats = getFromStorage(`userStats-${parentReferrerId}`, defaultStats);
+            const referralCommissionRate = settings.referralLevels[0]?.commissionRate ?? 0; // Simplified for now
+            const commission = baseAmount * (referralCommissionRate / 100);
             
-             const existingReferralIndex = referrerReferrals.findIndex(r => r.id === targetUserId);
-             if (existingReferralIndex > -1) {
-                referrerReferrals[existingReferralIndex].earnings += commission;
-            } else {
-                 const newReferral: Referral = {
-                    id: targetUserId,
-                    name: earningUserInfo?.displayName || earningUserInfo?.email || 'Anonymous',
-                    earnings: commission
-                };
-                 referrerReferrals.push(newReferral);
-            }
-             setInStorage(`referrals-${referrerInfo.uid}`, referrerReferrals);
+            updateStats(parentReferrerId, {
+                totalEarnings: referrerStats.totalEarnings + commission,
+                availableBalance: referrerStats.availableBalance + commission,
+            });
         }
-        
-        tempReferrerId = referrerInfo.referrerId;
     }
 
 
