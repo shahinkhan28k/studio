@@ -74,8 +74,8 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="p-4 space-y-4 flex-grow flex flex-col">
-        <div className="grid grid-cols-3 text-center text-sm">
+      <CardContent className="p-4 flex flex-col flex-grow">
+        <div className="grid grid-cols-3 text-center text-sm mb-4">
           <div>
             <p className="text-muted-foreground">সময়কাল</p>
             <p className="font-semibold">{getDurationText(plan.durationValue, plan.durationUnit)}</p>
@@ -90,7 +90,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           </div>
         </div>
         
-        <div className="bg-muted/50 p-3 rounded-lg space-y-3 text-sm">
+        <div className="bg-muted/50 p-3 rounded-lg space-y-3 text-sm mb-4">
             <div className="flex justify-between items-center">
                 <span className="text-muted-foreground flex items-center"><BarChart className="w-4 h-4 mr-2" /> মোট লাভ</span>
                 <span className="font-bold text-primary">{formatCurrency(totalProfit, "BDT")}</span>
@@ -103,30 +103,32 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
 
         <div className="flex-grow" />
 
-        <div>
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>অগ্রগতি</span>
-            <span>{plan.progress}%</span>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>অগ্রগতি</span>
+              <span>{plan.progress}%</span>
+            </div>
+            <Progress value={plan.progress} className="h-2" />
           </div>
-          <Progress value={plan.progress} className="h-2" />
-        </div>
-        
-        <div className="flex items-center justify-between pt-2">
-           <InvestmentRisk level={plan.riskLevel} />
-           <Badge variant="outline" className="text-primary border-primary">
-                <Zap className="w-3 h-3 mr-1" />
-                {plan.tag}
-            </Badge>
-        </div>
+          
+          <div className="flex items-center justify-between">
+            <InvestmentRisk level={plan.riskLevel} />
+            <Badge variant="outline" className="text-primary border-primary">
+                  <Zap className="w-3 h-3 mr-1" />
+                  {plan.tag}
+              </Badge>
+          </div>
 
 
-        <div className="flex gap-2 pt-2">
-          <Button variant="outline" className="w-full">
-            <Info className="w-4 h-4 mr-2" /> বিস্তারিত
-          </Button>
-          <Button className="w-full bg-accent hover:bg-accent/90">
-            <Wallet className="w-4 h-4 mr-2" /> বিনিয়োগ করুন
-          </Button>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="w-full">
+              <Info className="w-4 h-4 mr-2" /> বিস্তারিত
+            </Button>
+            <Button className="w-full bg-accent hover:bg-accent/90">
+              <Wallet className="w-4 h-4 mr-2" /> বিনিয়োগ করুন
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
