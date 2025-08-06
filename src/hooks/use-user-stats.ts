@@ -5,12 +5,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/auth-context"
 import { useSettings } from "./use-settings"
 import type { UserInfo } from "./use-admin-stats";
+import type { UserInvestment } from "./use-investments";
 
 export type UserStats = {
   totalEarnings: number
   totalDeposit: number
   totalWithdraw: number
   availableBalance: number
+  todaysEarnings: number
 }
 
 export type TransactionStatus = 'pending' | 'completed' | 'failed';
@@ -45,6 +47,7 @@ export const defaultStats: UserStats = {
   totalDeposit: 0,
   totalWithdraw: 0,
   availableBalance: 0,
+  todaysEarnings: 0,
 }
 
 // Helper functions to interact with localStorage
@@ -69,6 +72,47 @@ const setInStorage = <T,>(key: string, value: T) => {
     }
 };
 
+const calculateDailyEarnings = (userId: string) => {
+    if(!userId) return;
+    const allUserInvestments = getFromStorage<UserInvestment[]>('userInvestments', []);
+    const activeInvestments = allUserInvestments.filter(inv => inv.userId === userId && inv.isActive);
+    
+    let dailyTotal = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    activeInvestments.forEach(investment => {
+        const investmentDate = new Date(investment.investmentDate);
+        investmentDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(investment.endDate);
+        endDate.setHours(0, 0, 0, 0);
+
+        if (today >= investmentDate && today <= endDate) {
+            dailyTotal += investment.dailyIncome;
+        }
+    });
+
+    const userStats = getFromStorage<UserStats>(`userStats-${userId}`, defaultStats);
+    const lastEarningsUpdateKey = `lastEarningsUpdate-${userId}`;
+    const lastUpdateStr = getFromStorage(lastEarningsUpdateKey, new Date(0).toISOString());
+    const lastUpdate = new Date(lastUpdateStr);
+    lastUpdate.setHours(0, 0, 0, 0);
+
+    if (today > lastUpdate) {
+        const newStats = {
+            ...userStats,
+            availableBalance: userStats.availableBalance + dailyTotal,
+            totalEarnings: userStats.totalEarnings + dailyTotal,
+            todaysEarnings: dailyTotal
+        };
+        setInStorage(`userStats-${userId}`, newStats);
+        setInStorage(lastEarningsUpdateKey, today.toISOString());
+    } else {
+         const newStats = { ...userStats, todaysEarnings: dailyTotal };
+         setInStorage(`userStats-${userId}`, newStats);
+    }
+};
+
 export function useUserStats() {
   const { user } = useAuth()
   const { settings } = useSettings()
@@ -88,6 +132,7 @@ export function useUserStats() {
         return;
     };
     
+    calculateDailyEarnings(uid);
     setStats(getFromStorage(`userStats-${uid}`, defaultStats));
     const allDeposits = getFromStorage<DepositRecord[]>(`allDeposits`, []);
     setDepositHistory(allDeposits.filter(d => d.userId === uid));
@@ -107,12 +152,12 @@ export function useUserStats() {
     };
   }, [loadAllUserData]);
   
-
   const updateStats = useCallback((userId: string, newStats: Partial<UserStats>) => {
       if (!userId) return;
       const currentStats = getFromStorage(`userStats-${userId}`, defaultStats);
       const updatedStats = { ...currentStats, ...newStats };
       setInStorage(`userStats-${userId}`, updatedStats);
+      setStats(updatedStats);
   }, []);
 
   const addEarning = useCallback(async (amount: number) => {
@@ -203,5 +248,5 @@ export function useUserStats() {
 
   }, [uid, updateStats]);
 
-  return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, refresh: loadAllUserData };
+  return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, updateStats, refresh: loadAllUserData };
 }

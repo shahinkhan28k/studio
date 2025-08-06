@@ -23,6 +23,7 @@ const defaultStats: UserStats = {
   totalDeposit: 0,
   totalWithdraw: 0,
   availableBalance: 0,
+  todaysEarnings: 0,
 }
 
 export default function ProfilePage() {
@@ -67,20 +68,28 @@ export default function ProfilePage() {
         </Card>
 
         <div className="grid grid-cols-2 gap-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg font-normal">{language.t('totalEarnings')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : '...'}</p>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader>
                     <CardTitle className="text-lg font-normal">{language.t('availableBalance')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-2xl font-bold text-primary">{isClient ? formatCurrency(stats.availableBalance, currency) : '...'}</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">{language.t('todaysEarnings')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.todaysEarnings, currency) : '...'}</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-normal">{language.t('totalEarnings')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : '...'}</p>
                 </CardContent>
             </Card>
              <Card>

@@ -11,11 +11,24 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useInvestments, InvestmentPlan } from "@/hooks/use-investments"
+import { useInvestments, InvestmentPlan, UserInvestment } from "@/hooks/use-investments"
 import { Wallet, Info, Zap, Users, BarChart, TrendingUp, CalendarDays } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useAppContext } from "@/context/app-context"
+
 
 const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
   const levelMap = {
@@ -24,15 +37,17 @@ const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
     High: { dots: 3, color: "text-red-500 bg-red-500", label: "উচ্চ ঝুঁকি" },
   }
   const { dots, color, label } = levelMap[level]
+  const colorClass = color.split(' ')[0]
+  const bgClass = color.split(' ')[1]
 
   return (
-    <div className={`flex items-center text-xs ${color.split(' ')[0]}`}>
+    <div className={`flex items-center text-xs ${colorClass}`}>
       <div className="flex gap-1 mr-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <span
             key={i}
             className={`h-2 w-2 rounded-full ${
-              i < dots ? color.split(' ')[1] : "bg-muted"
+              i < dots ? bgClass : "bg-muted"
             }`}
           ></span>
         ))}
@@ -42,7 +57,7 @@ const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
   )
 }
 
-const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
+const InvestmentCard = ({ plan, onInvest }: { plan: InvestmentPlan, onInvest: (plan: InvestmentPlan) => void }) => {
     const getDurationText = (value: number, unit: 'Days' | 'Months' | 'Years') => {
         if (unit === 'Days') return `${value} দিন`;
         if (unit === 'Months') return `${value} মাস`;
@@ -149,7 +164,7 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
             <Button variant="outline" className="w-full">
               <Info className="w-4 h-4 mr-2" /> বিস্তারিত
             </Button>
-            <Button className="w-full bg-accent hover:bg-accent/90">
+            <Button className="w-full bg-accent hover:bg-accent/90" onClick={() => onInvest(plan)}>
               <Wallet className="w-4 h-4 mr-2" /> বিনিয়োগ করুন
             </Button>
           </div>
@@ -160,9 +175,40 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
 }
 
 export default function InvestmentPage() {
-  const { investmentPlans } = useInvestments()
+  const { investmentPlans, investInPlan } = useInvestments()
+  const { toast } = useToast()
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false)
+  const [selectedPlan, setSelectedPlan] = React.useState<InvestmentPlan | null>(null)
+  const { language } = useAppContext()
+
+  const handleInvestClick = (plan: InvestmentPlan) => {
+    setSelectedPlan(plan)
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmInvestment = () => {
+    if (selectedPlan) {
+      try {
+        investInPlan(selectedPlan)
+        toast({
+          title: "বিনিয়োগ সফল হয়েছে",
+          description: `আপনি সফলভাবে ${selectedPlan.title} প্রকল্পে বিনিয়োগ করেছেন।`,
+        })
+      } catch (error) {
+        toast({
+          title: "বিনিয়োগ ব্যর্থ হয়েছে",
+          description: (error as Error).message,
+          variant: "destructive",
+        })
+      }
+    }
+    setShowConfirmDialog(false)
+    setSelectedPlan(null)
+  }
+
 
   return (
+    <>
     <div className="container py-6">
        <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tight">বিনিয়োগ পরিকল্পনা</h1>
@@ -174,7 +220,7 @@ export default function InvestmentPage() {
       {investmentPlans.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {investmentPlans.map((plan) => (
-            <InvestmentCard key={plan.id} plan={plan} />
+            <InvestmentCard key={plan.id} plan={plan} onInvest={handleInvestClick} />
           ))}
         </div>
       ) : (
@@ -183,5 +229,22 @@ export default function InvestmentPage() {
         </div>
       )}
     </div>
+    {selectedPlan && (
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>বিনিয়োগ নিশ্চিত করুন</AlertDialogTitle>
+                <AlertDialogDescription>
+                    আপনি কি নিশ্চিতভাবে '{selectedPlan.title}' প্রকল্পে বিনিয়োগ করতে চান? আপনার অ্যাকাউন্ট থেকে {formatCurrency(selectedPlan.minInvestment, "BDT")} কেটে নেওয়া হবে।
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedPlan(null)}>বাতিল করুন</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmInvestment}>নিশ্চিত করুন</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )}
+    </>
   )
 }

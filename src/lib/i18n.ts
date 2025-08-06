@@ -8,7 +8,7 @@ export type TranslationKey =
   | 'profile' | 'settings' | 'logOut' | 'languageCurrency'
   | 'deposit' | 'withdraw' | 'collaboration' | 'accountDetails'
   | 'personalInformation' | 'helpSupport'
-  | 'totalEarnings' | 'availableBalance' | 'totalDeposit' | 'totalWithdraw'
+  | 'totalEarnings' | 'availableBalance' | 'totalDeposit' | 'totalWithdraw' | 'todaysEarnings'
   // Home
   | 'successfulWithdrawal' | 'justWithdrew'
   | 'featuredTasksTitle' | 'featuredTasksDescription'
@@ -54,6 +54,7 @@ const en: { [key in TranslationKey]: string } = {
   availableBalance: 'Available Balance',
   totalDeposit: 'Total Deposit',
   totalWithdraw: 'Total Withdraw',
+  todaysEarnings: "Today's Earnings",
   successfulWithdrawal: 'Successful Withdrawal!',
   justWithdrew: 'just withdrew',
   featuredTasksTitle: 'Profitable Tasks',
@@ -105,6 +106,7 @@ const bn: { [key in TranslationKey]: string } = {
   availableBalance: 'বর্তমান ব্যালেন্স',
   totalDeposit: 'মোট জমা',
   totalWithdraw: 'মোট উত্তোলন',
+  todaysEarnings: 'আজকের আয়',
   successfulWithdrawal: 'সফল উত্তোলন!',
   justWithdrew: 'এইমাত্র উত্তোলন করেছেন',
   featuredTasksTitle: 'লাভজনক কাজগুলো',
@@ -156,6 +158,7 @@ const es: { [key in TranslationKey]: string } = {
   availableBalance: 'Saldo Disponible',
   totalDeposit: 'Depósito Total',
   totalWithdraw: 'Retiro Total',
+  todaysEarnings: 'Ganancias de Hoy',
   successfulWithdrawal: '¡Retiro Exitoso!',
   justWithdrew: 'acaba de retirar',
   featuredTasksTitle: 'Tareas Rentables',
@@ -207,6 +210,7 @@ const hi: { [key in TranslationKey]: string } = {
   availableBalance: 'उपलब्ध शेष',
   totalDeposit: 'कुल जमा',
   totalWithdraw: 'कुल निकासी',
+  todaysEarnings: 'आज की कमाई',
   successfulWithdrawal: 'सफल निकासी!',
   justWithdrew: 'ने अभी निकाला',
   featuredTasksTitle: 'लाभदायक कार्य',
