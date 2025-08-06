@@ -82,6 +82,21 @@ export default function SettingsPage() {
 
   const settingsForm = useForm<z.infer<typeof settingsFormSchema>>({
     resolver: zodResolver(settingsFormSchema),
+    defaultValues: {
+        referralLevels: [],
+        investmentReferralCommissionRate: 0,
+        withdrawalRequirement: 0,
+        minimumWithdrawalAmount: 0,
+        depositSessionDuration: 5,
+        agentNumbers: {
+            bkash: "",
+            nagad: "",
+            rocket: "",
+        },
+        supportEmail: "",
+        supportPhoneNumber: "",
+        supportWhatsApp: ""
+    }
   })
 
   const { fields, append, remove } = useFieldArray({
