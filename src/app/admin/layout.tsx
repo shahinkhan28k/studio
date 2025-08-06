@@ -15,11 +15,12 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
-import { Home, Users, ClipboardList, Bell, Settings, Percent, LayoutDashboard, UserCog, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
+import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import React from "react"
 import { AppProvider } from "@/context/app-context"
+import { AdminHeader } from "@/components/admin-header"
 
 
 export default function AdminLayout({
@@ -130,6 +131,7 @@ export default function AdminLayout({
             </SidebarContent>
         </Sidebar>
         <SidebarInset>
+            <AdminHeader />
             <main>{children}</main>
         </SidebarInset>
         </SidebarProvider>
