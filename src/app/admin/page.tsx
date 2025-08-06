@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, Users, Activity, Eye } from "lucide-react"
+import { DollarSign, Users, Activity, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
 import { useAdminStats } from "@/hooks/use-admin-stats"
 import { formatCurrency } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,21 +26,7 @@ export default function AdminPage() {
 
   return (
     <div className="container py-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Earnings
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalEarnings, currency) : "..."}</div>
-            <p className="text-xs text-muted-foreground">
-              Total earnings across all users
-            </p>
-          </CardContent>
-        </Card>
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -56,28 +42,28 @@ export default function AdminPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Tasks Completed
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isClient ? `+${stats.tasksCompleted}` : "..."}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all users
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Total Deposits
             </CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <ArrowDownToLine className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalDeposits, currency) : "..."}</div>
             <p className="text-xs text-muted-foreground">
               Total deposits made by users
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Withdrawals
+            </CardTitle>
+            <ArrowUpFromLine className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isClient ? formatCurrency(stats.totalWithdrawals, currency) : "..."}</div>
+            <p className="text-xs text-muted-foreground">
+              Total withdrawals by users
             </p>
           </CardContent>
         </Card>

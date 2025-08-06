@@ -171,11 +171,11 @@ export function useDeposits() {
 
         if (status === 'completed') {
             const userStatsKey = `userStats-${userId}`;
-            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0, totalEarnings: 0, totalWithdraw: 0 });
+            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0, totalEarnings: 0, totalWithdraw: 0, todaysEarnings: 0, totalInvestment: 0 });
             const newStats = {
                 ...currentStats,
-                totalDeposit: currentStats.totalDeposit + amount,
-                availableBalance: currentStats.availableBalance + amount,
+                totalDeposit: (currentStats.totalDeposit || 0) + amount,
+                availableBalance: (currentStats.availableBalance || 0) + amount,
             };
             setInStorage(userStatsKey, newStats);
         }

@@ -8,6 +8,7 @@ type AdminSummaryStats = {
   totalUsers: number
   totalEarnings: number
   totalDeposits: number
+  totalWithdrawals: number
   tasksCompleted: number
 }
 
@@ -33,6 +34,7 @@ const defaultAdminStats: AdminSummaryStats = {
   totalUsers: 0,
   totalEarnings: 0,
   totalDeposits: 0,
+  totalWithdrawals: 0,
   tasksCompleted: 0,
 }
 
@@ -61,11 +63,13 @@ export function useAdminStats() {
       
       let totalEarnings = 0
       let totalDeposits = 0
+      let totalWithdrawals = 0
       
       const resolvedAllUsersData = users.map(user => {
         const userStats = getUserStats(user.uid);
         totalEarnings += userStats.totalEarnings
         totalDeposits += userStats.totalDeposit
+        totalWithdrawals += userStats.totalWithdraw
         return {
           ...user,
           stats: userStats,
@@ -91,6 +95,7 @@ export function useAdminStats() {
         totalUsers: users.length,
         totalEarnings,
         totalDeposits,
+        totalWithdrawals,
         tasksCompleted,
       })
 

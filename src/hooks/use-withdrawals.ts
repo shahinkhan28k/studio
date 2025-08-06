@@ -76,8 +76,8 @@ export function useWithdrawals() {
         if (status === 'completed') {
             const newStats = {
                 ...currentStats,
-                totalWithdraw: currentStats.totalWithdraw + amount,
-                availableBalance: currentStats.availableBalance - amount,
+                totalWithdraw: (currentStats.totalWithdraw || 0) + amount,
+                availableBalance: (currentStats.availableBalance || 0) - amount,
             };
             setInStorage(userStatsKey, newStats);
         } else if (status === 'failed') {
