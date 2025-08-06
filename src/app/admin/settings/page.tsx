@@ -126,9 +126,9 @@ export default function SettingsPage() {
             minimumWithdrawalAmount: settings.minimumWithdrawalAmount || 0,
             depositSessionDuration: settings.depositSessionDuration || 5,
             agentNumbers: {
-                bkash: (settings.agentNumbers.bkash || []).join(", "),
-                nagad: (settings.agentNumbers.nagad || []).join(", "),
-                rocket: (settings.agentNumbers.rocket || []).join(", "),
+                bkash: (settings.agentNumbers?.bkash || []).join(", "),
+                nagad: (settings.agentNumbers?.nagad || []).join(", "),
+                rocket: (settings.agentNumbers?.rocket || []).join(", "),
             },
             supportEmail: settings.supportEmail || "",
             supportPhoneNumber: settings.supportPhoneNumber || "",
@@ -189,7 +189,8 @@ export default function SettingsPage() {
                 <p className="text-muted-foreground">Manage your website's configuration.</p>
             </div>
         </div>
-      
+      </div>
+
        <Form {...settingsForm}>
           <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
             <Accordion type="multiple" collapsible className="w-full space-y-4">
