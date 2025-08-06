@@ -37,6 +37,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { useSettings, Settings, ReferralLevel } from "@/hooks/use-settings"
 import React from "react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 const bannerFormSchema = z.object({
   src: z.string().url("Please enter a valid URL."),
@@ -177,264 +184,288 @@ export default function SettingsPage() {
             </div>
         </div>
       </div>
-      <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Homepage Banner Settings</CardTitle>
-            <CardDescription>Manage the promotional banners on the homepage carousel.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-4">
-            <Form {...bannerForm}>
-              <form onSubmit={bannerForm.handleSubmit(onBannerSubmit)} className="space-y-4 p-4 border rounded-lg">
-                <CardTitle className="text-lg">Add New Banner</CardTitle>
-                <FormField
-                  control={bannerForm.control}
-                  name="src"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Image URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://example.com/banner.png" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={bannerForm.control}
-                  name="alt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alt Text</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Descriptive text for the banner" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={bannerForm.control}
-                  name="data-ai-hint"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>AI Hint</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., 'advertisement promotion'" {...field} />
-                      </FormControl>
-                      <FormDescription>One or two keywords for AI image search.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit">Add Banner</Button>
-              </form>
-            </Form>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Banners</CardTitle>
-              </CardHeader>
-              <CardContent>
-                  <div className="border rounded-lg">
-                  <Table>
-                      <TableHeader>
-                          <TableRow>
-                          <TableHead>Preview</TableHead>
-                          <TableHead>Alt Text</TableHead>
-                          <TableHead>Actions</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {banners.length > 0 ? (
-                          banners.map((banner) => (
-                              <TableRow key={banner.id}>
-                              <TableCell>
-                                  <Image src={banner.src} alt={banner.alt} width={100} height={40} className="object-cover rounded-md" />
-                              </TableCell>
-                              <TableCell>{banner.alt}</TableCell>
-                              <TableCell>
-                                  <Button variant="destructive" size="sm" onClick={() => handleDeleteBanner(banner.id)}>Delete</Button>
-                              </TableCell>
-                              </TableRow>
-                          ))
-                          ) : (
-                          <TableRow>
-                              <TableCell colSpan={3} className="text-center">No banners found.</TableCell>
-                          </TableRow>
-                          )}
-                      </TableBody>
-                  </Table>
-                  </div>
-              </CardContent>
-            </Card>
-          </CardContent>
-        </Card>
-        
-        <Form {...settingsForm}>
+      
+       <Form {...settingsForm}>
           <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>Manage general platform settings.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={settingsForm.control}
-                    name="minimumWithdrawalAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Minimum Withdrawal Amount</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={settingsForm.control}
-                    name="withdrawalRequirement"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Withdrawal Referral Requirement</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                         <FormDescription>Number of referrals required to enable withdrawals.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={settingsForm.control}
-                    name="depositSessionDuration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Deposit Session Duration (Minutes)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={settingsForm.control}
-                    name="investmentReferralCommissionRate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Investment Referral Commission Rate (%)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormDescription>Commission rate for when a referred user invests.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Agent Deposit Numbers</CardTitle>
-                        <CardDescription>Enter numbers separated by commas.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <FormField control={settingsForm.control} name="agentNumbers.bkash" render={({field}) => (
-                             <FormItem><FormLabel>bKash Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={settingsForm.control} name="agentNumbers.nagad" render={({field}) => (
-                             <FormItem><FormLabel>Nagad Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={settingsForm.control} name="agentNumbers.rocket" render={({field}) => (
-                             <FormItem><FormLabel>Rocket Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                    </CardContent>
-                 </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Support Contact</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid md:grid-cols-3 gap-4">
-                        <FormField control={settingsForm.control} name="supportEmail" render={({field}) => (
-                             <FormItem><FormLabel>Support Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={settingsForm.control} name="supportPhoneNumber" render={({field}) => (
-                             <FormItem><FormLabel>Support Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={settingsForm.control} name="supportWhatsApp" render={({field}) => (
-                             <FormItem><FormLabel>Support WhatsApp Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                    </CardContent>
-                 </Card>
+            <Accordion type="multiple" collapsible className="w-full space-y-8">
+                
+                <Card as={AccordionItem} value="general-settings">
+                    <AccordionTrigger className="p-6">
+                         <CardHeader className="p-0 text-left">
+                            <CardTitle>General Settings</CardTitle>
+                            <CardDescription>Manage general platform settings.</CardDescription>
+                        </CardHeader>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <CardContent className="space-y-6 pt-0">
+                            <div className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                                control={settingsForm.control}
+                                name="minimumWithdrawalAmount"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Minimum Withdrawal Amount</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={settingsForm.control}
+                                name="withdrawalRequirement"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Withdrawal Referral Requirement</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormDescription>Number of referrals required to enable withdrawals.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={settingsForm.control}
+                                name="depositSessionDuration"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Deposit Session Duration (Minutes)</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={settingsForm.control}
+                                name="investmentReferralCommissionRate"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Investment Referral Commission Rate (%)</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormDescription>Commission rate for when a referred user invests.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            </div>
+                        </CardContent>
+                    </AccordionContent>
+                </Card>
 
-              </CardContent>
-            </Card>
+                <Card as={AccordionItem} value="agent-numbers">
+                    <AccordionTrigger className="p-6">
+                        <CardHeader className="p-0 text-left">
+                            <CardTitle>Agent Deposit Numbers</CardTitle>
+                            <CardDescription>Enter numbers separated by commas.</CardDescription>
+                        </CardHeader>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <CardContent className="space-y-4">
+                            <FormField control={settingsForm.control} name="agentNumbers.bkash" render={({field}) => (
+                                <FormItem><FormLabel>bKash Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={settingsForm.control} name="agentNumbers.nagad" render={({field}) => (
+                                <FormItem><FormLabel>Nagad Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={settingsForm.control} name="agentNumbers.rocket" render={({field}) => (
+                                <FormItem><FormLabel>Rocket Numbers</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                        </CardContent>
+                    </AccordionContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Referral Commission Levels</CardTitle>
-                    <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addNewLevel}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Level
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg">
-                      <FormField
-                        control={settingsForm.control}
-                        name={`referralLevels.${index}.level`}
+                <Card as={AccordionItem} value="support-contact">
+                    <AccordionTrigger className="p-6">
+                        <CardHeader className="p-0 text-left">
+                            <CardTitle>Support Contact</CardTitle>
+                            <CardDescription>Update customer support contact information.</CardDescription>
+                        </CardHeader>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                         <CardContent className="grid md:grid-cols-3 gap-4">
+                            <FormField control={settingsForm.control} name="supportEmail" render={({field}) => (
+                                <FormItem><FormLabel>Support Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={settingsForm.control} name="supportPhoneNumber" render={({field}) => (
+                                <FormItem><FormLabel>Support Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={settingsForm.control} name="supportWhatsApp" render={({field}) => (
+                                <FormItem><FormLabel>Support WhatsApp Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                        </CardContent>
+                    </AccordionContent>
+                </Card>
+
+                <Card as={AccordionItem} value="referral-levels">
+                    <AccordionTrigger className="p-6">
+                        <div className="flex justify-between items-center w-full">
+                            <CardHeader className="p-0 text-left">
+                                <CardTitle>Referral Commission Levels</CardTitle>
+                                <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
+                            </CardHeader>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <CardContent>
+                             <Button type="button" variant="outline" size="sm" onClick={addNewLevel} className="mb-4">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Level
+                            </Button>
+                            <div className="space-y-4">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg">
+                                <FormField
+                                    control={settingsForm.control}
+                                    name={`referralLevels.${index}.level`}
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Level</FormLabel>
+                                        <FormControl><Input type="number" {...field} disabled /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={settingsForm.control}
+                                    name={`referralLevels.${index}.requiredReferrals`}
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Required Referrals</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={settingsForm.control}
+                                    name={`referralLevels.${index}.commissionRate`}
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Commission Rate (%)</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                                </div>
+                            ))}
+                            </div>
+                        </CardContent>
+                    </AccordionContent>
+                </Card>
+            </Accordion>
+             <Button type="submit">Save All Settings</Button>
+        </form>
+    </Form>
+
+    <Accordion type="multiple" collapsible className="w-full space-y-8 mt-8">
+        <Card as={AccordionItem} value="banner-settings">
+            <AccordionTrigger className="p-6">
+                <CardHeader className="p-0 text-left">
+                    <CardTitle>Homepage Banner Settings</CardTitle>
+                    <CardDescription>Manage the promotional banners on the homepage carousel.</CardDescription>
+                </CardHeader>
+            </AccordionTrigger>
+            <AccordionContent>
+                <CardContent className="space-y-6 pt-0">
+                    <Form {...bannerForm}>
+                    <form onSubmit={bannerForm.handleSubmit(onBannerSubmit)} className="space-y-4 p-4 border rounded-lg">
+                        <h3 className="text-lg font-medium">Add New Banner</h3>
+                        <FormField
+                        control={bannerForm.control}
+                        name="src"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Level</FormLabel>
-                            <FormControl><Input type="number" {...field} disabled /></FormControl>
+                            <FormItem>
+                            <FormLabel>Image URL</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/banner.png" {...field} />
+                            </FormControl>
                             <FormMessage />
-                          </FormItem>
+                            </FormItem>
                         )}
-                      />
-                       <FormField
-                        control={settingsForm.control}
-                        name={`referralLevels.${index}.requiredReferrals`}
+                        />
+                        <FormField
+                        control={bannerForm.control}
+                        name="alt"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Required Referrals</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                             <FormMessage />
-                          </FormItem>
+                            <FormItem>
+                            <FormLabel>Alt Text</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Descriptive text for the banner" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
                         )}
-                      />
-                       <FormField
-                        control={settingsForm.control}
-                        name={`referralLevels.${index}.commissionRate`}
+                        />
+                        <FormField
+                        control={bannerForm.control}
+                        name="data-ai-hint"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Commission Rate (%)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                             <FormMessage />
-                          </FormItem>
+                            <FormItem>
+                            <FormLabel>AI Hint</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., 'advertisement promotion'" {...field} />
+                            </FormControl>
+                            <FormDescription>One or two keywords for AI image search.</FormDescription>
+                            <FormMessage />
+                            </FormItem>
                         )}
-                      />
-                      <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                        />
+                        <Button type="submit">Add Banner</Button>
+                    </form>
+                    </Form>
 
-            <Button type="submit">Save All Settings</Button>
-          </form>
-        </Form>
-      </div>
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Current Banners</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                <TableHead>Preview</TableHead>
+                                <TableHead>Alt Text</TableHead>
+                                <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {banners.length > 0 ? (
+                                banners.map((banner) => (
+                                    <TableRow key={banner.id}>
+                                    <TableCell>
+                                        <Image src={banner.src} alt={banner.alt} width={100} height={40} className="object-cover rounded-md" />
+                                    </TableCell>
+                                    <TableCell>{banner.alt}</TableCell>
+                                    <TableCell>
+                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteBanner(banner.id)}>Delete</Button>
+                                    </TableCell>
+                                    </TableRow>
+                                ))
+                                ) : (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center">No banners found.</TableCell>
+                                </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                        </div>
+                    </CardContent>
+                    </Card>
+                </CardContent>
+            </AccordionContent>
+        </Card>
+    </Accordion>
+
     </div>
   )
 }
