@@ -146,7 +146,7 @@ export default function SettingsPage() {
        };
       settingsForm.reset(transformedDefaults);
     }
-  }, [settings, settingsForm])
+  }, [settings, settingsForm]);
 
   function onSettingsSubmit(data: SettingsFormValues) {
     const dataToSave: Settings = {
