@@ -227,7 +227,12 @@ export function useUserStats() {
         throw new Error("Insufficient Balance");
     }
 
-    // No balance change on request, only on approval by admin
+    const newStats = {
+      ...currentStats,
+      availableBalance: currentStats.availableBalance - withdrawal.amount,
+    };
+    setInStorage(`userStats-${uid}`, newStats);
+
     const newRecord: WithdrawalRecord = { 
         ...withdrawal, 
         id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),

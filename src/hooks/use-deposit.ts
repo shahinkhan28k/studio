@@ -170,7 +170,8 @@ export function useDeposits() {
         
         if (status === 'completed') {
             const userStatsKey = `userStats-${userId}`;
-            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0, totalEarnings: 0, totalWithdraw: 0, todaysEarnings: 0, totalInvestment: 0 });
+            const { defaultStats } = require('@/hooks/use-user-stats');
+            const currentStats = getFromStorage(userStatsKey, defaultStats);
             const newStats = {
                 ...currentStats,
                 totalDeposit: (currentStats.totalDeposit || 0) + amount,

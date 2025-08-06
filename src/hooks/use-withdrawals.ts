@@ -80,8 +80,12 @@ export function useWithdrawals() {
             };
             setInStorage(userStatsKey, newStats);
         } else if (status === 'failed') {
-            // Balance is not deducted on request, so no need to refund.
-            // If logic changes to deduct on request, we would add the amount back here.
+            // If the withdrawal fails, add the amount back to the user's available balance.
+             const newStats = {
+                ...currentStats,
+                availableBalance: (currentStats.availableBalance || 0) + amount,
+            };
+            setInStorage(userStatsKey, newStats);
         }
 
         setInStorage(ALL_WITHDRAWALS_STORAGE_KEY, allWithdrawals);
