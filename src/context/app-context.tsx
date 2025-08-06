@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { translations, Language, Locale } from '@/lib/i18n';
 
 export type Currency = 'BDT'; // Only BDT is supported now
@@ -21,22 +21,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('app-locale') as Locale | null;
-    if (savedLocale) {
+    if (savedLocale && translations[savedLocale]) {
       setLocale(savedLocale);
     }
-    // Currency is always BDT, no need to load from storage.
   }, []);
 
-  const handleSetLanguage = (newLocale: Locale) => {
-    setLocale(newLocale);
-    localStorage.setItem('app-locale', newLocale);
-  };
+  const handleSetLanguage = useCallback((newLocale: Locale) => {
+    if (translations[newLocale]) {
+      setLocale(newLocale);
+      localStorage.setItem('app-locale', newLocale);
+    }
+  }, []);
   
-  const handleSetCurrency = (newCurrency: Currency) => {
+  const handleSetCurrency = useCallback((newCurrency: Currency) => {
     // This function is now a no-op as currency is fixed to BDT.
     // Kept for type consistency if needed elsewhere.
     setCurrency('BDT');
-  }
+  }, []);
 
   const value = {
     language: { ...translations[locale], locale },

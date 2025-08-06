@@ -22,7 +22,9 @@ export default function AppLayout({
   }, [user, loading, router])
 
   if (loading || !user) {
-    return null; // Or a loading spinner
+    // This will be handled by the AuthProvider's loading state now.
+    // Return null to avoid rendering anything until auth state is confirmed.
+    return null; 
   }
   
   return (

@@ -18,6 +18,11 @@ export default function AuthLayout({
     }
   }, [user, loading, router]);
 
+  // Render children only if not loading and no user is present.
+  // Otherwise, the effect will trigger a redirect.
+  if (loading || user) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
