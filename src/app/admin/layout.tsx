@@ -15,7 +15,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
-import { Home, Users, ClipboardList, Bell, Settings, Percent, LayoutDashboard, UserCog } from "lucide-react"
+import { Home, Users, ClipboardList, Bell, Settings, Percent, LayoutDashboard, UserCog, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import React from "react"
@@ -92,6 +92,25 @@ export default function AdminLayout({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarGroup>
+            
+            <SidebarSeparator />
+
+             <SidebarGroup>
+                <SidebarGroupLabel>Transactions</SidebarGroupLabel>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton href="/admin/transactions/deposits" tooltip="Deposits">
+                    <ArrowDownToLine />
+                    <span>Deposits</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                  <SidebarMenuItem>
+                  <SidebarMenuButton href="/admin/transactions/withdrawals" tooltip="Withdrawals">
+                    <ArrowUpFromLine />
+                    <span>Withdrawals</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarGroup>
+
 
             <SidebarSeparator />
 

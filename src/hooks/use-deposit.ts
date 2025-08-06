@@ -15,11 +15,43 @@ export interface DepositSession {
   expiresAt: string;
 }
 
+export type DepositRecord = {
+  id: string;
+  userId: string;
+  date: string;
+  amount: number;
+  method: string;
+  status: 'pending' | 'completed' | 'failed';
+  transactionId?: string;
+};
+
 const DEPOSIT_SESSION_STORAGE_KEY = 'depositSession';
+const ALL_DEPOSITS_STORAGE_KEY = 'allDeposits';
+
+const getFromStorage = <T,>(key: string, defaultValue: T): T => {
+    if (typeof window === 'undefined') return defaultValue;
+    try {
+        const item = window.localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+        console.error(`Error reading from localStorage key “${key}”:`, error);
+        return defaultValue;
+    }
+};
+
+const setInStorage = <T,>(key: string, value: T) => {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+        console.error(`Error writing to localStorage key “${key}”:`, error);
+    }
+};
+
 
 export function useDeposit() {
   const { user } = useAuth();
-  const { addDeposit } = useUserStats();
   const { settings } = useSettings();
   const [session, setSession] = useState<DepositSession | null>(null);
 
@@ -57,7 +89,6 @@ export function useDeposit() {
       throw new Error('You must be logged in to start a deposit.');
     }
     
-    // Clear any existing session
     clearDepositSession();
 
     const now = new Date();
@@ -85,17 +116,70 @@ export function useDeposit() {
       throw new Error('Your deposit session has expired.');
     }
 
-    addDeposit({
-      amount: session.amount,
-      method: session.method,
-      status: 'pending',
-      transactionId: transactionId,
-    });
+    const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
     
+    const newRecord: DepositRecord = {
+        id: session.id,
+        userId: session.userId,
+        date: new Date().toISOString(),
+        amount: session.amount,
+        method: session.method,
+        status: 'pending',
+        transactionId: transactionId,
+    };
+    
+    setInStorage(ALL_DEPOSITS_STORAGE_KEY, [newRecord, ...allDeposits]);
     clearDepositSession();
-  }, [session, addDeposit, clearDepositSession]);
+  }, [session, clearDepositSession]);
 
   return { session, startDepositSession, submitDeposit, clearDepositSession };
 }
 
+
+// A hook for the admin panel
+export function useDeposits() {
+    const [deposits, setDeposits] = useState<DepositRecord[]>([]);
     
+    const loadDeposits = useCallback(() => {
+        const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
+        setDeposits(allDeposits.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    }, []);
+
+    useEffect(() => {
+        loadDeposits();
+        window.addEventListener('storage', loadDeposits);
+        return () => {
+            window.removeEventListener('storage', loadDeposits);
+        }
+    }, [loadDeposits]);
+
+    const updateDepositStatus = useCallback((depositId: string, userId: string, amount: number, status: 'completed' | 'failed') => {
+        const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
+        const depositIndex = allDeposits.findIndex(d => d.id === depositId);
+
+        if (depositIndex === -1) {
+            throw new Error("Deposit not found.");
+        }
+        
+        const depositToUpdate = allDeposits[depositIndex];
+        if (depositToUpdate.status !== 'pending') {
+            throw new Error("This deposit has already been processed.");
+        }
+        
+        allDeposits[depositIndex].status = status;
+        setInStorage(ALL_DEPOSITS_STORAGE_KEY, allDeposits);
+
+        if (status === 'completed') {
+            const userStatsKey = `userStats-${userId}`;
+            const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0 });
+            const newStats = {
+                ...currentStats,
+                totalDeposit: currentStats.totalDeposit + amount,
+                availableBalance: currentStats.availableBalance + amount,
+            };
+            setInStorage(userStatsKey, newStats);
+        }
+    }, []);
+
+    return { deposits, updateDepositStatus, refreshDeposits: loadDeposits };
+}

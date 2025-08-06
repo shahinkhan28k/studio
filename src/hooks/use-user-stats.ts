@@ -46,7 +46,7 @@ export const defaultStats: UserStats = {
 }
 
 // Helper functions to interact with localStorage
-const getFromStorage = <T>(key: string, defaultValue: T): T => {
+const getFromStorage = <T,>(key: string, defaultValue: T): T => {
     if (typeof window === 'undefined') return defaultValue;
     try {
         const item = window.localStorage.getItem(key);
@@ -57,7 +57,7 @@ const getFromStorage = <T>(key: string, defaultValue: T): T => {
     }
 };
 
-const setInStorage = <T>(key: string, value: T) => {
+const setInStorage = <T,>(key: string, value: T) => {
     if (typeof window === 'undefined') return;
     try {
         window.localStorage.setItem(key, JSON.stringify(value));
@@ -87,7 +87,9 @@ export function useUserStats() {
     };
     
     setStats(getFromStorage(`userStats-${uid}`, defaultStats));
-    setDepositHistory(getFromStorage(`depositHistory-${uid}`, []));
+    const allDeposits = getFromStorage<any[]>(`allDeposits`, []);
+    setDepositHistory(allDeposits.filter(d => d.userId === uid));
+
     setWithdrawalHistory(getFromStorage(`withdrawalHistory-${uid}`, []));
     setReferrals(getFromStorage(`referrals-${uid}`, []));
 
@@ -175,25 +177,6 @@ export function useUserStats() {
 
   }, [user, settings, updateStats]);
   
-  const addDeposit = useCallback((deposit: Omit<DepositRecord, 'date' | 'id'>) => {
-    if (!uid) return;
-    
-    // For now, auto-approve and add to balance.
-    // In a real app, this would be `pending` until an admin approves it.
-    const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
-    const newTotalDeposit = currentStats.totalDeposit + deposit.amount;
-    const newAvailableBalance = currentStats.availableBalance + deposit.amount;
-    updateStats(uid, { totalDeposit: newTotalDeposit, availableBalance: newAvailableBalance });
-
-    const newRecord: DepositRecord = { 
-        ...deposit, 
-        id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
-        date: new Date().toISOString(),
-        status: 'completed' // Mark as completed immediately for simplicity
-    };
-    const currentHistory = getFromStorage<DepositRecord[]>(`depositHistory-${uid}`, []);
-    setInStorage(`depositHistory-${uid}`, [newRecord, ...currentHistory]);
-  }, [uid, updateStats]);
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id'>) => {
     if (!uid) return;
@@ -217,7 +200,5 @@ export function useUserStats() {
 
   }, [uid, updateStats]);
 
-  return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addDeposit, addWithdrawal, refresh: loadAllUserData };
+  return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, refresh: loadAllUserData };
 }
-
-    
