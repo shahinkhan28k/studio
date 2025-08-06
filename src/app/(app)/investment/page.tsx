@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from "react"
@@ -17,20 +18,20 @@ import { Badge } from "@/components/ui/badge"
 
 const InvestmentRisk = ({ level }: { level: "Low" | "Medium" | "High" }) => {
   const levelMap = {
-    Low: { dots: 1, color: "text-green-500", label: "নিম্ন ঝুঁকি" },
-    Medium: { dots: 2, color: "text-yellow-500", label: "মধ্যম ঝুঁকি" },
-    High: { dots: 3, color: "text-red-500", label: "উচ্চ ঝুঁকি" },
+    Low: { dots: 1, color: "text-green-500 bg-green-500", label: "নিম্ন ঝুঁকি" },
+    Medium: { dots: 2, color: "text-yellow-500 bg-yellow-500", label: "মধ্যম ঝুঁকি" },
+    High: { dots: 3, color: "text-red-500 bg-red-500", label: "উচ্চ ঝুঁকি" },
   }
   const { dots, color, label } = levelMap[level]
 
   return (
-    <div className={`flex items-center text-xs ${color}`}>
+    <div className={`flex items-center text-xs ${levelMap[level].color.split(' ')[0]}`}>
       <div className="flex gap-1 mr-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <span
             key={i}
             className={`h-2 w-2 rounded-full ${
-              i < dots ? `bg-${color.replace('text-','').slice(0,-4)}-500` : "bg-muted"
+              i < dots ? levelMap[level].color.split(' ')[1] : "bg-muted"
             }`}
           ></span>
         ))}
@@ -51,8 +52,8 @@ const InvestmentCard = ({ plan }: { plan: InvestmentPlan }) => {
           <Image
             src={plan.imageUrl}
             alt={plan.title}
-            layout="fill"
-            objectFit="cover"
+            fill
+            className="object-cover"
             data-ai-hint="investment business"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

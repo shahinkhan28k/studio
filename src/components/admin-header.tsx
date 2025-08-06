@@ -41,6 +41,9 @@ export function AdminHeader() {
                 <DropdownMenuItem asChild>
                     <Link href="/admin/tasks">Tasks</Link>
                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/admin/investments">Investments</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link href="/admin/referrals">Referrals</Link>
                 </DropdownMenuItem>
