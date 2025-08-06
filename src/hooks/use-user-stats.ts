@@ -77,7 +77,7 @@ const calculateDailyEarnings = (userId: string) => {
     const allUserInvestments = getFromStorage<UserInvestment[]>('userInvestments', []);
     const activeInvestments = allUserInvestments.filter(inv => inv.userId === userId && inv.isActive);
     
-    let dailyTotal = 0;
+    let dailyInvestmentIncome = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -88,7 +88,7 @@ const calculateDailyEarnings = (userId: string) => {
         endDate.setHours(0, 0, 0, 0);
 
         if (today >= investmentDate && today <= endDate) {
-            dailyTotal += investment.dailyIncome;
+            dailyInvestmentIncome += investment.dailyIncome;
         }
     });
 
@@ -101,15 +101,12 @@ const calculateDailyEarnings = (userId: string) => {
     if (today > lastUpdate) {
         const newStats = {
             ...userStats,
-            availableBalance: userStats.availableBalance + dailyTotal,
-            totalEarnings: userStats.totalEarnings + dailyTotal,
-            todaysEarnings: dailyTotal
+            availableBalance: userStats.availableBalance + dailyInvestmentIncome,
+            totalEarnings: userStats.totalEarnings + dailyInvestmentIncome,
+            todaysEarnings: dailyInvestmentIncome 
         };
         setInStorage(`userStats-${userId}`, newStats);
         setInStorage(lastEarningsUpdateKey, today.toISOString());
-    } else {
-         const newStats = { ...userStats, todaysEarnings: dailyTotal };
-         setInStorage(`userStats-${userId}`, newStats);
     }
 };
 
@@ -166,8 +163,13 @@ export function useUserStats() {
     const currentUserStats = getFromStorage(`userStats-${user.uid}`, defaultStats);
     const newTotalEarnings = currentUserStats.totalEarnings + amount;
     const newAvailableBalance = currentUserStats.availableBalance + amount;
+    const newTodaysEarnings = currentUserStats.todaysEarnings + amount;
     
-    updateStats(user.uid, { totalEarnings: newTotalEarnings, availableBalance: newAvailableBalance });
+    updateStats(user.uid, { 
+        totalEarnings: newTotalEarnings, 
+        availableBalance: newAvailableBalance,
+        todaysEarnings: newTodaysEarnings
+    });
     
     // Handle referral commission
     const allUsers: UserInfo[] = getFromStorage('allUsersData', []);
