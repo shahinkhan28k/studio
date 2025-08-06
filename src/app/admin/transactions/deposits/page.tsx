@@ -74,7 +74,7 @@ export default function DepositsAdminPage() {
               <TableRow key={deposit.id}>
                 <TableCell>{format(new Date(deposit.date), "PP p")}</TableCell>
                 <TableCell className="font-mono text-xs">{deposit.userId}</TableCell>
-                <TableCell>{formatCurrency(deposit.amount, 'USD')}</TableCell>
+                <TableCell>{formatCurrency(deposit.amount, 'BDT')}</TableCell>
                 <TableCell className="capitalize">{deposit.method}</TableCell>
                 <TableCell>{deposit.transactionId || "N/A"}</TableCell>
                 <TableCell>

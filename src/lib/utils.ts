@@ -14,9 +14,22 @@ const CONVERSION_RATES = {
     INR: 83.4, // 1 USD = 83.4 INR
 }
 
+export function convertToUSD(amount: number, fromCurrency: Currency): number {
+    if (fromCurrency === 'USD') return amount;
+    const rate = CONVERSION_RATES[fromCurrency];
+    return amount / rate;
+}
+
+export function convertFromUSD(amount: number, toCurrency: Currency): number {
+    if (toCurrency === 'USD') return amount;
+    const rate = CONVERSION_RATES[toCurrency];
+    return amount * rate;
+}
+
 
 export function formatCurrency(amount: number, currency: Currency) {
-    let convertedAmount = amount * (CONVERSION_RATES[currency] / CONVERSION_RATES['USD']);
+    // The internal amount is always in USD. We convert it to the target currency for display.
+    const convertedAmount = convertFromUSD(amount, currency);
     
     let symbol: string;
     let locale: string;

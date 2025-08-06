@@ -5,11 +5,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useUserStats } from './use-user-stats';
 import { useSettings } from './use-settings';
+import { convertToUSD } from '@/lib/utils';
 
 export interface DepositSession {
   id: string;
   userId: string;
-  amount: number;
+  amount: number; // amount in BDT
   method: string;
   createdAt: string;
   expiresAt: string;
@@ -19,7 +20,7 @@ export type DepositRecord = {
   id: string;
   userId: string;
   date: string;
-  amount: number;
+  amount: number; // amount in USD
   method: string;
   status: 'pending' | 'completed' | 'failed';
   transactionId?: string;
@@ -84,7 +85,7 @@ export function useDeposit() {
     };
   }, [loadSession]);
 
-  const startDepositSession = useCallback((amount: number, method: string) => {
+  const startDepositSession = useCallback((amountInBDT: number, method: string) => {
     if (!user) {
       throw new Error('You must be logged in to start a deposit.');
     }
@@ -97,7 +98,7 @@ export function useDeposit() {
     const newSession: DepositSession = {
       id: new Date().toISOString() + Math.random().toString(36).substr(2, 9),
       userId: user.uid,
-      amount,
+      amount: amountInBDT, // Store amount in BDT in the session
       method,
       createdAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
@@ -118,11 +119,13 @@ export function useDeposit() {
 
     const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
     
+    const amountInUSD = convertToUSD(session.amount, 'BDT');
+    
     const newRecord: DepositRecord = {
         id: session.id,
         userId: session.userId,
         date: new Date().toISOString(),
-        amount: session.amount,
+        amount: amountInUSD, // Store amount in USD
         method: session.method,
         status: 'pending',
         transactionId: transactionId,

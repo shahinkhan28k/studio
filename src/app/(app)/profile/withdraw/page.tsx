@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAppContext } from "@/context/app-context"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, convertToUSD, convertFromUSD } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useSettings } from "@/hooks/use-settings"
@@ -110,7 +110,6 @@ export default function WithdrawPage() {
   const { toast } = useToast()
   const { user } = useAuth();
   const { stats, addWithdrawal, withdrawalHistory, referrals } = useUserStats()
-  const { language, currency } = useAppContext()
   const { settings } = useSettings();
 
   const defaultValues = React.useMemo(() => ({
@@ -138,7 +137,7 @@ export default function WithdrawPage() {
           const savedDetails = localStorage.getItem(`accountDetails-${user.uid}`);
           if (savedDetails) {
             const data = JSON.parse(savedDetails);
-            form.reset({ ...defaultValues, ...data });
+            form.reset({ ...defaultValues, ...data, amount: 0 });
           }
         } catch (error) {
            console.error("Error fetching account details for withdrawal:", error);
@@ -162,16 +161,20 @@ export default function WithdrawPage() {
       return
     }
 
-    if (data.amount < settings.minimumWithdrawalAmount) {
+    const amountInBDT = data.amount;
+    const minimumWithdrawalBDT = convertFromUSD(settings.minimumWithdrawalAmount, 'BDT');
+
+    if (amountInBDT < minimumWithdrawalBDT) {
       toast({
         title: "Amount Too Low",
-        description: `The minimum withdrawal amount is ${formatCurrency(settings.minimumWithdrawalAmount, currency)}.`,
+        description: `The minimum withdrawal amount is ${formatCurrency(settings.minimumWithdrawalAmount, 'BDT')}.`,
         variant: "destructive",
       })
       return
     }
 
-    if (data.amount > stats.availableBalance) {
+    const amountInUSD = convertToUSD(amountInBDT, 'BDT');
+    if (amountInUSD > stats.availableBalance) {
       toast({
         title: "Insufficient Balance",
         description: "You do not have enough balance to make this withdrawal.",
@@ -181,7 +184,7 @@ export default function WithdrawPage() {
     }
 
     const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id'> = {
-      amount: data.amount,
+      amount: amountInUSD, // Store in USD
       method: data.method,
       status: 'pending'
     }
@@ -214,8 +217,8 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
-            Your available balance is {formatCurrency(stats.availableBalance, currency)}. 
-            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, currency)}.
+            Your available balance is {formatCurrency(stats.availableBalance, 'BDT')}. 
+            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, 'BDT')}.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -355,11 +358,11 @@ export default function WithdrawPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Amount</FormLabel>
+                    <FormLabel>Payment Amount (BDT)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Enter amount to withdraw"
+                        placeholder="Enter amount to withdraw in BDT"
                         {...field}
                       />
                     </FormControl>
@@ -395,7 +398,7 @@ export default function WithdrawPage() {
                     withdrawalHistory.map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
                             <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
-                            <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
+                            <TableCell>{formatCurrency(withdrawal.amount, 'BDT')}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>
                                 <Badge variant={withdrawal.status === 'completed' ? 'default' : 'secondary'}>

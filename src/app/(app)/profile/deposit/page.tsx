@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { DepositRecord, useUserStats } from "@/hooks/use-user-stats"
+import { useUserStats } from "@/hooks/use-user-stats"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/context/app-context"
@@ -61,7 +61,6 @@ type DepositSubmitValues = z.infer<typeof depositSubmitSchema>
 export default function DepositPage() {
   const { toast } = useToast()
   const { depositHistory } = useUserStats()
-  const { currency } = useAppContext();
   const { settings } = useSettings();
   const { 
     session, 
@@ -167,7 +166,7 @@ export default function DepositPage() {
                     <Clock className="h-4 w-4" />
                     <AlertTitle className="font-bold text-lg">Session Active: {countdown}</AlertTitle>
                     <AlertDescription>
-                        Please send exactly <span className="font-bold text-primary">{formatCurrency(session.amount, currency)}</span> to the number below within the time limit.
+                        Please send exactly <span className="font-bold text-primary">{formatCurrency(session.amount, 'BDT')}</span> to the number below within the time limit.
                     </AlertDescription>
                 </Alert>
 
@@ -246,11 +245,11 @@ export default function DepositPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount ({currency})</FormLabel>
+                    <FormLabel>Amount (BDT)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Enter amount"
+                        placeholder="Enter amount in BDT"
                         {...field}
                       />
                     </FormControl>
@@ -306,7 +305,7 @@ export default function DepositPage() {
                      depositHistory.map((deposit) => (
                         <TableRow key={deposit.id}>
                             <TableCell>{format(new Date(deposit.date), "PP")}</TableCell>
-                            <TableCell>{formatCurrency(deposit.amount, currency)}</TableCell>
+                            <TableCell>{formatCurrency(deposit.amount, 'BDT')}</TableCell>
                             <TableCell className="capitalize">{deposit.method}</TableCell>
                             <TableCell>
                                 <Badge variant={deposit.status === 'completed' ? 'default' : 'secondary'}>
@@ -327,5 +326,3 @@ export default function DepositPage() {
     </div>
   )
 }
-
-    
