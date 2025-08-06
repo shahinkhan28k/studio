@@ -16,6 +16,24 @@ export type Banner = BannerFormValues & {
 
 const BANNERS_STORAGE_KEY = "banners"
 
+const initialBanners: Banner[] = [
+    {
+        id: "1",
+        src: "https://i.postimg.cc/k4pC1TqG/Green-and-White-Modern-Digital-Marketing-Agency-Banner-1.png",
+        alt: "Modern Digital Marketing Agency Banner",
+        "data-ai-hint": "marketing agency",
+        createdAt: "2024-01-01T12:00:00.000Z"
+    },
+    {
+        id: "2",
+        src: "https://i.postimg.cc/2yR9k4q9/Green-and-White-Modern-Digital-Marketing-Agency-Banner.png",
+        alt: "Another Modern Digital Marketing Agency Banner",
+        "data-ai-hint": "digital marketing",
+        createdAt: "2024-01-02T12:00:00.000Z"
+    }
+];
+
+
 export function useBanners() {
   const [banners, setBanners] = useState<Banner[]>([]);
 
@@ -25,11 +43,12 @@ export function useBanners() {
       if (storedBanners) {
         setBanners(JSON.parse(storedBanners));
       } else {
-        setBanners([]);
+        setBanners(initialBanners);
+        localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(initialBanners));
       }
     } catch (error) {
       console.error("Error fetching banners from localStorage: ", error);
-      setBanners([]);
+      setBanners(initialBanners);
     }
   }, []);
 
