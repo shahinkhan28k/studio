@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { formatCurrency } from "@/lib/utils"
 import { InvestmentCard } from "@/components/investment-card"
+import Link from "next/link"
 
 
 export default function HomePage() {
@@ -96,9 +97,9 @@ export default function HomePage() {
           ]}
         >
           <CarouselContent>
-             {banners.map((banner, index) => (
+             {banners.map((banner) => (
               <CarouselItem key={banner.id}>
-                <Card className="overflow-hidden rounded-xl shadow-lg">
+                <Card className="overflow-hidden rounded-xl shadow-lg border-none">
                   <CardContent className="p-0">
                     <div className="aspect-video md:aspect-[2.4/1] relative">
                       <Image
@@ -108,6 +109,14 @@ export default function HomePage() {
                         className="object-cover"
                         data-ai-hint={banner['data-ai-hint']}
                       />
+                      <div className="absolute inset-0 bg-black/40" />
+                      <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
+                        <h2 className="text-2xl md:text-4xl font-bold drop-shadow-md mb-2">{banner.title}</h2>
+                        <p className="text-sm md:text-lg max-w-xl drop-shadow-sm mb-4">{banner.description}</p>
+                        <Button asChild>
+                          <Link href={banner.link}>আরও জানুন</Link>
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

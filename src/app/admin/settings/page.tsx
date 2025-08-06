@@ -49,6 +49,9 @@ const bannerFormSchema = z.object({
   src: z.string().url("Please enter a valid URL."),
   alt: z.string().min(1, "Alt text is required."),
   "data-ai-hint": z.string().min(1, "AI hint is required."),
+  title: z.string().min(1, "Title is required."),
+  description: z.string().min(1, "Description is required."),
+  link: z.string().min(1, "Link is required."),
 })
 
 const settingsFormSchema = z.object({
@@ -84,6 +87,9 @@ export default function SettingsPage() {
       src: "",
       alt: "",
       "data-ai-hint": "",
+      title: "",
+      description: "",
+      link: ""
     },
   })
 
@@ -382,6 +388,32 @@ export default function SettingsPage() {
                         <h3 className="text-lg font-medium">Add New Banner</h3>
                         <FormField
                         control={bannerForm.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Banner Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., New Investment Plan" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <FormField
+                        control={bannerForm.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Banner Description</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Short description for the banner" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={bannerForm.control}
                         name="src"
                         render={({ field }) => (
                             <FormItem>
@@ -389,6 +421,20 @@ export default function SettingsPage() {
                             <FormControl>
                                 <Input placeholder="https://example.com/banner.png" {...field} />
                             </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={bannerForm.control}
+                        name="link"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Link URL</FormLabel>
+                            <FormControl>
+                                <Input placeholder="/investment" {...field} />
+                            </FormControl>
+                             <FormDescription>Where the banner button should link to.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -434,6 +480,7 @@ export default function SettingsPage() {
                             <TableHeader>
                                 <TableRow>
                                 <TableHead>Preview</TableHead>
+                                <TableHead>Title</TableHead>
                                 <TableHead>Alt Text</TableHead>
                                 <TableHead>Actions</TableHead>
                                 </TableRow>
@@ -445,6 +492,7 @@ export default function SettingsPage() {
                                     <TableCell>
                                         <Image src={banner.src} alt={banner.alt} width={100} height={40} className="object-cover rounded-md" />
                                     </TableCell>
+                                    <TableCell>{banner.title}</TableCell>
                                     <TableCell>{banner.alt}</TableCell>
                                     <TableCell>
                                         <Button variant="destructive" size="sm" onClick={() => handleDeleteBanner(banner.id)}>Delete</Button>
@@ -453,7 +501,7 @@ export default function SettingsPage() {
                                 ))
                                 ) : (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="text-center">No banners found.</TableCell>
+                                    <TableCell colSpan={4} className="text-center">No banners found.</TableCell>
                                 </TableRow>
                                 )}
                             </TableBody>

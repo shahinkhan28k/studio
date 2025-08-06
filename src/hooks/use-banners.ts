@@ -7,6 +7,9 @@ export interface BannerFormValues {
   src: string;
   alt: string;
   'data-ai-hint': string;
+  title: string;
+  description: string;
+  link: string;
 }
 
 export type Banner = BannerFormValues & {
@@ -22,6 +25,9 @@ const initialBanners: Banner[] = [
         src: "https://i.postimg.cc/k4pC1TqG/Green-and-White-Modern-Digital-Marketing-Agency-Banner-1.png",
         alt: "Modern Digital Marketing Agency Banner",
         "data-ai-hint": "marketing agency",
+        title: "আপনার ব্যবসাকে পরবর্তী স্তরে নিয়ে যান",
+        description: "আমাদের উদ্ভাবনী বিনিয়োগ পরিকল্পনার সাথে আপনার সম্পদ বৃদ্ধি করুন।",
+        link: "/investment",
         createdAt: "2024-01-01T12:00:00.000Z"
     },
     {
@@ -29,6 +35,9 @@ const initialBanners: Banner[] = [
         src: "https://i.postimg.cc/2yR9k4q9/Green-and-White-Modern-Digital-Marketing-Agency-Banner.png",
         alt: "Another Modern Digital Marketing Agency Banner",
         "data-ai-hint": "digital marketing",
+        title: "দৈনিক কাজ করে আয় করুন",
+        description: "সহজ কাজগুলি সম্পন্ন করে আপনার আয় বাড়ান। আজই শুরু করুন!",
+        link: "/tasks",
         createdAt: "2024-01-02T12:00:00.000Z"
     }
 ];
