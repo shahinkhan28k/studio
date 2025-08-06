@@ -28,7 +28,7 @@ export default function DepositsAdminPage() {
   const [depositsWithUsers, setDepositsWithUsers] = React.useState<DepositWithUser[]>([])
 
   React.useEffect(() => {
-    if (deposits.length > 0 && allUsersData.length > 0) {
+    if (deposits.length >= 0 && allUsersData.length >= 0) {
       const usersMap = new Map<string, UserInfo>(allUsersData.map(u => [u.uid, u]))
       const enrichedDeposits = deposits.map(deposit => ({
         ...deposit,
