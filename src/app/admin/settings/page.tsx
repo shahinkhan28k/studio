@@ -577,7 +577,7 @@ export default function SettingsPage() {
                       <CardHeader>
                         <CardTitle>Current Banners</CardTitle>
                         <CardDescription>List of banners currently on the homepage.</CardDescription>
-                      </CardHeader>
+                      </Header>
                       <CardContent>
                           <div className="border rounded-lg">
                           <Table>
