@@ -1,7 +1,8 @@
 
 "use client"
 
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { translations, Language, Locale } from '@/lib/i18n';
 
 export type Currency = 'BDT'; // Only BDT is supported now
@@ -18,6 +19,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocale] = useState<Locale>('bn');
   const [currency, setCurrency] = useState<Currency>('BDT');
+  const router = useRouter();
 
   useEffect(() => {
     const savedLocale = localStorage.getItem('app-locale') as Locale | null;
@@ -30,8 +32,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (translations[newLocale]) {
       setLocale(newLocale);
       localStorage.setItem('app-locale', newLocale);
+      // We force a router refresh to re-render server components with the new locale if needed,
+      // and ensure all client components re-render with the new context value.
+      window.location.reload();
     }
-  }, []);
+  }, [router]);
   
   const handleSetCurrency = useCallback((newCurrency: Currency) => {
     // This function is now a no-op as currency is fixed to BDT.
@@ -39,12 +44,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setCurrency('BDT');
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     language: { ...translations[locale], locale },
     setLanguage: handleSetLanguage,
     currency,
     setCurrency: handleSetCurrency,
-  };
+  }), [locale, handleSetLanguage, currency, handleSetCurrency]);
 
   return (
     <AppContext.Provider value={value}>

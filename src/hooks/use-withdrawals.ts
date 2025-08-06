@@ -68,8 +68,7 @@ export function useWithdrawals() {
         }
         
         allWithdrawals[withdrawalIndex].status = status;
-        setInStorage(ALL_WITHDRAWALS_STORAGE_KEY, allWithdrawals);
-
+        
         const userStatsKey = `userStats-${userId}`;
         const currentStats = getFromStorage<UserStats>(userStatsKey, defaultStats);
 
@@ -84,6 +83,8 @@ export function useWithdrawals() {
             // Balance is not deducted on request, so no need to refund.
             // If logic changes to deduct on request, we would add the amount back here.
         }
+
+        setInStorage(ALL_WITHDRAWALS_STORAGE_KEY, allWithdrawals);
     }, []);
 
     return { withdrawals, updateWithdrawalStatus, refreshWithdrawals: loadWithdrawals };

@@ -167,8 +167,7 @@ export function useDeposits() {
         }
         
         allDeposits[depositIndex].status = status;
-        setInStorage(ALL_DEPOSITS_STORAGE_KEY, allDeposits);
-
+        
         if (status === 'completed') {
             const userStatsKey = `userStats-${userId}`;
             const currentStats = getFromStorage(userStatsKey, { totalDeposit: 0, availableBalance: 0, totalEarnings: 0, totalWithdraw: 0, todaysEarnings: 0, totalInvestment: 0 });
@@ -179,6 +178,8 @@ export function useDeposits() {
             };
             setInStorage(userStatsKey, newStats);
         }
+        
+        setInStorage(ALL_DEPOSITS_STORAGE_KEY, allDeposits);
     }, []);
 
     return { deposits, updateDepositStatus, refreshDeposits: loadDeposits };
