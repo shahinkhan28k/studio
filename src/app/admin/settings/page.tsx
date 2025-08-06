@@ -70,9 +70,8 @@ const settingsSchema = z.object({
   supportEmail: z.string().email(),
   supportPhoneNumber: z.string(),
   supportWhatsApp: z.string(),
-})
+});
 
-// This type is for the form, where agent numbers are represented as a single string.
 type SettingsFormValues = Omit<z.infer<typeof settingsSchema>, 'agentNumbers' | 'referralLevels'> & {
   referralLevels: ReferralLevel[];
   agentNumbers: {
@@ -80,21 +79,21 @@ type SettingsFormValues = Omit<z.infer<typeof settingsSchema>, 'agentNumbers' | 
     nagad: string;
     rocket: string;
   }
-}
+};
 
 const bannerFormSchema = z.object({
   src: z.string().url({ message: "Please enter a valid URL." }),
   alt: z.string().min(1, "Alt text is required."),
   "data-ai-hint": z.string().min(1, "AI hint is required."),
-})
+});
 
-export type BannerFormValues = z.infer<typeof bannerFormSchema>
+export type BannerFormValues = z.infer<typeof bannerFormSchema>;
 
 
 export default function SettingsPage() {
   const { toast } = useToast()
   const { settings, setSettings } = useSettings()
-  const { banners, addBanner, deleteBanner, refreshBanners } = useBanners()
+  const { banners, addBanner, deleteBanner } = useBanners()
 
   const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -104,11 +103,7 @@ export default function SettingsPage() {
       withdrawalRequirement: 0,
       minimumWithdrawalAmount: 0,
       depositSessionDuration: 5,
-      agentNumbers: {
-        bkash: '',
-        nagad: '',
-        rocket: '',
-      },
+      agentNumbers: { bkash: '', nagad: '', rocket: '' },
       bankName: '',
       bankAccountName: '',
       bankAccountNumber: '',
@@ -125,18 +120,18 @@ export default function SettingsPage() {
     name: "referralLevels",
   });
   
-  const bannerForm = useForm<z.infer<typeof bannerFormSchema>>({
+  const bannerForm = useForm<BannerFormValues>({
     resolver: zodResolver(bannerFormSchema),
     defaultValues: {
       src: "",
       alt: "",
       "data-ai-hint": "",
     },
-  })
+  });
 
   useEffect(() => {
     if (settings) {
-       const transformedDefaults: SettingsFormValues = {
+       const transformedDefaults = {
         ...settings,
         agentNumbers: {
             bkash: (settings.agentNumbers?.bkash || []).join(', '),
@@ -164,7 +159,7 @@ export default function SettingsPage() {
     });
   }
   
-  function onBannerSubmit(data: z.infer<typeof bannerFormSchema>) {
+  function onBannerSubmit(data: BannerFormValues) {
     addBanner(data)
     toast({
       title: "Banner Added",
@@ -176,7 +171,6 @@ export default function SettingsPage() {
   const handleDeleteBanner = (id: string) => {
     if (window.confirm("Are you sure you want to delete this banner?")) {
       deleteBanner(id)
-      refreshBanners();
       toast({
         title: "Banner Deleted",
         description: "The banner has been successfully deleted.",
