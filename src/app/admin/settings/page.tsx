@@ -193,7 +193,7 @@ export default function SettingsPage() {
 
        <Form {...settingsForm}>
           <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
-            <Accordion type="multiple" collapsible className="w-full space-y-4">
+            <Accordion type="multiple" className="w-full space-y-4">
                 
                 <Card>
                   <AccordionItem value="general-settings" className="border-b-0">
@@ -379,7 +379,7 @@ export default function SettingsPage() {
         </form>
     </Form>
 
-    <Accordion type="multiple" collapsible className="w-full space-y-4 mt-8">
+    <Accordion type="multiple" className="w-full space-y-4 mt-8">
         <Card>
           <AccordionItem value="banner-settings" className="border-b-0">
             <AccordionTrigger className="p-6">
@@ -525,3 +525,5 @@ export default function SettingsPage() {
     </div>
   )
 }
+
+    
