@@ -60,6 +60,12 @@ export default function AdminPage() {
               <Link href="/admin/referrals">Referrals</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
+                <Link href="/admin/transactions/deposits">Deposits</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/admin/transactions/withdrawals">Withdrawals</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/admin/settings">Settings</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
