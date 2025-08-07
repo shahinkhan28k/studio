@@ -6,6 +6,7 @@ import { AppProvider } from "@/context/app-context"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import React from "react"
+import { AdminAuthProvider } from "@/hooks/use-admin-auth"
 
 export default function AppLayout({
   children,
@@ -29,11 +30,13 @@ export default function AppLayout({
   
   return (
     <AppProvider>
-      <div className="relative flex min-h-screen flex-col">
-        <AppHeader />
-        <main className="flex-1">{children}</main>
-        <FooterNav />
-      </div>
+        <AdminAuthProvider>
+            <div className="relative flex min-h-screen flex-col">
+                <AppHeader />
+                <main className="flex-1">{children}</main>
+                <FooterNav />
+            </div>
+        </AdminAuthProvider>
     </AppProvider>
   )
 }
