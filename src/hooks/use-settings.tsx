@@ -19,6 +19,7 @@ export type Settings = {
   investmentReferralCommissionRate: number;
   withdrawalRequirement: number;
   minimumWithdrawalAmount: number;
+  withdrawalFeePercentage: number;
   depositSessionDuration: number; // in minutes
   agentNumbers: {
     [key: string]: string[];
@@ -51,6 +52,7 @@ const defaultSettings: Settings = {
   investmentReferralCommissionRate: 5,
   withdrawalRequirement: 20,
   minimumWithdrawalAmount: 10,
+  withdrawalFeePercentage: 5,
   depositSessionDuration: 5,
   agentNumbers: {
     bkash: ["01234567890"],
@@ -152,3 +154,5 @@ export function useSettings() {
   }
   return context;
 }
+
+    

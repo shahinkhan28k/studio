@@ -66,6 +66,7 @@ const settingsFormSchema = z.object({
   investmentReferralCommissionRate: z.coerce.number().min(0),
   withdrawalRequirement: z.coerce.number().min(0),
   minimumWithdrawalAmount: z.coerce.number().min(0),
+  withdrawalFeePercentage: z.coerce.number().min(0).max(100),
   depositSessionDuration: z.coerce.number().min(1),
   agentNumbers: z.object({
     bkash: z.string(),
@@ -106,6 +107,7 @@ export default function SettingsPage() {
       investmentReferralCommissionRate: 0,
       withdrawalRequirement: 0,
       minimumWithdrawalAmount: 0,
+      withdrawalFeePercentage: 0,
       depositSessionDuration: 5,
       agentNumbers: {
         bkash: "",
@@ -137,6 +139,7 @@ export default function SettingsPage() {
             investmentReferralCommissionRate: settings.investmentReferralCommissionRate || 0,
             withdrawalRequirement: settings.withdrawalRequirement || 0,
             minimumWithdrawalAmount: settings.minimumWithdrawalAmount || 0,
+            withdrawalFeePercentage: settings.withdrawalFeePercentage || 0,
             depositSessionDuration: settings.depositSessionDuration || 5,
             agentNumbers: {
                 bkash: (settings.agentNumbers?.bkash || []).join(", "),
@@ -223,10 +226,10 @@ export default function SettingsPage() {
                 <Card>
                   <AccordionItem value="general-settings" className="border-b-0">
                     <AccordionTrigger className="p-6 w-full">
-                         <CardHeader className="p-0 text-left">
+                         <div className="p-0 text-left">
                             <CardTitle>General Settings</CardTitle>
                             <CardDescription>Manage general platform settings.</CardDescription>
-                        </CardHeader>
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <CardContent className="space-y-6 pt-0">
@@ -240,6 +243,20 @@ export default function SettingsPage() {
                                     <FormControl>
                                     <Input type="number" {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={settingsForm.control}
+                                name="withdrawalFeePercentage"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Withdrawal Fee (%)</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} />
+                                    </FormControl>
+                                     <FormDescription>Percentage fee to charge on withdrawals.</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                                 )}
@@ -314,10 +331,10 @@ export default function SettingsPage() {
                 <Card>
                   <AccordionItem value="agent-numbers" className="border-b-0">
                     <AccordionTrigger className="p-6 w-full">
-                        <CardHeader className="p-0 text-left">
+                        <div className="p-0 text-left">
                             <CardTitle>Agent Deposit Numbers</CardTitle>
                             <CardDescription>Enter numbers separated by commas.</CardDescription>
-                        </CardHeader>
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <CardContent className="space-y-4 pt-0">
@@ -338,10 +355,10 @@ export default function SettingsPage() {
                 <Card>
                   <AccordionItem value="support-contact" className="border-b-0">
                     <AccordionTrigger className="p-6 w-full">
-                        <CardHeader className="p-0 text-left">
+                        <div className="p-0 text-left">
                             <CardTitle>Support Contact</CardTitle>
                             <CardDescription>Update customer support contact information.</CardDescription>
-                        </CardHeader>
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent>
                          <CardContent className="grid md:grid-cols-3 gap-4 pt-0">
@@ -362,10 +379,10 @@ export default function SettingsPage() {
                 <Card>
                   <AccordionItem value="referral-levels" className="border-b-0">
                     <AccordionTrigger className="p-6 w-full">
-                        <CardHeader className="p-0 text-left">
+                        <div className="p-0 text-left">
                             <CardTitle>Referral Commission Levels</CardTitle>
                             <CardDescription>Set up the MLM commission structure for referrals. (Max 10 levels)</CardDescription>
-                        </CardHeader>
+                        </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <CardContent className="pt-0">
@@ -423,10 +440,10 @@ export default function SettingsPage() {
                  <Card>
                     <AccordionItem value="lucky-draw" className="border-b-0">
                         <AccordionTrigger className="p-6 w-full">
-                            <CardHeader className="p-0 text-left">
+                            <div className="p-0 text-left">
                                 <CardTitle>Lucky Draw Prizes</CardTitle>
                                 <CardDescription>Define the prizes for the lucky draw wheel (max 10).</CardDescription>
-                            </CardHeader>
+                            </div>
                         </AccordionTrigger>
                         <AccordionContent>
                             <CardContent className="pt-0">
@@ -479,10 +496,10 @@ export default function SettingsPage() {
         <Card>
           <AccordionItem value="banner-settings" className="border-b-0">
             <AccordionTrigger className="p-6 w-full">
-                <CardHeader className="p-0 text-left">
+                <div className="p-0 text-left">
                     <CardTitle>Homepage Banner Settings</CardTitle>
                     <CardDescription>Manage the promotional banners on the homepage carousel.</CardDescription>
-                </CardHeader>
+                </div>
             </AccordionTrigger>
             <AccordionContent>
                 <CardContent className="space-y-6 pt-0">
@@ -621,3 +638,5 @@ export default function SettingsPage() {
     </div>
   )
 }
+
+    

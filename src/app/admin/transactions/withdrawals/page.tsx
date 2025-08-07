@@ -22,9 +22,13 @@ export default function WithdrawalsAdminPage() {
   const { withdrawals, updateWithdrawalStatus } = useWithdrawals()
   const { toast } = useToast()
 
-  const handleUpdateStatus = (withdrawalId: string, userId: string, amount: number, status: 'completed' | 'failed') => {
+  const handleUpdateStatus = (withdrawalId: string, userId: string, status: 'completed' | 'failed') => {
     try {
-      updateWithdrawalStatus(withdrawalId, userId, amount, status)
+      const withdrawal = withdrawals.find(w => w.id === withdrawalId);
+      if(!withdrawal) throw new Error("Withdrawal not found");
+      
+      const totalAmount = withdrawal.amount + withdrawal.fee;
+      updateWithdrawalStatus(withdrawalId, userId, totalAmount, status)
       toast({
         title: "Withdrawal Updated",
         description: `Withdrawal status has been updated to ${status}.`
@@ -85,6 +89,7 @@ export default function WithdrawalsAdminPage() {
               <TableHead>Date</TableHead>
               <TableHead>User</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Fee</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Wallet/Account Details</TableHead>
               <TableHead>Status</TableHead>
@@ -98,6 +103,7 @@ export default function WithdrawalsAdminPage() {
                   <TableCell>{format(new Date(withdrawal.date), "PP p")}</TableCell>
                   <TableCell>{withdrawal.userName} ({withdrawal.userId.substring(0,5)}...)</TableCell>
                   <TableCell>{formatCurrency(withdrawal.amount, 'BDT')}</TableCell>
+                  <TableCell>{formatCurrency(withdrawal.fee, 'BDT')}</TableCell>
                   <TableCell className="capitalize">{withdrawal.method}</TableCell>
                   <TableCell>{renderDetails(withdrawal)}</TableCell>
                   <TableCell>
@@ -108,8 +114,8 @@ export default function WithdrawalsAdminPage() {
                   <TableCell>
                     {withdrawal.status === 'pending' && (
                         <div className="flex gap-2">
-                            <Button size="sm" onClick={() => handleUpdateStatus(withdrawal.id, withdrawal.userId, withdrawal.amount, 'completed')}>Approve</Button>
-                            <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(withdrawal.id, withdrawal.userId, withdrawal.amount, 'failed')}>Reject</Button>
+                            <Button size="sm" onClick={() => handleUpdateStatus(withdrawal.id, withdrawal.userId, 'completed')}>Approve</Button>
+                            <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(withdrawal.id, withdrawal.userId, 'failed')}>Reject</Button>
                         </div>
                     )}
                   </TableCell>
@@ -117,7 +123,7 @@ export default function WithdrawalsAdminPage() {
               ))
             ) : (
               <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                       No withdrawal data found.
                   </TableCell>
               </TableRow>
@@ -128,3 +134,5 @@ export default function WithdrawalsAdminPage() {
     </div>
   )
 }
+
+    

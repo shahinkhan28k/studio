@@ -32,7 +32,8 @@ export type WithdrawalRecord = {
     id: string;
     userId: string;
     date: string;
-    amount: number; // Stored in BDT
+    amount: number; // Stored in BDT (amount user receives)
+    fee: number; // Fee amount in BDT
     method: string;
     status: TransactionStatus;
     details?: {
@@ -148,10 +149,10 @@ export function useUserStats() {
     calculateDailyEarnings(uid);
 
     const allDeposits = getFromStorage<DepositRecord[]>(`allDeposits`, []);
-    setDepositHistory(allDeposits.filter(d => d.userId === uid));
+    setDepositHistory(allDeposits.filter(d => d.userId === uid).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
     const allWithdrawals = getFromStorage<WithdrawalRecord[]>(`allWithdrawals`, []);
-    setWithdrawalHistory(allWithdrawals.filter(w => w.userId === uid));
+    setWithdrawalHistory(allWithdrawals.filter(w => w.userId === uid).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
     setReferrals(getFromStorage(`referrals-${uid}`, []));
     
@@ -241,15 +242,17 @@ export function useUserStats() {
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'>) => {
     if (!uid) return;
+    
+    const totalDeduction = withdrawal.amount + withdrawal.fee;
 
     const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
-    if (withdrawal.amount > currentStats.availableBalance) {
+    if (totalDeduction > currentStats.availableBalance) {
         throw new Error("Insufficient Balance");
     }
 
     const newStats = {
       ...currentStats,
-      availableBalance: currentStats.availableBalance - withdrawal.amount,
+      availableBalance: currentStats.availableBalance - totalDeduction,
     };
     setInStorage(`userStats-${uid}`, newStats);
 
@@ -267,5 +270,7 @@ export function useUserStats() {
 
   return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, updateStats, refresh: loadAllUserData };
 }
+
+    
 
     

@@ -22,6 +22,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -128,6 +129,9 @@ export default function WithdrawPage() {
   })
   
   const paymentMethod = form.watch("method")
+  const requestedAmount = form.watch("amount") || 0;
+  const withdrawalFee = (requestedAmount * (settings.withdrawalFeePercentage || 0)) / 100;
+  const amountToReceive = requestedAmount - withdrawalFee;
   
   React.useEffect(() => {
     if (user) {
@@ -177,8 +181,9 @@ export default function WithdrawPage() {
       })
       return
     }
-
-    if (amountInBDT > stats.availableBalance) {
+    
+    const totalDeduction = amountInBDT; // Fee is already accounted for in balance calculation within addWithdrawal
+    if (totalDeduction > stats.availableBalance) {
       toast({
         title: "Insufficient Balance",
         description: "You do not have enough balance to make this withdrawal.",
@@ -188,7 +193,8 @@ export default function WithdrawPage() {
     }
 
     const withdrawalData: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'> = {
-      amount: amountInBDT,
+      amount: amountToReceive,
+      fee: withdrawalFee,
       method: data.method,
       status: 'pending',
       details: {
@@ -233,7 +239,8 @@ export default function WithdrawPage() {
           <CardTitle>Request a Withdrawal</CardTitle>
           <CardDescription>
             Your available balance is {formatCurrency(stats.availableBalance, currency)}. 
-            Minimum withdrawal amount is {formatCurrency(settings.minimumWithdrawalAmount, currency)}.
+            Minimum withdrawal: {formatCurrency(settings.minimumWithdrawalAmount, currency)}.
+            Fee: {settings.withdrawalFeePercentage}%.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -381,6 +388,9 @@ export default function WithdrawPage() {
                         {...field}
                       />
                     </FormControl>
+                     <FormDescription>
+                        Fee ({settings.withdrawalFeePercentage}%): {formatCurrency(withdrawalFee, currency)}. You will receive: {formatCurrency(amountToReceive, currency)}.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -404,6 +414,7 @@ export default function WithdrawPage() {
                     <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Amount</TableHead>
+                        <TableHead>Fee</TableHead>
                         <TableHead>Method</TableHead>
                         <TableHead>Status</TableHead>
                     </TableRow>
@@ -414,6 +425,7 @@ export default function WithdrawPage() {
                         <TableRow key={withdrawal.id}>
                             <TableCell>{format(new Date(withdrawal.date), "PP")}</TableCell>
                             <TableCell>{formatCurrency(withdrawal.amount, currency)}</TableCell>
+                            <TableCell>{formatCurrency(withdrawal.fee, currency)}</TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>
                                 <Badge variant={withdrawal.status === 'completed' ? 'default' : withdrawal.status === 'pending' ? 'secondary' : 'destructive'}>
@@ -424,7 +436,7 @@ export default function WithdrawPage() {
                     ))
                    ) : (
                     <TableRow>
-                        <TableCell colSpan={4} className="text-center">No withdrawal history found.</TableCell>
+                        <TableCell colSpan={5} className="text-center">No withdrawal history found.</TableCell>
                     </TableRow>
                    )}
                 </TableBody>
@@ -434,3 +446,5 @@ export default function WithdrawPage() {
     </div>
   )
 }
+
+    

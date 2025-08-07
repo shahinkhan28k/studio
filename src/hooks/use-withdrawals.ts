@@ -56,7 +56,7 @@ export function useWithdrawals() {
         };
     }, [loadWithdrawals]);
 
-    const updateWithdrawalStatus = useCallback((withdrawalId: string, userId: string, amount: number, status: 'completed' | 'failed') => {
+    const updateWithdrawalStatus = useCallback((withdrawalId: string, userId: string, totalAmount: number, status: 'completed' | 'failed') => {
         const allWithdrawals = getFromStorage<WithdrawalRecord[]>(ALL_WITHDRAWALS_STORAGE_KEY, []);
         const withdrawalIndex = allWithdrawals.findIndex(d => d.id === withdrawalId);
 
@@ -77,7 +77,7 @@ export function useWithdrawals() {
         if (status === 'completed') {
             const newStats = {
                 ...currentStats,
-                totalWithdraw: (currentStats.totalWithdraw || 0) + amount,
+                totalWithdraw: (currentStats.totalWithdraw || 0) + totalAmount,
                 // Balance is already deducted on request, so no change here
             };
             setInStorage(userStatsKey, newStats);
@@ -85,7 +85,7 @@ export function useWithdrawals() {
             // If the withdrawal fails, add the amount back to the user's available balance.
              const newStats = {
                 ...currentStats,
-                availableBalance: (currentStats.availableBalance || 0) + amount,
+                availableBalance: (currentStats.availableBalance || 0) + totalAmount,
             };
             setInStorage(userStatsKey, newStats);
         }
@@ -95,3 +95,5 @@ export function useWithdrawals() {
 
     return { withdrawals, updateWithdrawalStatus, refreshWithdrawals: loadWithdrawals };
 }
+
+    
