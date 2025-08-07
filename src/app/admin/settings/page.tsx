@@ -59,7 +59,7 @@ const settingsFormSchema = z.object({
     z.object({
       level: z.coerce.number().min(1),
       requiredReferrals: z.coerce.number().min(0, "Required referrals must be 0 or more."),
-      commissionRate: z.coerce.number().min(0, "Commission rate must be 0 or more."),
+      commissionAmount: z.coerce.number().min(0, "Commission amount must be 0 or more."),
     })
   ),
   investmentReferralCommissionRate: z.coerce.number().min(0),
@@ -172,7 +172,7 @@ export default function SettingsPage() {
         toast({ title: "Level Limit", description: "You can only have up to 10 referral levels.", variant: "destructive" });
         return;
     }
-    append({ level: newLevelNumber, requiredReferrals: 0, commissionRate: 0 });
+    append({ level: newLevelNumber, requiredReferrals: 0, commissionAmount: 0 });
   }
 
   return (
@@ -355,10 +355,10 @@ export default function SettingsPage() {
                                 />
                                 <FormField
                                     control={settingsForm.control}
-                                    name={`referralLevels.${index}.commissionRate`}
+                                    name={`referralLevels.${index}.commissionAmount`}
                                     render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Commission Rate (%)</FormLabel>
+                                        <FormLabel>Commission Amount (BDT)</FormLabel>
                                         <FormControl><Input type="number" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -497,7 +497,7 @@ export default function SettingsPage() {
                                 banners.map((banner) => (
                                     <TableRow key={banner.id}>
                                     <TableCell>
-                                        <Image src={banner.src} alt={banner.alt} width={100} height={40} className="object-cover rounded-md" />
+                                        <Image src={banner.src ?? 'https://placehold.co/100x40.png'} alt={banner.alt ?? ''} width={100} height={40} className="object-cover rounded-md" />
                                     </TableCell>
                                     <TableCell>{banner.title}</TableCell>
                                     <TableCell>{banner.alt}</TableCell>

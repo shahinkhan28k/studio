@@ -206,13 +206,12 @@ export function useUserStats() {
     let earningUserInfo = allUsers.find(u => u.uid === targetUserId);
     
     // This is for commissions from other users (tasks or investment)
-    if (earningUserId && earningUserInfo?.referrerId) {
+    if (earningUserInfo?.referrerId) {
         let parentReferrerId = earningUserInfo.referrerId;
         if (parentReferrerId) {
             const referrerStats = getFromStorage(`userStats-${parentReferrerId}`, defaultStats);
-            // Simplified commission logic for now, can be expanded to MLM
-            const referralCommissionRate = settings.referralLevels[0]?.commissionRate ?? 0; 
-            const commission = baseAmount * (referralCommissionRate / 100);
+            // Commission logic for tasks (fixed amount per task)
+            const commission = settings.referralLevels[0]?.commissionAmount ?? 0;
             
             if (commission > 0) {
               updateStats(parentReferrerId, {
@@ -221,10 +220,23 @@ export function useUserStats() {
               });
             }
         }
+    } else if (earningUserId && settings.investmentReferralCommissionRate > 0) {
+        // This block handles investment referral commission for the immediate referrer.
+        const referrerId = allUsers.find(u => u.uid === earningUserId)?.referrerId;
+        if (referrerId) {
+            const commissionAmount = baseAmount * (settings.investmentReferralCommissionRate / 100);
+            if (commissionAmount > 0) {
+                const referrerStats = getFromStorage(`userStats-${referrerId}`, defaultStats);
+                 updateStats(referrerId, {
+                    totalEarnings: referrerStats.totalEarnings + commissionAmount,
+                    availableBalance: referrerStats.availableBalance + commissionAmount,
+                });
+            }
+        }
     }
 
 
-  }, [user, settings.referralLevels, updateStats]);
+  }, [user, settings.referralLevels, settings.investmentReferralCommissionRate, updateStats]);
   
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'>) => {

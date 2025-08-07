@@ -111,7 +111,7 @@ export default function ReferPage() {
                 <TableRow>
                   <TableHead>Level</TableHead>
                   <TableHead>Required Referrals</TableHead>
-                  <TableHead className="text-right">Commission Rate</TableHead>
+                  <TableHead className="text-right">Commission Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,7 +123,7 @@ export default function ReferPage() {
                             </Badge>
                         </TableCell>
                         <TableCell>{level.requiredReferrals}</TableCell>
-                        <TableCell className="text-right">{level.commissionRate}%</TableCell>
+                        <TableCell className="text-right">{formatCurrency(level.commissionAmount, currency)}</TableCell>
                     </TableRow>
                 ))}
               </TableBody>
