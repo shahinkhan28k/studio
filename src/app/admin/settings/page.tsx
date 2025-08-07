@@ -43,6 +43,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Switch } from "@/components/ui/switch"
 
 
 const bannerFormSchema = z.object({
@@ -74,6 +75,11 @@ const settingsFormSchema = z.object({
   supportEmail: z.string().email(),
   supportPhoneNumber: z.string(),
   supportWhatsApp: z.string(),
+  luckyDrawEnabled: z.boolean().default(false),
+  luckyDrawPrizes: z.array(z.object({
+    name: z.string().min(1, "Prize name is required."),
+    amount: z.coerce.number().min(0, "Amount must be 0 or more."),
+  })).max(10, "You can have a maximum of 10 prizes."),
 })
 
 export default function SettingsPage() {
@@ -96,19 +102,21 @@ export default function SettingsPage() {
   const settingsForm = useForm<z.infer<typeof settingsFormSchema>>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: {
-        referralLevels: [],
-        investmentReferralCommissionRate: 0,
-        withdrawalRequirement: 0,
-        minimumWithdrawalAmount: 0,
-        depositSessionDuration: 5,
-        agentNumbers: {
-            bkash: "",
-            nagad: "",
-            rocket: "",
-        },
-        supportEmail: "",
-        supportPhoneNumber: "",
-        supportWhatsApp: ""
+      referralLevels: [],
+      investmentReferralCommissionRate: 0,
+      withdrawalRequirement: 0,
+      minimumWithdrawalAmount: 0,
+      depositSessionDuration: 5,
+      agentNumbers: {
+        bkash: "",
+        nagad: "",
+        rocket: "",
+      },
+      supportEmail: "",
+      supportPhoneNumber: "",
+      supportWhatsApp: "",
+      luckyDrawEnabled: false,
+      luckyDrawPrizes: [],
     }
   })
 
@@ -116,6 +124,11 @@ export default function SettingsPage() {
     control: settingsForm.control,
     name: "referralLevels",
   })
+  
+  const { fields: prizeFields, append: appendPrize, remove: removePrize } = useFieldArray({
+      control: settingsForm.control,
+      name: "luckyDrawPrizes",
+  });
   
   React.useEffect(() => {
     if (settings) {
@@ -132,7 +145,9 @@ export default function SettingsPage() {
             },
             supportEmail: settings.supportEmail || "",
             supportPhoneNumber: settings.supportPhoneNumber || "",
-            supportWhatsApp: settings.supportWhatsApp || ""
+            supportWhatsApp: settings.supportWhatsApp || "",
+            luckyDrawEnabled: settings.luckyDrawEnabled ?? false,
+            luckyDrawPrizes: settings.luckyDrawPrizes ?? [],
         });
     }
   }, [settings, settingsForm]);
@@ -145,6 +160,7 @@ export default function SettingsPage() {
 
   const onSettingsSubmit = (data: z.infer<typeof settingsFormSchema>) => {
     const newSettings: Settings = {
+      ...settings, // carry over existing settings
       ...data,
       agentNumbers: {
         bkash: data.agentNumbers.bkash.split(",").map(s => s.trim()).filter(Boolean),
@@ -174,6 +190,15 @@ export default function SettingsPage() {
     }
     append({ level: newLevelNumber, requiredReferrals: 0, commissionAmount: 0 });
   }
+
+  const addNewPrize = () => {
+    if (prizeFields.length >= 10) {
+        toast({ title: "Prize Limit", description: "You can only have a maximum of 10 prizes.", variant: "destructive" });
+        return;
+    }
+    appendPrize({ name: "", amount: 0 });
+  };
+
 
   return (
     <div className="container py-6">
@@ -257,6 +282,26 @@ export default function SettingsPage() {
                                     </FormControl>
                                     <FormDescription>Commission rate for when a referred user invests.</FormDescription>
                                     <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={settingsForm.control}
+                                name="luckyDrawEnabled"
+                                render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 col-span-1 md:col-span-2">
+                                    <div className="space-y-0.5">
+                                    <FormLabel className="text-base">Enable Lucky Draw</FormLabel>
+                                    <FormDescription>
+                                        Turn the lucky draw feature on or off for all users.
+                                    </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                    </FormControl>
                                 </FormItem>
                                 )}
                             />
@@ -374,6 +419,57 @@ export default function SettingsPage() {
                     </AccordionContent>
                   </AccordionItem>
                 </Card>
+
+                 <Card>
+                    <AccordionItem value="lucky-draw" className="border-b-0">
+                        <AccordionTrigger className="p-6 w-full">
+                            <CardHeader className="p-0 text-left">
+                                <CardTitle>Lucky Draw Prizes</CardTitle>
+                                <CardDescription>Define the prizes for the lucky draw wheel (max 10).</CardDescription>
+                            </CardHeader>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <CardContent className="pt-0">
+                                <Button type="button" variant="outline" size="sm" onClick={addNewPrize} className="mb-4">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Prize
+                                </Button>
+                                <div className="space-y-4">
+                                    {prizeFields.map((field, index) => (
+                                        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg">
+                                            <FormField
+                                                control={settingsForm.control}
+                                                name={`luckyDrawPrizes.${index}.name`}
+                                                render={({ field }) => (
+                                                    <FormItem className="flex-grow">
+                                                        <FormLabel>Prize Name</FormLabel>
+                                                        <FormControl><Input placeholder="e.g., 50 BDT Bonus" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={settingsForm.control}
+                                                name={`luckyDrawPrizes.${index}.amount`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Amount (BDT)</FormLabel>
+                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="button" variant="destructive" size="icon" onClick={() => removePrize(index)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Card>
+
             </Accordion>
              <Button type="submit">Save All Settings</Button>
         </form>

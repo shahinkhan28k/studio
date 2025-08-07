@@ -17,6 +17,9 @@ import { useAppContext } from "@/context/app-context"
 import { formatCurrency } from "@/lib/utils"
 import React from "react"
 import { useAuth } from "@/context/auth-context"
+import { useSettings } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
+import { useLuckyDraw } from "@/hooks/use-lucky-draw"
 
 const defaultStats: UserStats = {
   totalEarnings: 0,
@@ -31,17 +34,25 @@ export default function ProfilePage() {
   const { stats } = useUserStats()
   const { language, currency } = useAppContext()
   const { user } = useAuth();
+  const { settings } = useSettings();
+  const { spins } = useLuckyDraw();
   const [isClient, setIsClient] = React.useState(false)
 
   React.useEffect(() => {
     setIsClient(true)
   }, []);
 
-
   const profileMenuItems = [
     { title: language.t('deposit'), href: "/profile/deposit", icon: Icons.Deposit },
     { title: language.t('withdraw'), href: "/profile/withdraw", icon: Icons.Withdraw },
     { title: language.t('myInvestments'), href: "/profile/my-investments", icon: Icons.Briefcase },
+    { 
+      title: "লাকি ড্র", 
+      href: "/profile/lucky-draw", 
+      icon: Icons.Gift, 
+      show: settings.luckyDrawEnabled,
+      badge: spins > 0 ? spins : null,
+    },
     { title: language.t('collaboration'), href: "/refer", icon: Icons.Refer },
     { title: language.t('accountDetails'), href: "/profile/account", icon: Icons.Profile },
     {
@@ -125,20 +136,23 @@ export default function ProfilePage() {
           <CardContent className="p-4">
             <ul className="space-y-2">
               {profileMenuItems.map((item) => (
-                <li key={item.title}>
-                  <Link href={item.href} passHref>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-between h-12"
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className="h-5 w-5 text-muted-foreground" />
-                        <span>{item.title}</span>
-                      </div>
-                      <Icons.ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Button>
-                  </Link>
-                </li>
+                (item.show === undefined || item.show) && (
+                  <li key={item.title}>
+                    <Link href={item.href} passHref>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between h-12"
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className="h-5 w-5 text-muted-foreground" />
+                          <span>{item.title}</span>
+                          {item.badge && <Badge variant="destructive">{item.badge}</Badge>}
+                        </div>
+                        <Icons.ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      </Button>
+                    </Link>
+                  </li>
+                )
               ))}
             </ul>
           </CardContent>

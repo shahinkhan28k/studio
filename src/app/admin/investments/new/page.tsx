@@ -49,6 +49,7 @@ const investmentPlanSchema = z.object({
   totalInvestors: z.coerce.number().int().min(0).default(0),
   isFeatured: z.boolean().default(false),
   purchaseLimit: z.coerce.number().int().min(0, "Purchase limit cannot be negative.").default(1),
+  luckyDrawSpins: z.coerce.number().int().min(0).default(0),
 });
 
 export default function NewInvestmentPlanPage() {
@@ -74,6 +75,7 @@ export default function NewInvestmentPlanPage() {
       totalInvestors: 0,
       isFeatured: false,
       purchaseLimit: 1,
+      luckyDrawSpins: 0,
     },
   })
 
@@ -312,6 +314,20 @@ export default function NewInvestmentPlanPage() {
                         <Input type="number" placeholder="e.g., 1" {...field} />
                       </FormControl>
                       <FormDescription>How many times a single user can buy this plan. 0 for unlimited.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="luckyDrawSpins"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lucky Draw Spins</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 1" {...field} />
+                      </FormControl>
+                      <FormDescription>Number of lucky draw spins awarded for this investment.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

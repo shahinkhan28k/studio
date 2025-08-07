@@ -17,6 +17,7 @@ import {
   TrendingUp,
   CalendarDays,
   Briefcase,
+  Gift,
 } from "lucide-react"
 
 export const Icons = {
@@ -50,4 +51,5 @@ export const Icons = {
   Investment: TrendingUp,
   DailyIncome: CalendarDays,
   Briefcase,
+  Gift,
 }

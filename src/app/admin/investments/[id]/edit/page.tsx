@@ -50,6 +50,7 @@ const investmentPlanSchema = z.object({
   totalInvestors: z.coerce.number().int().min(0).default(0),
   isFeatured: z.boolean().default(false),
   purchaseLimit: z.coerce.number().int().min(0, "Purchase limit cannot be negative.").default(1),
+  luckyDrawSpins: z.coerce.number().int().min(0).default(0),
 });
 
 export default function EditInvestmentPlanPage() {
@@ -64,6 +65,9 @@ export default function EditInvestmentPlanPage() {
 
   const form = useForm<InvestmentPlanFormValues>({
     resolver: zodResolver(investmentPlanSchema),
+    defaultValues: {
+      luckyDrawSpins: 0, // ensure default value
+    }
   });
 
   React.useEffect(() => {
@@ -72,7 +76,10 @@ export default function EditInvestmentPlanPage() {
       const planData = getInvestmentPlanById(planId);
       if (planData) {
         setPlan(planData);
-        form.reset(planData);
+        form.reset({
+          ...planData,
+          luckyDrawSpins: planData.luckyDrawSpins || 0, // ensure value is not undefined
+        });
       }
       setLoading(false);
     }
@@ -329,6 +336,20 @@ export default function EditInvestmentPlanPage() {
                         <Input type="number" placeholder="e.g., 1" {...field} />
                       </FormControl>
                       <FormDescription>How many times a single user can buy this plan. 0 for unlimited.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="luckyDrawSpins"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lucky Draw Spins</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 1" {...field} />
+                      </FormControl>
+                      <FormDescription>Number of lucky draw spins awarded for this investment.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

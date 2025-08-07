@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth-context"
 import { useUserStats } from "./use-user-stats"
 import { useSettings } from "./use-settings"
 import type { UserInfo } from "./use-admin-stats"
+import { useLuckyDraw } from "./use-lucky-draw"
 
 export interface InvestmentPlanFormValues {
   title: string
@@ -23,6 +24,7 @@ export interface InvestmentPlanFormValues {
   totalInvestors: number;
   isFeatured: boolean;
   purchaseLimit: number;
+  luckyDrawSpins?: number;
 }
 
 export type InvestmentPlan = InvestmentPlanFormValues & {
@@ -70,6 +72,7 @@ export function useInvestments() {
   const { user } = useAuth();
   const { stats, updateStats, addEarning } = useUserStats();
   const { settings } = useSettings();
+  const { addSpins } = useLuckyDraw();
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([]);
   const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
 
@@ -174,6 +177,10 @@ export function useInvestments() {
         }
     }
 
+    // Award lucky draw spins
+    if (settings.luckyDrawEnabled && plan.luckyDrawSpins && plan.luckyDrawSpins > 0) {
+        addSpins(plan.luckyDrawSpins);
+    }
 
     // Update total investors for the plan
     const updatedPlanData = { totalInvestors: plan.totalInvestors + 1 };
@@ -182,9 +189,7 @@ export function useInvestments() {
     // Save new investment
     setInStorage(USER_INVESTMENTS_STORAGE_KEY, [...allUserInvestments, newInvestment]);
     
-  }, [user, stats, updateStats, updateInvestmentPlan, settings.investmentReferralCommissionRate, addEarning]);
+  }, [user, stats, updateStats, updateInvestmentPlan, settings, addEarning, addSpins]);
 
   return { investmentPlans, addInvestmentPlan, updateInvestmentPlan, deleteInvestmentPlan, getInvestmentPlanById, investInPlan, userInvestments };
 }
-
-    

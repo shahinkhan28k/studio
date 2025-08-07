@@ -9,6 +9,11 @@ export type ReferralLevel = {
   commissionAmount: number;
 };
 
+export type LuckyDrawPrize = {
+    name: string;
+    amount: number;
+};
+
 export type Settings = {
   referralLevels: ReferralLevel[];
   investmentReferralCommissionRate: number;
@@ -24,6 +29,8 @@ export type Settings = {
   supportEmail: string;
   supportPhoneNumber: string;
   supportWhatsApp: string;
+  luckyDrawEnabled: boolean;
+  luckyDrawPrizes: LuckyDrawPrize[];
 };
 
 const SETTINGS_STORAGE_KEY = "platformSettings";
@@ -53,6 +60,19 @@ const defaultSettings: Settings = {
   supportEmail: "support@example.com",
   supportPhoneNumber: "+1234567890",
   supportWhatsApp: "1234567890",
+  luckyDrawEnabled: true,
+  luckyDrawPrizes: [
+    { name: "10 BDT", amount: 10 },
+    { name: "Try Again", amount: 0 },
+    { name: "50 BDT", amount: 50 },
+    { name: "Better Luck!", amount: 0 },
+    { name: "100 BDT", amount: 100 },
+    { name: "5 BDT", amount: 5 },
+    { name: "20 BDT", amount: 20 },
+    { name: "So Close!", amount: 0 },
+    { name: "500 BDT", amount: 500 },
+    { name: "1 BDT", amount: 1 },
+  ],
 };
 
 interface SettingsContextType {
@@ -73,6 +93,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
                 // Ensure referralLevels is always an array
                 if (!Array.isArray(parsed.referralLevels)) {
                     parsed.referralLevels = defaultSettings.referralLevels;
+                }
+                 if (!Array.isArray(parsed.luckyDrawPrizes)) {
+                    parsed.luckyDrawPrizes = defaultSettings.luckyDrawPrizes;
                 }
                 setSettingsState({ ...defaultSettings, ...parsed });
             } else {
