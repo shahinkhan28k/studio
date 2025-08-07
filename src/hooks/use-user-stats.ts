@@ -156,16 +156,8 @@ export function useUserStats() {
 
     setReferrals(getFromStorage(`referrals-${uid}`, []));
     
-    // Calculate total investment and update stats
-    const allUserInvestments = getFromStorage<UserInvestment[]>('userInvestments', []);
-    const userInvestments = allUserInvestments.filter(inv => inv.userId === uid);
-    const totalInvestment = userInvestments.reduce((sum, inv) => sum + inv.initialInvestment, 0);
-
     const currentStats = getFromStorage(`userStats-${uid}`, defaultStats);
-    const updatedStats = { ...currentStats, totalInvestment };
-    setInStorage(`userStats-${uid}`, updatedStats);
-    setStats(updatedStats);
-
+    setStats(currentStats);
 
   }, [uid]);
 
@@ -202,42 +194,40 @@ export function useUserStats() {
         todaysEarnings: newTodaysEarnings
     });
     
-    // Handle referral commission
     let allUsers: UserInfo[] = getFromStorage('allUsersData', []);
     let earningUserInfo = allUsers.find(u => u.uid === targetUserId);
     
-    // This is for commissions from other users (tasks or investment)
     if (earningUserInfo?.referrerId) {
         let parentReferrerId = earningUserInfo.referrerId;
-        if (parentReferrerId) {
-            const referrerStats = getFromStorage(`userStats-${parentReferrerId}`, defaultStats);
-            // Commission logic for tasks (fixed amount per task)
-            const commission = settings.referralLevels[0]?.commissionAmount ?? 0;
-            
-            if (commission > 0) {
-              updateStats(parentReferrerId, {
-                  totalEarnings: referrerStats.totalEarnings + commission,
-                  availableBalance: referrerStats.availableBalance + commission,
-              });
+        const allReferralLevels = [...settings.referralLevels].sort((a,b) => a.level - b.level);
+        
+        if (parentReferrerId && allReferralLevels.length > 0) {
+            const referrerInfo = allUsers.find(u => u.uid === parentReferrerId);
+            const referralsOfReferrer = allUsers.filter(u => u.referrerId === referrerInfo?.uid).length;
+
+            let currentLevel = 0;
+            for (const level of allReferralLevels) {
+                if (referralsOfReferrer >= level.requiredReferrals) {
+                    currentLevel = level.level;
+                } else {
+                    break;
+                }
             }
-        }
-    } else if (earningUserId && settings.investmentReferralCommissionRate > 0) {
-        // This block handles investment referral commission for the immediate referrer.
-        const referrerId = allUsers.find(u => u.uid === earningUserId)?.referrerId;
-        if (referrerId) {
-            const commissionAmount = baseAmount * (settings.investmentReferralCommissionRate / 100);
-            if (commissionAmount > 0) {
-                const referrerStats = getFromStorage(`userStats-${referrerId}`, defaultStats);
-                 updateStats(referrerId, {
-                    totalEarnings: referrerStats.totalEarnings + commissionAmount,
-                    availableBalance: referrerStats.availableBalance + commissionAmount,
+            
+            const commissionInfo = allReferralLevels.find(l => l.level === currentLevel);
+
+            if(commissionInfo && commissionInfo.commissionAmount > 0) {
+                const referrerStats = getFromStorage(`userStats-${parentReferrerId}`, defaultStats);
+                updateStats(parentReferrerId, {
+                    totalEarnings: referrerStats.totalEarnings + commissionInfo.commissionAmount,
+                    availableBalance: referrerStats.availableBalance + commissionInfo.commissionAmount,
                 });
             }
         }
     }
 
 
-  }, [user, settings.referralLevels, settings.investmentReferralCommissionRate, updateStats]);
+  }, [user?.uid, settings.referralLevels, updateStats]);
   
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'>) => {
@@ -255,6 +245,7 @@ export function useUserStats() {
       availableBalance: currentStats.availableBalance - totalDeduction,
     };
     setInStorage(`userStats-${uid}`, newStats);
+    setStats(newStats); // Immediately update local state
 
     const newRecord: WithdrawalRecord = { 
         ...withdrawal, 
@@ -270,7 +261,3 @@ export function useUserStats() {
 
   return { stats, depositHistory, withdrawalHistory, referrals, addEarning, addWithdrawal, updateStats, refresh: loadAllUserData };
 }
-
-    
-
-    

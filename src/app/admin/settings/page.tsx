@@ -513,7 +513,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>Banner Title</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., New Investment Plan" {...field} />
+                                <Input placeholder="e.g., New Investment Plan" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -526,7 +526,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>Banner Description</FormLabel>
                             <FormControl>
-                                <Input placeholder="Short description for the banner" {...field} />
+                                <Input placeholder="Short description for the banner" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -539,7 +539,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>Image URL</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://example.com/banner.png" {...field} />
+                                <Input placeholder="https://example.com/banner.png" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -566,7 +566,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>Alt Text</FormLabel>
                             <FormControl>
-                                <Input placeholder="Descriptive text for the banner" {...field} />
+                                <Input placeholder="Descriptive text for the banner" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -579,7 +579,7 @@ export default function SettingsPage() {
                             <FormItem>
                             <FormLabel>AI Hint</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., 'advertisement promotion'" {...field} />
+                                <Input placeholder="e.g., 'advertisement promotion'" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormDescription>One or two keywords for AI image search.</FormDescription>
                             <FormMessage />
@@ -638,5 +638,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
-    

@@ -56,7 +56,9 @@ export function useDeposit() {
   const [session, setSession] = useState<DepositSession | null>(null);
 
   const clearDepositSession = useCallback(() => {
-    localStorage.removeItem(DEPOSIT_SESSION_STORAGE_KEY);
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(DEPOSIT_SESSION_STORAGE_KEY);
+    }
     setSession(null);
   }, []);
 
@@ -70,11 +72,9 @@ export function useDeposit() {
       const parsedSession: DepositSession = JSON.parse(storedSession);
       if (new Date(parsedSession.expiresAt) > new Date() && parsedSession.userId === user.uid) {
         setSession(parsedSession);
-      } else {
-        if(new Date(parsedSession.expiresAt) <= new Date()){
+      } else if (new Date(parsedSession.expiresAt) <= new Date()){
           // Session expired, clear it
            clearDepositSession();
-        }
       }
     }
   }, [user, clearDepositSession]);

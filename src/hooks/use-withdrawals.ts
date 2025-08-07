@@ -32,7 +32,7 @@ const setInStorage = <T,>(key: string, value: T) => {
 
 export function useWithdrawals() {
     const [withdrawals, setWithdrawals] = useState<WithdrawalRecordWithUser[]>([]);
-    const { allUsersData } = useAdminStats();
+    const { allUsersData, refresh: refreshAdminStats } = useAdminStats();
 
     const loadWithdrawals = useCallback(() => {
         const allWithdrawals = getFromStorage<WithdrawalRecord[]>(ALL_WITHDRAWALS_STORAGE_KEY, []);
@@ -45,6 +45,8 @@ export function useWithdrawals() {
             }));
 
             setWithdrawals(withdrawalsWithUsers.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        } else {
+             setWithdrawals([]);
         }
     }, [allUsersData]);
 
@@ -93,7 +95,10 @@ export function useWithdrawals() {
         setInStorage(ALL_WITHDRAWALS_STORAGE_KEY, allWithdrawals);
     }, []);
 
-    return { withdrawals, updateWithdrawalStatus, refreshWithdrawals: loadWithdrawals };
-}
+    const refreshWithdrawals = useCallback(() => {
+        refreshAdminStats();
+        loadWithdrawals();
+    }, [loadWithdrawals, refreshAdminStats]);
 
-    
+    return { withdrawals, updateWithdrawalStatus, refreshWithdrawals };
+}
