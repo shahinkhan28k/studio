@@ -71,7 +71,10 @@ export function useDeposit() {
       if (new Date(parsedSession.expiresAt) > new Date() && parsedSession.userId === user.uid) {
         setSession(parsedSession);
       } else {
-        clearDepositSession();
+        if(new Date(parsedSession.expiresAt) <= new Date()){
+          // Session expired, clear it
+           clearDepositSession();
+        }
       }
     }
   }, [user, clearDepositSession]);
@@ -139,6 +142,7 @@ export function useDeposit() {
 // A hook for the admin panel
 export function useDeposits() {
     const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+    const { updateStats } = useUserStats();
     
     const loadDeposits = useCallback(() => {
         const allDeposits = getFromStorage<DepositRecord[]>(ALL_DEPOSITS_STORAGE_KEY, []);
@@ -169,19 +173,16 @@ export function useDeposits() {
         allDeposits[depositIndex].status = status;
         
         if (status === 'completed') {
-            const userStatsKey = `userStats-${userId}`;
             const { defaultStats } = require('@/hooks/use-user-stats');
-            const currentStats = getFromStorage(userStatsKey, defaultStats);
-            const newStats = {
-                ...currentStats,
-                totalDeposit: (currentStats.totalDeposit || 0) + amount,
-                availableBalance: (currentStats.availableBalance || 0) + amount,
-            };
-            setInStorage(userStatsKey, newStats);
+            const currentStats = getFromStorage(`userStats-${userId}`, defaultStats);
+            updateStats(userId, {
+              totalDeposit: currentStats.totalDeposit + amount,
+              availableBalance: currentStats.availableBalance + amount,
+            });
         }
         
         setInStorage(ALL_DEPOSITS_STORAGE_KEY, allDeposits);
-    }, []);
+    }, [updateStats]);
 
     return { deposits, updateDepositStatus, refreshDeposits: loadDeposits };
 }

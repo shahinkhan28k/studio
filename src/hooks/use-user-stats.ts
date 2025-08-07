@@ -91,31 +91,37 @@ const calculateDailyEarnings = (userId: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    activeInvestments.forEach(investment => {
-        const investmentDate = new Date(investment.investmentDate);
-        investmentDate.setHours(0, 0, 0, 0);
-        const endDate = new Date(investment.endDate);
-        endDate.setHours(0, 0, 0, 0);
-
-        if (today >= investmentDate && today <= endDate) {
-            dailyInvestmentIncome += investment.dailyIncome;
-        }
-    });
-
-    const userStats = getFromStorage<UserStats>(`userStats-${userId}`, defaultStats);
     const lastEarningsUpdateKey = `lastEarningsUpdate-${userId}`;
     const lastUpdateStr = getFromStorage(lastEarningsUpdateKey, new Date(0).toISOString());
     const lastUpdate = new Date(lastUpdateStr);
     lastUpdate.setHours(0, 0, 0, 0);
 
     if (today > lastUpdate) {
-        const newStats = {
-            ...userStats,
-            availableBalance: userStats.availableBalance + dailyInvestmentIncome,
-            totalEarnings: userStats.totalEarnings + dailyInvestmentIncome,
-            todaysEarnings: dailyInvestmentIncome 
-        };
-        setInStorage(`userStats-${userId}`, newStats);
+        activeInvestments.forEach(investment => {
+            const investmentDate = new Date(investment.investmentDate);
+            investmentDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(investment.endDate);
+            endDate.setHours(0, 0, 0, 0);
+
+            if (today >= investmentDate && today <= endDate) {
+                dailyInvestmentIncome += investment.dailyIncome;
+            }
+        });
+
+        if (dailyInvestmentIncome > 0) {
+            const userStats = getFromStorage<UserStats>(`userStats-${userId}`, defaultStats);
+            const newStats = {
+                ...userStats,
+                availableBalance: userStats.availableBalance + dailyInvestmentIncome,
+                totalEarnings: userStats.totalEarnings + dailyInvestmentIncome,
+                todaysEarnings: userStats.todaysEarnings + dailyInvestmentIncome
+            };
+            setInStorage(`userStats-${userId}`, newStats);
+        }
+        
+        // Always update the date, and if no income today, reset today's earnings
+        const userStats = getFromStorage<UserStats>(`userStats-${userId}`, defaultStats);
+        setInStorage(`userStats-${userId}`, { ...userStats, todaysEarnings: dailyInvestmentIncome });
         setInStorage(lastEarningsUpdateKey, today.toISOString());
     }
 };
@@ -198,25 +204,27 @@ export function useUserStats() {
     // Handle referral commission
     let allUsers: UserInfo[] = getFromStorage('allUsersData', []);
     let earningUserInfo = allUsers.find(u => u.uid === targetUserId);
-    let tempReferrerId = earningUserInfo?.referrerId;
     
     // This is for commissions from other users (tasks or investment)
-    if (earningUserId) {
-        let parentReferrerId = earningUserInfo?.referrerId;
+    if (earningUserId && earningUserInfo?.referrerId) {
+        let parentReferrerId = earningUserInfo.referrerId;
         if (parentReferrerId) {
             const referrerStats = getFromStorage(`userStats-${parentReferrerId}`, defaultStats);
-            const referralCommissionRate = settings.referralLevels[0]?.commissionRate ?? 0; // Simplified for now
+            // Simplified commission logic for now, can be expanded to MLM
+            const referralCommissionRate = settings.referralLevels[0]?.commissionRate ?? 0; 
             const commission = baseAmount * (referralCommissionRate / 100);
             
-            updateStats(parentReferrerId, {
-                totalEarnings: referrerStats.totalEarnings + commission,
-                availableBalance: referrerStats.availableBalance + commission,
-            });
+            if (commission > 0) {
+              updateStats(parentReferrerId, {
+                  totalEarnings: referrerStats.totalEarnings + commission,
+                  availableBalance: referrerStats.availableBalance + commission,
+              });
+            }
         }
     }
 
 
-  }, [user, settings, updateStats]);
+  }, [user, settings.referralLevels, updateStats]);
   
   
   const addWithdrawal = useCallback((withdrawal: Omit<WithdrawalRecord, 'date' | 'id' | 'userId'>) => {

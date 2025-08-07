@@ -36,14 +36,16 @@ export function useWithdrawals() {
 
     const loadWithdrawals = useCallback(() => {
         const allWithdrawals = getFromStorage<WithdrawalRecord[]>(ALL_WITHDRAWALS_STORAGE_KEY, []);
-        const usersMap = new Map<string, UserInfo>(allUsersData.map(u => [u.uid, u]));
-        
-        const withdrawalsWithUsers = allWithdrawals.map(withdrawal => ({
-            ...withdrawal,
-            userName: usersMap.get(withdrawal.userId)?.displayName ?? 'Unknown User'
-        }));
+        if (allUsersData.length > 0) {
+            const usersMap = new Map<string, UserInfo>(allUsersData.map(u => [u.uid, u]));
+            
+            const withdrawalsWithUsers = allWithdrawals.map(withdrawal => ({
+                ...withdrawal,
+                userName: usersMap.get(withdrawal.userId)?.displayName ?? 'Unknown User'
+            }));
 
-        setWithdrawals(withdrawalsWithUsers.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            setWithdrawals(withdrawalsWithUsers.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        }
     }, [allUsersData]);
 
     useEffect(() => {
@@ -76,7 +78,7 @@ export function useWithdrawals() {
             const newStats = {
                 ...currentStats,
                 totalWithdraw: (currentStats.totalWithdraw || 0) + amount,
-                availableBalance: (currentStats.availableBalance || 0) - amount,
+                // Balance is already deducted on request, so no change here
             };
             setInStorage(userStatsKey, newStats);
         } else if (status === 'failed') {

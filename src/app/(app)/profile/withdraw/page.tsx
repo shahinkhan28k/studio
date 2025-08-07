@@ -207,7 +207,10 @@ export default function WithdrawPage() {
             title: "Withdrawal Request Submitted",
             description: "Your request has been submitted and will be processed shortly.",
         });
-        form.reset();
+        form.reset({
+          ...data, // keep form data
+          amount: 0, // reset amount
+        });
     } catch (error) {
          toast({
             title: "Withdrawal Failed",
