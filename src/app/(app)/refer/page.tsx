@@ -33,7 +33,7 @@ export default function ReferPage() {
 
   React.useEffect(() => {
     if (user) {
-      const baseUrl = window.location.origin
+      const baseUrl = "https://onearn-platform.web.app";
       setReferralLink(`${baseUrl}/signup?ref=${user.uid}`)
     }
   }, [user])

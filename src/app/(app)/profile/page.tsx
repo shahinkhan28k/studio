@@ -47,7 +47,7 @@ export default function ProfilePage() {
     { title: language.t('withdraw'), href: "/profile/withdraw", icon: Icons.Withdraw },
     { title: language.t('myInvestments'), href: "/profile/my-investments", icon: Icons.Briefcase },
     { 
-      title: "লাকি ড্র", 
+      title: language.t('luckyDraw'), 
       href: "/profile/lucky-draw", 
       icon: Icons.Gift, 
       show: settings.luckyDrawEnabled,
