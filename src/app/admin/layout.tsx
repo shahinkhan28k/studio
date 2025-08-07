@@ -19,10 +19,30 @@ import { Home, Users, ClipboardList, Bell, Settings, Percent, ArrowDownToLine, A
 import React from "react"
 import { AppProvider } from "@/context/app-context"
 import { AdminHeader } from "@/components/admin-header"
-import { AdminAuthProvider } from "@/hooks/use-admin-auth"
+import { AdminAuthProvider, useAdminAuth } from "@/hooks/use-admin-auth"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/auth-context"
 
 
 function AdminPagesLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading: userLoading } = useAuth()
+  const { adminEmails } = useAdminAuth()
+  const router = useRouter()
+
+  React.useEffect(() => {
+    if (!userLoading && user) {
+      if (!adminEmails.includes(user.email?.toLowerCase() ?? '')) {
+        router.push('/')
+      }
+    } else if (!userLoading && !user) {
+       router.push('/')
+    }
+  }, [user, userLoading, adminEmails, router])
+
+  if (userLoading || !user || !adminEmails.includes(user.email?.toLowerCase() ?? '')) {
+    return <div className="container py-6">Loading or redirecting...</div>
+  }
+  
   return (
         <SidebarProvider>
         <Sidebar side="left" collapsible="icon">

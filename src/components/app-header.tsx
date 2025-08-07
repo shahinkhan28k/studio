@@ -23,11 +23,13 @@ import { auth } from "@/lib/firebase"
 import { signOut } from "firebase/auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 
 
 export function AppHeader() {
   const { language, setLanguage } = useAppContext();
   const { user } = useAuth();
+  const { adminEmails } = useAdminAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -52,6 +54,8 @@ export function AppHeader() {
       })
     }
   }
+
+  const isUserAdmin = user && adminEmails.includes(user.email?.toLowerCase() ?? '');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -115,7 +119,7 @@ export function AppHeader() {
                       <span>{language.t('settings')}</span>
                     </Link>
                   </DropdownMenuItem>
-                  {user.email === 'shahinkhan28r@gmail.com' && (
+                  {isUserAdmin && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">
                         <Shield className="mr-2 h-4 w-4" />
